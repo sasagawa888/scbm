@@ -611,8 +611,10 @@ static void *back_goto[RECURSIZE][THREADSIZE];
 static void *back_goto1[RECURSIZE][THREADSIZE];
 static int next_stack[RECURSIZE][256][THREADSIZE];
 static int back_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
+static int env_stack[256][100][256];
 static int np[THREADSIZE]; // next pointer
 static int rp[THREADSIZE]; // recur pointer
+static int vp[256][THREADSIZE]; //variable pointer
 
 static inline void Spush_next(void *cont,int th)
 {
