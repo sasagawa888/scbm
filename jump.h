@@ -664,7 +664,7 @@ static inline void Spush_back(void *cont, int arglist, int th)
     back_stack[rp[th]][WP_SCBM][th] = Jget_wp(th);
     back_stack[rp[th]][AC_SCBM][th] = Jget_ac(th);
     back_stack[rp[th]][ARGLIST_SCBM][th] = arglist;
-    back_stack[rp[th]][NP_SCBM][th] = np[th]+1;
+    back_stack[rp[th]][NP_SCBM][th] = np[th];
     back_goto[rp[th]][th] = cont;
 }
 
