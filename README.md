@@ -1,7 +1,18 @@
 # SCBM-Prolog　A small Prolog implementation
 
+## What is SCBM-Prolog?
+
+SCBM stands for **Sasagawa Continuation Backtracking Model**. It is a method for compiling Prolog based on a different approach from the Warren Abstract Machine (WAM).
+
+SCBM-Prolog compiles Prolog programs directly into C code. Execution is controlled by explicit **success continuations** and **failure continuations**, implemented using C's `goto` mechanism. Success continuations determine where execution proceeds after a goal succeeds, while failure continuations determine where execution resumes during backtracking.
+
+The main goal of SCBM is simplicity. Its execution model is relatively small and direct, making the compiler and runtime easier to implement and understand than a traditional WAM-based system.
+
+At the current stage of development, the primary focus is **correctness of the fundamental execution model**, especially recursion, backtracking, and the interaction between success and failure continuations. Performance optimization and additional features will follow once these basic mechanisms are fully stable.
+
+
 license is modified BSD.
-Note: We later became aware that another system with the same name, N-Prolog, already existed. This project is unrelated.
+
 
 ![scbm](scbm.png)
 
@@ -38,7 +49,7 @@ If you wish to run this project on an unsupported OS, please feel free to adapt 
 If your modifications are successful, we encourage you to publish a branch so that others can benefit from your work.
 
 
-## File Path Resolution in N-Prolog
+## File Path Resolution in SCBM-Prolog
 
 When loading files, SCBM-Prolog automatically resolves file paths based on the following rules:
 
