@@ -6,7 +6,7 @@ Note: We later became aware that another system with the same name, N-Prolog, al
 ![scbm](scbm.png)
 
 ## Relation to ISO-Prolog
-Although N-Prolog is a superset of ARITY/Prolog, it also implements most ISO-Prolog predicates. In addition, by adding the -d option at startup, strings are represented using double quotes, just as in ISO. For study and educational purposes, ISO-Prolog code can be sufficiently reproduced. Please refer to SUPER.md for details.
+Although SCBM-Prolog is a superset of ARITY/Prolog, it also implements most ISO-Prolog predicates. In addition, by adding the -d option at startup, strings are represented using double quotes, just as in ISO. For study and educational purposes, ISO-Prolog code can be sufficiently reproduced. Please refer to SUPER.md for details.
 
 
 ## Installation
@@ -15,11 +15,11 @@ Change to the git cloned or downloaded M-Prolog directory.
 
 - Type "sudo make install".
 
-Update M-Prolog
+Update SCBM-Prolog
 - Type "sudo make clean".
 - Type "sudo make install".
 
-N-Prolog requires ncurses library. Please install ncurses.
+SCBM-Prolog requires ncurses library. Please install ncurses.
 
 ```sh
 sudo apt install libncurses-dev
@@ -55,7 +55,7 @@ On Linux type "sudo make uninstall" on terminal.
 
 
 # invoke
-To invoke npl, enter command from terminal
+To invoke scbm, enter command from terminal
 
 ```
 scbm
