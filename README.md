@@ -1,12 +1,4 @@
-# M-Prolog　A small Prolog implementation
-M-Prolog is under active development for the time being.
-In particular, the compiler is not expected to function correctly yet.
-
-
-M-Prolog(MPL) is an interpreter and compiler to be superset of ARITY/PROLOG(MS-DOS)
-M-Prolog is an advanced successor to N-Prolog.
-It is being developed as an experimental project to dramatically improve execution performance through a complete redesign of the compiler.
-Its goal is to achieve practical high-speed execution using approaches different from the traditional WAM architecture.
+# SCBM-Prolog　A small Prolog implementation
 
 license is modified BSD.
 Note: We later became aware that another system with the same name, N-Prolog, already existed. This project is unrelated.
@@ -48,11 +40,11 @@ If your modifications are successful, we encourage you to publish a branch so th
 
 ## File Path Resolution in N-Prolog
 
-When loading files, M-Prolog automatically resolves file paths based on the following rules:
+When loading files, SCBM-Prolog automatically resolves file paths based on the following rules:
 
 1. **Relative paths** (starting with `./` or `../`) are used directly. If no extension is present, `.pl` is appended.
-2. If the environment variable `MPROLOG_HOME` is set, files are loaded from that directory.
-3. If `MPROLOG_HOME` is not set but `HOME` is, files are loaded from `$HOME/mprolog/`.
+2. If the environment variable `SCBM_HOME` is set, files are loaded from that directory.
+3. If `SCBM_HOME` is not set but `HOME` is, files are loaded from `$HOME/scbm/`.
 4. Otherwise, the given name is used as-is. If it lacks an extension, `.pl` is appended.
 
 In all cases, if the file name already contains a dot (`.`), it is assumed to include an extension and `.pl` will not be added.
@@ -66,12 +58,12 @@ On Linux type "sudo make uninstall" on terminal.
 To invoke npl, enter command from terminal
 
 ```
-mpl
+scbm
 
 -c option is for start up file.
 
 e.g.
-mpl -c init.pl
+scbm -c init.pl
 
 -r option is for Not editable REPL mode.
 Default, REPL is editable.
@@ -80,7 +72,7 @@ Default, REPL is editable.
 other option
 
 ```
-$ mpl -h
+$ scbm -h
 List of options:
 -a          -- string is ARITY/PROLOG e.g. $abc$.
 -c filename -- NPL starts after reading the file.
@@ -95,14 +87,14 @@ List of options:
 ```
 
 ## Goal
-M-Prolog aims to enjoy the experience of DEC10-Prolog from the 1980s.
+SCBM-Prolog aims to enjoy the experience of DEC10-Prolog from the 1980s.
 
 ## Video 
 [N-Prolog in 1 minute Tutorials](https://www.youtube.com/watch?v=w51nbR98cA8&list=PLZJFIgVbFOoJoQR0JjDsMcqpR_qiQ7cIU)
 
 ## example
 ```prolog
-M-Prolog Ver 0.91
+SCBM-Prolog Ver 1,01
 ?- length([1,2,3],X).
 X = 3
 yes
@@ -172,85 +164,3 @@ X = 人間 .
 yes
 
 ```
-# Youtube
-[Prolog 1minute](https://www.youtube.com/watch?v=w51nbR98cA8&list=PLZJFIgVbFOoJoQR0JjDsMcqpR_qiQ7cIU)
-
-# Dosuments
-This document provides an overview of many documents. Please read it first.
-
-![UserManual](./document/MANUAL.md)
-This is the user manual for N-Prolog.
-
-![Checker](./document/CHECKER.md)
-This is a description of the Prolog code checker library using static analysis.
-
-![CLPFD](./document/CLPFD.md)
-This is a description of the CLP(FD) library.
-
-![Compiler](./document/COMPILER.md)
-This is a description of the N-Prolog compiler.
-
-![DCG](./document/DCG.md)
-This is a description of the DCG library.
-
-![Edlog](./document/EDLOG.md)
-This is a description of Edlog, a CUI editor dedicated to N-Prolog.
-
-![History](./document/HISTORY.md)
-This is the development history of N-Prolog.
-
-![JSON](./document/JSON.md)
-This is a description of the JSON library.
-
-![List](./document/LIST.md)
-This is a description of the List library.
-
-![Module](./document/MODULE.md)
-This is a description of the module functionality in N-Prolog.
-
-![MultipleWorld](./document/MPW.md)
-This is a description of Professor Hideyuki Nakashima's multiple world mechanism.
-
-![OpenGL](./document/OPENGL.md)
-This is a library for interfacing with OpenGL.
-
-![Parallel1](./document/PARA1.md)
-This is a description of the distributed parallel features in N-Prolog.
-
-![Parallel2](./document/PARA2.md)
-This is a description of the multi-thread parallel features in N-Prolog.
-
-![Plot](./document/PLOT.md)
-This is a library for interfacing with Gnuplot.
-
-![Python](./document/PYTHON.md)
-This is a library for using TensorFlow via Python.
-
-![Math](./document/MATH.md)
-This is a description of the Math library.
-
-![SuperSet](./document/SUPERSET.md)
-This is a description of ISO-style predicates and other modern extended predicates.
-
-![TCL/TK](./document/TCLTK.md)
-This is a library for interfacing with Tcl/Tk.
-
-![TCP/IP](./document/TCPIP.md)
-This is a description of extended predicates for TCP/IP communication.
-
-![Unicode](./document/UNICODE.md)
-This is a description of how Unicode is handled in N-Prolog.
-
-![WiringPI](./document/WIRINGPI.md)
-On Raspberry Pi, predicates for WiringPi are installed. This is their description.
-
-![GPIO](./document/GPIO.md)
-On Raspberry Pi, predicates for libgpiod are installed. This is their description.
-
-
-![CUBE](./document/CUBE.md)
-Library for rubik's cube (2*2)
-
-
-**“This software is a technology created for peace and freedom.  
-It does not wish to serve, in any way, as a tool for oppression, suppression, human rights violations, or dictatorship.”**
