@@ -11,7 +11,7 @@ Its goal is to achieve practical high-speed execution using approaches different
 license is modified BSD.
 Note: We later became aware that another system with the same name, N-Prolog, already existed. This project is unrelated.
 
-![mpl](mpl.png)
+![scbm](scbm.png)
 
 ## Relation to ISO-Prolog
 Although N-Prolog is a superset of ARITY/Prolog, it also implements most ISO-Prolog predicates. In addition, by adding the -d option at startup, strings are represented using double quotes, just as in ISO. For study and educational purposes, ISO-Prolog code can be sufficiently reproduced. Please refer to SUPER.md for details.
