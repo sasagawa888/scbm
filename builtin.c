@@ -4987,7 +4987,7 @@ char *prolog_file_name(char *name)
     int n, i;
     static char str[STRSIZE];
 
-    const char *env_home = getenv("MPROLOG_HOME");
+    const char *env_home = getenv("SCBM_HOME");
     const char *home = getenv("HOME");
 
     /* 0 relative path */
@@ -5022,7 +5022,7 @@ char *prolog_file_name(char *name)
     /* 2. exist $HOME */
     if (home) {
 	strcpy(str, home);
-	strcat(str, "/mprolog/");
+	strcat(str, "/scbm/");
 	strcat(str, name);
 	n = strlen(str);
 	for (i = 0; i < n; i++) {

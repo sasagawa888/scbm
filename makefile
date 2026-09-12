@@ -18,13 +18,13 @@ CURSES_CFLAGS := $(shell command -v ncursesw6-config >/dev/null 2>&1 && ncursesw
 CURSES_LIBS   := $(shell command -v ncursesw6-config >/dev/null 2>&1 && ncursesw6-config --libs || echo "-lncurses")
 
 
-NPROLOG ?= $(CURDIR)
-export NPROLOG
+SCBMPROLOG ?= $(CURDIR)
+export SCBMPROLOG
 
-SHAREDIR ?= $(PREFIX)/share/mprolog
+SHAREDIR ?= $(PREFIX)/share/scbm
 export SHAREDIR
 
-MPL   := mpl
+SCBM   := scbm
 EDLOG := edlog
 
 
@@ -55,7 +55,7 @@ ifeq ($(USE_GDB),1)
 CFLAGS += -O0 -g
 endif
 
-MPL_OBJS := main.o \
+SCBM_OBJS := main.o \
 	parser.o \
 	function.o \
 	builtin.o \
@@ -85,16 +85,16 @@ SRC_PROLOG := library/opengl.pl \
 OBJ_PROLOG := $(SRC_PROLOG:.pl=.o)
 
 
-./library/%.o: ./library/%.pl $(MPL)
-	echo "use_module(compiler),compile_file('./$<')." | ./$(MPL) -r
+./library/%.o: ./library/%.pl $(SCBM)
+	echo "use_module(compiler),compile_file('./$<')." | ./$(SCBM) -r
 	touch $@
 
-TARGETS := $(MPL) $(EDLOG)
+TARGETS := $(SCBM) $(EDLOG)
 
 all: $(TARGETS)
 
 
-$(MPL): $(MPL_OBJS)
+$(SCBM): $(SCBM_OBJS)
 	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
 
 
@@ -110,9 +110,9 @@ edlog.o: edlog.c edlog.h term.h
 
 
 .PHONY: install
-install: $(MPL) $(EDLOG)
+install: $(SCBM) $(EDLOG)
 	mkdir -p $(DEST)
-	install -s $(MPL) $(DEST)
+	install -s $(SCBM) $(DEST)
 	install -s $(EDLOG) $(DEST)
 	mkdir -p $(DESTDIR)$(SHAREDIR)
 	install -m 644 library/* $(DESTDIR)$(SHAREDIR)
@@ -123,12 +123,12 @@ prolog: $(OBJ_PROLOG)
 
 .PHONY: uninstall
 uninstall:
-	rm -f $(DEST)/$(MPL) $(DEST)/$(EDLOG)
+	rm -f $(DEST)/$(SCBM) $(DEST)/$(EDLOG)
 
 # clean
 .PHONY: clean all
 clean:
-	rm -f *.o $(MPL) $(EDLOG) $(OBJ_PROLOG)
+	rm -f *.o $(SCBM) $(EDLOG) $(OBJ_PROLOG)
 
 
 .PHONY: check

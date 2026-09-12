@@ -1,5 +1,5 @@
 
-%:- module(jump,[compile_file/1,compile_file1/1,compile_file/2,type/2,mode/3]).
+:- module(jump,[compile_file/1,compile_file1/1,compile_file/2,type/2,mode/3]).
 
 %type(f,a,t).  (functor,arity,type) nondet det tail dyn mut
 %mode(f,1,[+]).  (functor,arity,modelist)
@@ -587,6 +587,13 @@ gen_nondet_body_argument(X,A,M,N) :-
     X =.. [_|Args],
     write('int '),write('arg_'),write(A),write('_'),write(M),write('_'),write(N),write(' = '),
     gen_a_argument(Args),write(';'),nl.
+
+
+gen_debug_path([P,A,M,N],Msg) :-
+    write('Sprint("'),write(Msg),write('_'),
+    write(P),write('_'),write(A),write('_'),
+    write(M),write('_'),write(N),write('  ");'),nl.
+
 
 recur_body(X,H) :-
     functor(X,P,A),
