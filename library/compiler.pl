@@ -912,22 +912,23 @@ gen_succ_cont([P,A,M,N1],D) :-
 
 gen_debug_print(_) :- not(option(debug,on)).
 gen_debug_print(Msg) :-
-    write('printf("'),write(Msg),write('");'),write("Snewline();").
+    write('printf("'),write(Msg),write(' rp=%d np=%d", rp[th], np[th]);'),
+    write("Snewline();").
 
 
 gen_debug_pred(_) :- not(option(debug,on)).
 gen_debug_pred(P) :-
-    write('printf("'),write(P),write('");'),
+    write('printf("'),write(P),write(' rp=%d np=%d", rp[th], np[th]);'),
     write('Jprint(arglist); Jprint(Jderef(arglist,th));'),
     write('Snewline();').
 
 gen_debug_path(_,_) :- not(option(debug,on)).
 gen_debug_path([P,A,M,N],Msg) :-
-    write('printf("'),write(Msg),
+    write('printf("'),write(Msg),write(' '),
     write(P),write('_'),
     write(A),write('_'),
     write(M),write('_'),
-    write(N),write('"),Snewline();').
+    write(N),write(' rp=%d np=%d", rp[th], np[th]); Snewline();').
 
 
 
