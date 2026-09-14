@@ -940,8 +940,9 @@ gen_succ_cont([P,A,M,N1],D) :-
 
 gen_debug_print(_) :- not(option(debug,on)),!.
 gen_debug_print(Msg) :-
-    write('printf("'),write(Msg),write(' rp=%d np=%d", rp[th], np[th]);'),
-    write("Snewline();").
+    write('printf("'),write(Msg),write('");'),
+    write("Snewline();"),
+    write('Jdebug();').
 
 
 gen_debug_pred(_) :- not(option(debug,on)),!.
