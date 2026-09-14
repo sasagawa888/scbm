@@ -314,6 +314,7 @@ void init_builtin(void)
     defbuiltin("n_reconsult_abolish", b_n_reconsult_abolish, -1);
     defbuiltin("n_dynamic_predicate", b_n_dynamic_predicate, -1);
     defbuiltin("n_filename", b_n_filename, -1);
+    defbuiltin("n_compile", b_n_compile, 3);
     defbuiltin("n_atom_convert", b_n_atom_convert, -1);
     defbuiltin("n_arity_count", b_n_arity_count, -1);
     defbuiltin("n_compiler_anonymous", b_n_compiler_anonymous, -1);
@@ -1578,7 +1579,7 @@ int b_tell(int arglist, int rest, int th)
 		makestream(fopen(GET_NAME(arg1), "w"), NPL_OUTPUT,
 			   NPL_TEXT, NIL, arg1);
 
-	    if (GET_PORT(input_stream) == NULL) {
+	    if (GET_PORT(output_stream) == NULL) {
 		output_stream = save;
 		exception(CANT_OPEN, ind, arg1, th);
 	    }
@@ -4984,68 +4985,25 @@ int b_rename(int arglist, int rest, int th)
 
 char *prolog_file_name(char *name)
 {
-    int n, i;
     static char str[STRSIZE];
-
-    const char *env_home = getenv("SCBM_HOME");
+    const char *root = getenv("SCBM_HOME");
     const char *home = getenv("HOME");
-
-    /* 0 relative path */
-    strcpy(str, name);
-    n = strlen(str);
-    if ((str[0] == '.' && str[1] == '/') ||
-	(str[0] == '.' && str[1] == '.' && str[2] == '/')) {
-	for (i = 2; i < n; i++) {
-	    if (str[i] == '.')
-		goto exit0;
-	}
-	strcat(str, ".pl");
-      exit0:
-	return (str);
-    }
-
-    /* 1. exist $NPROLOG_HOME */
-    if (env_home) {
-	strcpy(str, env_home);
-	strcat(str, "/");
-	strcat(str, name);
-	n = strlen(str);
-	for (i = 0; i < n; i++) {
-	    if (str[i] == '.')
-		goto exit1;
-	}
-	strcat(str, ".pl");
-      exit1:
-	return (str);
-    }
-
-    /* 2. exist $HOME */
-    if (home) {
-	strcpy(str, home);
-	strcat(str, "/scbm/");
-	strcat(str, name);
-	n = strlen(str);
-	for (i = 0; i < n; i++) {
-	    if (str[i] == '.')
-		goto exit2;
-	}
-	strcat(str, ".pl");
-      exit2:
-	return (str);
-    }
-
-    /* absuolute path */
-    strcpy(str, name);
-    n = strlen(str);
-
-    for (i = 0; i < n; i++) {
-	if (str[i] == '.')
-	    goto exit3;
-    }
-    strcat(str, ".pl");
-  exit3:
-    return (str);
-
+    const char *base = strrchr(name, '/');
+    const char *suffix = strchr(base ? base + 1 : name, '.') ? "" : ".pl";
+    int explicit_path = name[0] == '/' || strncmp(name, "./", 2) == 0 ||
+                        strncmp(name, "../", 3) == 0;
+    int size;
+    if (explicit_path)
+        size = snprintf(str, sizeof(str), "%s%s", name, suffix);
+    else if (root)
+        size = snprintf(str, sizeof(str), "%s/%s%s", root, name, suffix);
+    else if (home)
+        size = snprintf(str, sizeof(str), "%s/scbm/%s%s", home, name, suffix);
+    else
+        size = snprintf(str, sizeof(str), "%s%s", name, suffix);
+    if (size < 0 || size >= sizeof(str))
+        exception(RESOURCE_ERR, makestr("file path length"), NIL, 0);
+    return str;
 }
 
 int b_edit(int arglist, int rest, int th)

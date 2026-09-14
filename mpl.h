@@ -904,6 +904,7 @@ int b_findall(int arglist, int rest, int th);
 int b_n_findatom(int arglist, int rest, int th);
 int b_fileerrors(int arglist, int rest, int th);
 int b_n_filename(int arglist, int rest, int th);
+int b_n_compile(int arglist, int rest, int th);
 int b_float_text(int arglist, int rest, int th);
 int b_flush(int arglist, int rest, int th);
 int b_flush_output(int arglist, int rest, int th);

@@ -53,6 +53,7 @@ compile_file4(X) :-
 
 pass1(X) :-
     retractall(type(_,_,_)),
+    retractall(option(library,_)),
     assertz((type(dummy,dummy,dummy))),
 	write(user_output,'phase pass1'),
     nl(user_output),
@@ -92,26 +93,18 @@ system builtin predicate invoke GCC
 gcc -O3 -w -shared -fPIC -o <filenam>.c <filename>.o <option>
 */
 invoke_gcc(X) :-
-	write(user_output,'invoke GCC'),nl(user_output),
-	n_filename(X,F),
-    atom_concat(F,'.c ',Cfile),
-    atom_concat(F,'.o ',Ofile),
-    atom_concat(Ofile,Cfile,Files),
-    atom_concat('gcc -O3 -w -flto -shared -fPIC -I$HOME/scbm -o ',Files,Gen1),
-    (option(library,Opt1),atom_string(Opt,Opt1),atom_concat(Gen1,Opt,Gen) ; Gen = Gen1),
-    shell(Gen),
-    atom_concat('rm ',Cfile,Del),
-    shell(Del).
+    invoke_gcc_not_remove(X),
+    n_filename(X,F),
+    atom_concat(F,'.c',Cfile),
+    delete(Cfile).
 
 invoke_gcc_not_remove(X) :-
-	write(user_output,'invoke GCC'),
-    nl(user_output),
-	n_filename(X,F),
-    atom_concat(F,'.c ',Cfile),
-    atom_concat(F,'.o ',Ofile),
-    atom_concat(Ofile,Cfile,Files),
-    atom_concat('gcc -O3 -w -flto -shared -fPIC -I$HOME/scbm -o ',Files,Gen),
-    shell(Gen).
+    write(user_output,'invoke GCC'),nl(user_output),
+    n_filename(X,F),
+    atom_concat(F,'.c',Cfile),
+    atom_concat(F,'.o',Ofile),
+    ifthenelse(option(library,Opt),true,Opt=""),
+    ifthenelse(n_compile(Cfile,Ofile,Opt),true,invoke_error('GCC failed: ',Cfile)).
 
 
 /*

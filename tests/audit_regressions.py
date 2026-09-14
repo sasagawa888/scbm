@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def atom(value):
-    return "'" + str(value).replace('\\', '\\\\').replace("'", "\\'") + "'"
+    return "'" + str(value).replace('\\', '\\\\').replace("'", "''") + "'"
 
 
 class SCBMTest(unittest.TestCase):
@@ -251,6 +251,10 @@ class SearchTests(SCBMTest):
 
 
 class CompilerTests(SCBMTest):
+    def compile_cli(self, source, env=None):
+        return self.process([sys.executable, str(Path(__file__).resolve()), '--compile', str(source)],
+                            env=env)
+
     def test_gcc_failure(self):
         source = self.source('cdeclare("#error AUDIT_EXPECTED_FAILURE").\np(a).\np(b).\n')
         result = self.run_prolog(
@@ -260,6 +264,77 @@ class CompilerTests(SCBMTest):
         self.assertNotIn('unexpected_success', result.stdout)
         self.assertTrue(source.with_suffix('.c').exists(), 'Failed build must retain generated C')
         self.assertFalse(source.with_suffix('.o').exists())
+        result = self.compile_cli(source)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('AUDIT_EXPECTED_FAILURE', result.stdout)
+
+    def test_preserve_object(self):
+        source = self.source('p(a).\np(b).\n')
+        self.succeeded(self.compile_cli(source))
+        obj = source.with_suffix('.o')
+        before = obj.read_bytes()
+        source.write_text('cdeclare("#error FAILED_REBUILD").\np(c).\np(d).\n')
+        result = self.compile_cli(source)
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn('FAILED_REBUILD', result.stdout)
+        self.assertEqual(before, obj.read_bytes())
+        self.answers('p(X)', '[a,b]', [obj])
+        self.assertEqual(list(self.folder.glob('*.o.*')), [])
+
+    def test_path_characters(self):
+        source = self.source('p(a).\np(b).\n', "space's;touch AUDIT_PWN;v1")
+        self.succeeded(self.compile_cli(source))
+        self.answers('p(X)', '[a,b]', [source.with_suffix('.o')])
+        self.assertFalse((ROOT / 'AUDIT_PWN').exists())
+
+    def test_missing_source(self):
+        result = self.compile_cli(self.folder / 'missing.pl')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn('SIGSEGV', result.stdout)
+        self.assertRegex(result.stdout, r'(?i)(exist|open)')
+
+    def test_compiler_process_failures(self):
+        source = self.source('p(a).\np(b).\n')
+        self.succeeded(self.compile_cli(source))
+        before = source.with_suffix('.o').read_bytes()
+        bin_dir = self.folder / 'bin'
+        bin_dir.mkdir()
+        for script, message in [(None, 'Cannot run GCC'),
+                                ('kill -TERM $$', 'GCC terminated by signal'),
+                                ('exit 0', 'GCC produced no object')]:
+            with self.subTest(script=script):
+                if script:
+                    gcc = bin_dir / 'gcc'
+                    gcc.write_text('#!/bin/sh\n' + script + '\n')
+                    gcc.chmod(0o755)
+                result = self.compile_cli(source, env={'PATH': str(bin_dir)})
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(message, result.stdout)
+                self.assertEqual(source.with_suffix('.o').read_bytes(), before)
+                self.assertTrue(source.with_suffix('.c').exists())
+                self.assertEqual(list(self.folder.glob('*.o.*')), [])
+
+    def test_installed_compiler(self):
+        destination = self.folder / 'install area'
+        self.succeeded(self.process(['make', 'install', f'DESTDIR={destination}'], timeout=60))
+        share = destination / 'usr/local/share/scbm'
+        binary = destination / 'usr/local/bin/scbm'
+        source = self.source('p(a).\np(b).\n')
+        query = (f'use_module(compiler).\ncompile_file({atom(source)}).\n'
+                 f'consult({atom(source.with_suffix(".o"))}).\n'
+                 'findall(X,p(X),R),R==[a,b],write(audit_ok),nl,halt.\n')
+        result = self.process([str(binary), '-r'], query, env={'SCBM_HOME': str(share)})
+        self.succeeded(result)
+        self.assertIn('audit_ok', result.stdout)
+        before = source.with_suffix('.o').read_bytes()
+        (share / 'jump.h').unlink()
+        failure_query = (f'use_module(compiler).\ncompile_file({atom(source)}),'
+                         'write(unexpected_success),halt.\n')
+        result = self.process([str(binary), '-r'], failure_query, env={'SCBM_HOME': str(share)})
+        self.succeeded(result)
+        self.assertIn('jump.h', result.stdout)
+        self.assertNotIn('unexpected_success', result.stdout)
+        self.assertEqual(source.with_suffix('.o').read_bytes(), before)
 
     def test_absolute_path(self):
         source = self.source('p(a).\np(b).\n')
@@ -289,4 +364,9 @@ class GateTests(SCBMTest):
 
 
 if __name__ == '__main__':
-    unittest.main(verbosity=2)
+    if len(sys.argv) == 3 and sys.argv[1] == '--compile':
+        check = SCBMTest()
+        check.expect_ok(f'compile_file({atom(Path(sys.argv[2]).resolve())})',
+                        [ROOT / 'library/compiler.pl'])
+    else:
+        unittest.main(verbosity=2)
