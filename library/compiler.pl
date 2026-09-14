@@ -852,16 +852,14 @@ gen_nondet_body_argument(Args,Vars) :-
     write('arglist = '),gen_a_argument(Args),write(';'),nl.
 
 
-gen_pack_pointer([],_) :-
-    write('next_stack[np[th]+1][255][th] = arglist;'),nl.
+gen_pack_pointer([],_).
 gen_pack_pointer([L|Ls],N) :-
     write('next_stack[np[th]+1]['),write(N),write('][th] = '),write(L),write(';'),nl,
     N1 is N+1,
     gen_pack_pointer(Ls,N1).
    
 
-gen_unpack_pointer([],_) :-
-    write('arglist = next_stack[np[th]+1][255][th];'),nl.
+gen_unpack_pointer([],_).
 gen_unpack_pointer([L|Ls],N) :-
     write(L),write('= next_stack[np[th]+1]['),write(N),write('][th];'),nl,
     N1 is N+1,
