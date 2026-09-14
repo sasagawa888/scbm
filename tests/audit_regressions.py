@@ -1,0 +1,215 @@
+"""Regression checks for the compiled runtime and its real CLI consumers.
+
+Run on Linux after building scbm. Python's standard library is sufficient.
+"""
+
+import itertools
+import json
+import os
+from pathlib import Path
+import re
+import signal
+import subprocess
+import sys
+import tempfile
+import unittest
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def atom(value):
+    return "'" + str(value).replace('\\', '\\\\').replace("'", "\\'") + "'"
+
+
+class SCBMTest(unittest.TestCase):
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory(prefix='audit-', dir=ROOT)
+        self.addCleanup(self.directory.cleanup)
+        self.folder = Path(self.directory.name)
+
+    def process(self, command, query=None, timeout=20, env=None):
+        settings = dict(os.environ, SCBM_HOME=str(ROOT),
+                        UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1')
+        settings.update(env or {})
+        with subprocess.Popen(command, cwd=ROOT, env=settings, text=True,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT, start_new_session=True) as child:
+            try:
+                output, _ = child.communicate(query, timeout=timeout)
+            except subprocess.TimeoutExpired:
+                os.killpg(child.pid, signal.SIGKILL)
+                output, _ = child.communicate()
+                self.fail(f'Timed out: {command}\n{output[-4000:]}')
+        return subprocess.CompletedProcess(command, child.returncode, output)
+
+    def run_prolog(self, query, modules=(), **options):
+        loads = ''.join('use_module(compiler).\n' if m == ROOT / 'library/compiler.pl'
+                        else f'consult({atom(self.relative(m))}).\n' for m in modules)
+        return self.process([str(ROOT / 'scbm'), '-r'], loads + query, **options)
+
+    def relative(self, path):
+        return './' + str(Path(path).relative_to(ROOT))
+
+    def succeeded(self, result):
+        self.assertEqual(result.returncode, 0, result.stdout[-6000:])
+        self.assertNotIn('runtime error:', result.stdout)
+
+    def expect_ok(self, goal, modules=()):
+        result = self.run_prolog(f'({goal}),write(audit_ok),nl,halt.\n', modules)
+        self.succeeded(result)
+        self.assertEqual(result.stdout.count('audit_ok'), 1, result.stdout)
+        return result
+
+    def answers(self, goal, expected, modules=(), template='X'):
+        result = self.run_prolog(
+            f'findall({template},({goal}),R),write(\'RESULT:\'),write(R),nl,halt.\n',
+            modules)
+        self.succeeded(result)
+        matches = re.findall(r'RESULT:([^\r\n]+)', result.stdout)
+        self.assertEqual(matches, [expected], result.stdout)
+
+    def source(self, text, name='program'):
+        path = self.folder / (name + '.pl')
+        path.write_text(text)
+        return path
+
+    def compile(self, source, sanitize=False):
+        if Path(source).parent != self.folder:
+            source = self.source(Path(source).read_text(), Path(source).stem)
+        self.expect_ok(f'compile_file({atom(self.relative(source))},c)',
+                       [ROOT / 'library/compiler.pl'])
+        c_file = source.with_suffix('.c')
+        self.assertTrue(c_file.exists())
+        obj = source.with_suffix('.o')
+        flags = ['-O1', '-g', '-fsanitize=undefined'] if sanitize else ['-O3', '-flto']
+        result = self.process(['gcc', *flags, '-shared', '-fPIC', '-I', str(ROOT),
+                               '-o', str(obj), str(c_file)], timeout=60)
+        self.succeeded(result)
+        self.assertTrue(obj.exists())
+        return obj
+
+
+class BuildSmokeTests(SCBMTest):
+    def test_interpreter(self):
+        self.answers('pair(X,Y)', '[[a,1],[a,2],[b,1],[b,2]]',
+                     [ROOT / 'tests/stress1.pl'], template='[X,Y]')
+
+    def test_deterministic_compilation(self):
+        obj = self.compile(self.source('twice(X,Y) :- Y is X*2.\n'))
+        self.expect_ok('twice(3,Y),Y==6', [obj])
+
+    def test_compiled_positive(self):
+        obj = self.compile(ROOT / 'tests/stress1.pl')
+        self.answers('pair(X,Y)', '[[a,1],[a,2],[b,1],[b,2]]', [obj], '[X,Y]')
+
+
+class MemoryTests(SCBMTest):
+    def test_module_registration(self):
+        obj = self.compile(self.source('value(a).\nvalue(b).\n'), sanitize=True)
+        self.answers('value(X)', '[a,b]', [obj])
+
+    def test_depth_limit(self):
+        obj = self.compile(ROOT / 'tests/stress2.pl', sanitize=True)
+        for count in [32, 4100]:
+            with self.subTest(count=count):
+                values = '[' + ','.join(['a'] * count) + ']'
+                result = self.run_prolog(
+                    f'findall(X,mem(X,{values}),R),length(R,N),write(N),nl,halt.\n', [obj])
+                self.assertNotIn('runtime error:', result.stdout, result.stdout)
+                self.assertNotEqual(result.returncode, -signal.SIGSEGV, result.stdout)
+                if count == 32:
+                    self.succeeded(result)
+                    self.assertRegex(result.stdout, r'\b32\b')
+                else:
+                    self.assertIn('Resource error', result.stdout)
+
+    def test_missing_initializer(self):
+        c_file = self.folder / 'invalid.c'
+        c_file.write_text('int unrelated(void) { return 0; }\n')
+        obj = c_file.with_suffix('.o')
+        self.succeeded(self.process(['gcc', '-shared', '-fPIC', '-o', str(obj), str(c_file)]))
+        result = self.run_prolog('halt.\n', [obj])
+        self.assertGreaterEqual(result.returncode, 0, result.stdout)
+        self.assertRegex(result.stdout, r'(?i)(error|missing|invalid)')
+
+
+class SearchTests(SCBMTest):
+    def test_external_conjunction(self):
+        obj = self.compile(ROOT / 'tests/stress1.pl')
+        colors = ['red', 'green', 'blue']
+        expected = '[' + ','.join(f'[{a},{b}]' for a in colors for b in colors) + ']'
+        self.answers('color(X),color(Y)', expected, [obj], '[X,Y]')
+
+    def test_findall_rollback(self):
+        obj = self.compile(ROOT / 'tests/stress1.pl')
+        self.expect_ok('findall(X,color(X),R),R==[red,green,blue],var(X)', [obj])
+
+    def test_disjunction(self):
+        obj = self.compile(self.source('p(a).\np(b).\nq(X) :- (p(X);X=c).\n'))
+        self.answers('q(X)', '[a,b,c]', [obj])
+
+    def test_sorting(self):
+        obj = self.compile(ROOT / 'tests/stress4.pl')
+        for values in itertools.permutations([1, 2, 3]):
+            with self.subTest(values=values):
+                self.answers(f'sort_test({list(values)},X)', '[[1,2,3]]', [obj])
+
+    def test_permutations(self):
+        obj = self.compile(ROOT / 'tests/stress4.pl')
+        for count in [3, 4]:
+            values = list(range(1, count + 1))
+            expected = json.dumps(list(itertools.permutations(values)), separators=(',', ':'))
+            self.answers(f'perm1({values},X)', expected, [obj])
+
+    def test_queens(self):
+        obj = self.compile(ROOT / 'tests/queens.pl')
+        for count in [4, 9]:
+            values = list(range(1, count + 1))
+            expected = [p for p in itertools.permutations(values)
+                        if all(abs(p[i] - p[j]) != j - i
+                               for i in range(count) for j in range(i + 1, count))]
+            self.assertEqual(len(expected), {4: 2, 9: 352}[count])
+            self.answers(f'queen({values},X)', json.dumps(expected, separators=(',', ':')), [obj])
+
+
+class CompilerTests(SCBMTest):
+    def test_gcc_failure(self):
+        source = self.source('cdeclare("#error AUDIT_EXPECTED_FAILURE").\np(a).\np(b).\n')
+        result = self.run_prolog(
+            f'compile_file({atom(self.relative(source))}),write(unexpected_success),nl,halt.\n',
+            [ROOT / 'library/compiler.pl'])
+        self.assertIn('AUDIT_EXPECTED_FAILURE', result.stdout)
+        self.assertNotIn('unexpected_success', result.stdout)
+        self.assertTrue(source.with_suffix('.c').exists(), 'Failed build must retain generated C')
+        self.assertFalse(source.with_suffix('.o').exists())
+
+    def test_absolute_path(self):
+        source = self.source('p(a).\np(b).\n')
+        self.expect_ok(f'compile_file({atom(source)})', [ROOT / 'library/compiler.pl'])
+        self.answers('p(X)', '[a,b]', [source.with_suffix('.o')])
+
+
+class GateTests(SCBMTest):
+    def test_legacy_suite(self):
+        result = self.run_prolog('halt.\n', [ROOT / 'verify/all.pl'])
+        self.succeeded(result)
+        self.assertNotIn('wrong ', result.stdout, result.stdout)
+        self.assertIn('All tests are done', result.stdout)
+
+    def test_harness_negatives(self):
+        setup = (f'import runpy,sys; ns=runpy.run_path({str(Path(__file__).resolve())!r}); '
+                 'test=ns["SCBMTest"](); test.setUp(); ')
+        for body, diagnostic in [
+            ('test.expect_ok("fail")', 'AssertionError'),
+            ('test.process([sys.executable,"-c","import time;time.sleep(1)"],timeout=0.03)',
+             'Timed out'),
+        ]:
+            with self.subTest(body=body):
+                result = self.process([sys.executable, '-c', setup + body])
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                self.assertIn(diagnostic, result.stdout)
+
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2)
