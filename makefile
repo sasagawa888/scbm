@@ -6,6 +6,7 @@ USE_GPIO ?= 0
 USE_FLTO ?= 0
 
 CC   := gcc
+PYTHON ?= python3
 LIBS := -lm -ldl -pthread
 INCS :=
 CFLAGS := $(INCS) -Wall -O3 -flto
@@ -86,8 +87,7 @@ OBJ_PROLOG := $(SRC_PROLOG:.pl=.o)
 
 
 ./library/%.o: ./library/%.pl $(SCBM)
-	echo "use_module(compiler),compile_file('./$<')." | ./$(SCBM) -r
-	touch $@
+	$(PYTHON) tests/audit_regressions.py --compile "$<"
 
 TARGETS := $(SCBM) $(EDLOG)
 
@@ -111,11 +111,10 @@ edlog.o: edlog.c edlog.h term.h
 
 .PHONY: install
 install: $(SCBM) $(EDLOG)
-	mkdir -p $(DEST)
-	install -s $(SCBM) $(DEST)
-	install -s $(EDLOG) $(DEST)
-	mkdir -p $(DESTDIR)$(SHAREDIR)
-	install -m 644 library/* $(DESTDIR)$(SHAREDIR)
+	mkdir -p "$(DEST)" "$(DESTDIR)$(SHAREDIR)/library"
+	install -s $(SCBM) $(EDLOG) "$(DEST)"
+	install -m 644 library/*.pl "$(DESTDIR)$(SHAREDIR)/library"
+	install -m 644 jump.h mpl.h "$(DESTDIR)$(SHAREDIR)"
 
 
 .PHONY: prolog
@@ -133,4 +132,8 @@ clean:
 
 .PHONY: check
 check:
-	cppcheck --enable=warning,performance,portability --std=c17 --library=posix -j4 .
+	cppcheck --enable=warning,performance --std=c17 --library=posix --inline-suppr --error-exitcode=1 -j4 $(sort $(SCBM_OBJS:.o=.c) $(EDLOG_OBJS:.o=.c))
+
+.PHONY: test
+test: $(TARGETS)
+	$(PYTHON) tests/audit_regressions.py

@@ -210,6 +210,8 @@ void init_builtin(void)
     defbuiltin("peek_byte", b_peek_byte, list2(1, 2));
     defbuiltin("flush_output", b_flush_output, list2(0, 1));
     defbuiltin("catch", b_catch, 3);
+    defbuiltin("n_catch_rest", b_n_catch_rest, 2);
+    defbuiltin("n_cps_cut", b_n_cps_cut, 1);
     defbuiltin("throw", b_throw, 1);
     defbuiltin("unify_with_occurs_check", b_unify_with_occurs_check, 2);
     defbuiltin("current_input", b_current_input, 1);
@@ -314,6 +316,7 @@ void init_builtin(void)
     defbuiltin("n_reconsult_abolish", b_n_reconsult_abolish, -1);
     defbuiltin("n_dynamic_predicate", b_n_dynamic_predicate, -1);
     defbuiltin("n_filename", b_n_filename, -1);
+    defbuiltin("n_compile", b_n_compile, 3);
     defbuiltin("n_atom_convert", b_n_atom_convert, -1);
     defbuiltin("n_arity_count", b_n_arity_count, -1);
     defbuiltin("n_compiler_anonymous", b_n_compiler_anonymous, -1);
@@ -675,11 +678,15 @@ int b_n_notunify(int arglist, int rest, int th)
     if (n == 2) {
 	arg1 = car(arglist);
 	arg2 = cadr(arglist);
+	int saved_sp = sp[th], saved_wp = wp[th], saved_ac = ac[th];
 	if (operationp(arg1))
 	    arg1 = operate(arg1, th);
 	if (operationp(arg2))
 	    arg2 = operate(arg2, th);
 	res = unify(arg1, arg2, th);
+	unbind(saved_sp, th);
+	wp[th] = saved_wp;
+	ac[th] = saved_ac;
 	if (res == NO)
 	    return (prove_all(rest, sp[th], th));
 	else
@@ -1578,7 +1585,7 @@ int b_tell(int arglist, int rest, int th)
 		makestream(fopen(GET_NAME(arg1), "w"), NPL_OUTPUT,
 			   NPL_TEXT, NIL, arg1);
 
-	    if (GET_PORT(input_stream) == NULL) {
+	    if (GET_PORT(output_stream) == NULL) {
 		output_stream = save;
 		exception(CANT_OPEN, ind, arg1, th);
 	    }
@@ -2204,11 +2211,7 @@ int b_n_equalp(int arglist, int rest, int th)
 	arg1 = car(arglist);
 	arg2 = cadr(arglist);
 
-	if (anonymousp(arg1) || anonymousp(arg2))
-	    return (YES);
-	else if (variablep(arg1) || variablep(arg2))
-	    return (YES);
-	else if (equalp(arg1, arg2))
+	if (equalp(arg1, arg2))
 	    return (prove_all(rest, sp[th], th));
 	else
 	    return (NO);
@@ -2595,7 +2598,7 @@ int b_call(int arglist, int rest, int th)
 	if (atom_constant_p(arg1))
 	    arg1 = makeatom(GET_NAME(arg1), PRED);
 
-	return (prove_all(addtail_body(rest, arg1, th), sp[th], th));
+	return prove_cps(arg1, rest, th) == YES ? YES : NO;
     }
     exception(ARITY_ERR, ind, arglist, th);
     return (NO);
@@ -2615,7 +2618,11 @@ int b_not(int arglist, int rest, int th)
 	if (!callablep(arg1))
 	    exception(NOT_CALLABLE, ind, arg1, th);
 
+	int saved_sp = sp[th], saved_wp = wp[th], saved_ac = ac[th];
 	res = prove_all(arg1, sp[th], th);
+	unbind(saved_sp, th);
+	wp[th] = saved_wp;
+	ac[th] = saved_ac;
 	if (res == YES)
 	    return (NO);
 	else
@@ -3723,7 +3730,7 @@ int b_ifthen(int arglist, int rest, int th)
 	if (variablep(arg2))
 	    exception(INSTANTIATION_ERR, ind, arg2, th);
 
-	if (prove_all(arg1, sp[th], th) == YES) {
+	if (prove_cps(arg1, NIL, th) == YES) {
 	    return (prove_all(addtail_body(rest, arg2, th), sp[th], th));
 	} else {
 	    unbind(save1, th);
@@ -3756,7 +3763,7 @@ int b_ifthenelse(int arglist, int rest, int th)
 	if (variablep(arg3))
 	    exception(INSTANTIATION_ERR, ind, arg3, th);
 
-	if (prove_all(arg1, sp[th], th) == YES) {
+	if (prove_cps(arg1, NIL, th) == YES) {
 	    return (prove_all(addtail_body(rest, arg2, th), sp[th], th));
 	} else {
 	    unbind(save1, th);
@@ -3801,7 +3808,7 @@ int b_case(int arglist, int rest, int th)
 	while (!(predicatep(arg1) || builtinp(arg1) || compiledp(arg1)
 		 || conjunctionp(arg1) || disjunctionp(arg1))) {
 	    ifthen = car(arg1);
-	    if (prove_all(cadr(ifthen), sp[th], th) == YES)
+	    if (prove_cps(cadr(ifthen), NIL, th) == YES)
 		return (prove_all
 			(addtail_body(rest, caddr(ifthen), th), sp[th],
 			 th));
@@ -4690,7 +4697,7 @@ int b_current_op(int arglist, int rest, int th)
 	   e.g. ',' ':-'  aux of operator is SIMP
 	   beclause of parsing. so change to OPE from SIMP
 	 */
-	if (getatom(GET_NAME(arg3), OPE, hash(GET_NAME(arg3))))
+	if (!wide_variable_p(arg3) && getatom(GET_NAME(arg3), OPE, hash(GET_NAME(arg3))))
 	    arg3 = makeatom(GET_NAME(arg3), OPE);
 
 	lis = op_list;
@@ -4984,68 +4991,25 @@ int b_rename(int arglist, int rest, int th)
 
 char *prolog_file_name(char *name)
 {
-    int n, i;
     static char str[STRSIZE];
-
-    const char *env_home = getenv("SCBM_HOME");
+    const char *root = getenv("SCBM_HOME");
     const char *home = getenv("HOME");
-
-    /* 0 relative path */
-    strcpy(str, name);
-    n = strlen(str);
-    if ((str[0] == '.' && str[1] == '/') ||
-	(str[0] == '.' && str[1] == '.' && str[2] == '/')) {
-	for (i = 2; i < n; i++) {
-	    if (str[i] == '.')
-		goto exit0;
-	}
-	strcat(str, ".pl");
-      exit0:
-	return (str);
-    }
-
-    /* 1. exist $NPROLOG_HOME */
-    if (env_home) {
-	strcpy(str, env_home);
-	strcat(str, "/");
-	strcat(str, name);
-	n = strlen(str);
-	for (i = 0; i < n; i++) {
-	    if (str[i] == '.')
-		goto exit1;
-	}
-	strcat(str, ".pl");
-      exit1:
-	return (str);
-    }
-
-    /* 2. exist $HOME */
-    if (home) {
-	strcpy(str, home);
-	strcat(str, "/scbm/");
-	strcat(str, name);
-	n = strlen(str);
-	for (i = 0; i < n; i++) {
-	    if (str[i] == '.')
-		goto exit2;
-	}
-	strcat(str, ".pl");
-      exit2:
-	return (str);
-    }
-
-    /* absuolute path */
-    strcpy(str, name);
-    n = strlen(str);
-
-    for (i = 0; i < n; i++) {
-	if (str[i] == '.')
-	    goto exit3;
-    }
-    strcat(str, ".pl");
-  exit3:
-    return (str);
-
+    const char *base = strrchr(name, '/');
+    const char *suffix = strchr(base ? base + 1 : name, '.') ? "" : ".pl";
+    int explicit_path = name[0] == '/' || strncmp(name, "./", 2) == 0 ||
+                        strncmp(name, "../", 3) == 0;
+    int size;
+    if (explicit_path)
+        size = snprintf(str, sizeof(str), "%s%s", name, suffix);
+    else if (root)
+        size = snprintf(str, sizeof(str), "%s/%s%s", root, name, suffix);
+    else if (home)
+        size = snprintf(str, sizeof(str), "%s/scbm/%s%s", home, name, suffix);
+    else
+        size = snprintf(str, sizeof(str), "%s%s", name, suffix);
+    if (size < 0 || size >= sizeof(str))
+        exception(RESOURCE_ERR, makestr("file path length"), NIL, 0);
+    return str;
 }
 
 int b_edit(int arglist, int rest, int th)

@@ -15,7 +15,7 @@ typedef char* (*fn6)(int);
 typedef double (*fn7)(int);
 typedef int (*fn8)(int , int , int , int , int);
 typedef void (*tpred)(char*, int(*pred)(int , int, int), int, int);
-typedef void (*tuser)(char*, int(*user)(int , int), int weight, int spec);
+typedef void (*tuser)(char*, int(*user)(int, int, int), int weight, int spec);
 
 static fn0 f0[NUM_FN0S];
 static fn1 f1[NUM_FN1S];
@@ -32,36 +32,56 @@ tpred deftsys;
 
 static int dynamic_clause;
 
-void init0(int n, tpred x){
+int scbm_abi_version(void){
+    return SCBM_ABI_VERSION;
+}
+
+int init0(int n, scbm_function x){
+    if ((unsigned)n >= NUM_FN0S || x == NULL) return NO;
     f0[n] = (fn0)x;
+    return YES;
 }
 
-void init1(int n, tpred x){
+int init1(int n, scbm_function x){
+    if ((unsigned)n >= NUM_FN1S || x == NULL) return NO;
     f1[n] = (fn1)x;
+    return YES;
 }
 
-void init2(int n, tpred x){
+int init2(int n, scbm_function x){
+    if ((unsigned)n >= NUM_FN2S || x == NULL) return NO;
     f2[n] = (fn2)x;
+    return YES;
 }
 
-void init3(int n, tpred x){
+int init3(int n, scbm_function x){
+    if ((unsigned)n >= NUM_FN3S || x == NULL) return NO;
     f3[n] = (fn3)x;
+    return YES;
 }
 
-void init4(int n, tpred x){
+int init4(int n, scbm_function x){
+    if ((unsigned)n >= NUM_FN4S || x == NULL) return NO;
     f4[n] = (fn4)x;
+    return YES;
 }
 
-void init5(int n, tpred x){
+int init5(int n, scbm_function x){
+    if ((unsigned)n >= NUM_FN5S || x == NULL) return NO;
     f5[n] = (fn5)x;
+    return YES;
 }
 
-void init6(int n, tpred x){
+int init6(int n, scbm_function x){
+    if ((unsigned)n >= NUM_FN6S || x == NULL) return NO;
     f6[n] = (fn6)x;
+    return YES;
 }
 
-void init7(int n, tpred x){
+int init7(int n, scbm_function x){
+    if ((unsigned)n >= NUM_FN7S || x == NULL) return NO;
     f7[n] = (fn7)x;
+    return YES;
 }
 
 
@@ -425,6 +445,10 @@ static inline int Jwlist2(int x, int y, int th) {
 }
 
 
+static inline int Jprove_cps(int body, int rest, int th) {
+    return f3[PROVE_CPS_IDX](body, rest, th);
+}
+
 static inline int Jaddtail_body(int x, int y, int th) {
     return f3[ADDTAIL_BODY_IDX](x, y, th);
 }
@@ -607,12 +631,35 @@ static void mouse_callback()
 
 
 static void *next_goto[RECURSIZE][THREADSIZE];
+// Live choices retain their continuation chain even after a successful return.
+static int next_parent[RECURSIZE][THREADSIZE];
 static void *back_goto[RECURSIZE][THREADSIZE];
 static void *back_goto1[RECURSIZE][THREADSIZE];
 static int next_stack[RECURSIZE][256][THREADSIZE];
 static int back_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
-static int np[THREADSIZE]; // next pointer
-static int rp[THREADSIZE]; // recur pointer
+static int *np;
+// Shared cursors let catch and the REPL unwind calls across module boundaries.
+static int *rp;
+static int *nt;
+
+void init_scbm(int *next, int *back, int *top)
+{
+    np = next;
+    rp = back;
+    nt = top;
+}
+
+static inline void Scheck_next(int th)
+{
+    if (nt[th] < 0 || nt[th] + 1 >= RECURSIZE)
+        Jerrorcomp(RESOURCE_ERR, Jmakestr("SCBM next stack size"), NIL);
+}
+
+static inline void Scheck_back(int th)
+{
+    if (rp[th] < 0 || rp[th] + 1 >= RECURSIZE)
+        Jerrorcomp(RESOURCE_ERR, Jmakestr("SCBM back stack size"), NIL);
+}
 
 static inline void Snewline()
 {
@@ -625,11 +672,13 @@ static inline void Spush_next(void *cont,int th)
     printf(" Spush_next (%d) np=%d\n",rp[th], np[th]);
     #endif
 
-    if (np[th] + 1 >= RECURSIZE)
-	Jerrorcomp(RESOURCE_ERR, Jmakestr("Spush_next SCBM stack size"), NIL);
+    Scheck_next(th);
 
-    np[th]++;
+    next_parent[++nt[th]][th] = np[th];
+    np[th] = nt[th];
     next_goto[np[th]][th] = cont;
+    if (back_stack[rp[th]][RETURN_SCBM][th] == 0)
+        back_stack[rp[th]][RETURN_SCBM][th] = np[th];
 }
 
 
@@ -642,7 +691,7 @@ static inline void Spop_next(int th)
     if (np[th] <= 0)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("Spop_next SCBM stack size"), NIL);
 
-    np[th]--;
+    np[th] = next_parent[np[th]][th];
 }
 
 
@@ -653,8 +702,7 @@ static inline void Spush_back(void *cont, int arglist, int th)
     #endif
    
 
-    if (rp[th] + 1 >= RECURSIZE)
-	Jerrorcomp(RESOURCE_ERR, Jmakestr("Spush_back SCBM stack size"), arglist);
+    Scheck_back(th);
 
     rp[th]++;
     back_stack[rp[th]][SP_SCBM][th] = Jget_sp(th);
@@ -663,6 +711,8 @@ static inline void Spush_back(void *cont, int arglist, int th)
     back_stack[rp[th]][AC_SCBM][th] = Jget_ac(th);
     back_stack[rp[th]][ARGLIST_SCBM][th] = arglist;
     back_stack[rp[th]][NP_SCBM][th] = np[th];
+    back_stack[rp[th]][NT_SCBM][th] = nt[th];
+    back_stack[rp[th]][RETURN_SCBM][th] = 0;
     back_goto[rp[th]][th] = cont;
     back_goto1[rp[th]][th] = cont;
 }

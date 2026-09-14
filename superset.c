@@ -574,8 +574,8 @@ int b_findall(int arglist, int rest, int th)
 	nonfree_list = NIL;
 	prove_all(goal, sp[th], th);
 
-	unify(arg3, listreverse(cdar(bag_list)), th);
-	if (prove_all(rest, sp[th], th) == YES)
+	if (unify(arg3, listreverse(cdar(bag_list)), th) == YES &&
+	    prove_all(rest, sp[th], th) == YES)
 	    return (YES);
 
 	wp[th] = save1;
@@ -1581,9 +1581,89 @@ int b_number_chars(int arglist, int rest, int th)
 }
 
 
+static int catch_active[CTRLSTK][THREADSIZE];
+static jmp_buf cps_cut_buf[RECURSIZE][THREADSIZE];
+
+/* Only transparent control constructs inherit a clause's cut boundary. */
+static int scope_cuts(int body, int scope, int th)
+{
+    if (body == CUT)
+        return wlist2(makesys("n_cps_cut"), makeint(scope), th);
+    if (conjunctionp(body) || disjunctionp(body) || ifthenp(body)) {
+        int left = ifthenp(body) ? cadr(body) : scope_cuts(cadr(body), scope, th);
+        int right = scope_cuts(caddr(body), scope, th);
+        if (left != cadr(body) || right != caddr(body))
+            return wlist3(car(body), left, right, th);
+    }
+    return body;
+}
+
+int prove_cps(int body, int rest, int th)
+{
+    int scope = cps_depth[th];
+    int saved_cp = cp[th], saved_np = scbm_np[th];
+    int saved_rp = scbm_rp[th], saved_nt = scbm_nt[th];
+    int saved_sp = sp[th], saved_wp = wp[th], saved_ac = ac[th];
+    int scoped_body = scope_cuts(body, scope, th);
+    if (scoped_body == body)
+        return prove_all(addtail_body(rest, body, th), sp[th], th);
+    if (scope >= RECURSIZE) {
+        exception(RESOURCE_ERR, makestr("CPS cut stack"), NIL, th);
+        return NO;
+    }
+    cps_depth[th]++;
+    if (setjmp(cps_cut_buf[scope][th]) != 0) {
+        cp[th] = saved_cp;
+        scbm_np[th] = saved_np;
+        scbm_rp[th] = saved_rp;
+        scbm_nt[th] = saved_nt;
+        cps_depth[th] = scope;
+        unbind(saved_sp, th);
+        wp[th] = saved_wp;
+        ac[th] = saved_ac;
+        return NFALSE;
+    }
+    int res = prove_all(addtail_body(rest, scoped_body, th), sp[th], th);
+    cps_depth[th] = scope;
+    return res;
+}
+
+int b_n_cps_cut(int arglist, int rest, int th)
+{
+    int scope = car(arglist);
+    if (length(arglist) != 1 || !integerp(scope) || GET_INT(scope) < 0 ||
+        GET_INT(scope) >= cps_depth[th]) {
+        exception(ILLEGAL_ARGS, makeind("n_cps_cut", 1, th), arglist, th);
+        return NO;
+    }
+    if (prove_all(rest, sp[th], th) == YES)
+        return YES;
+    /* Discard choices only after the cut's entire suffix has failed. */
+    longjmp(cps_cut_buf[GET_INT(scope)][th], 1);
+}
+
+int b_n_catch_rest(int arglist, int rest, int th)
+{
+    int depth = car(arglist);
+    if (length(arglist) != 2 || !integerp(depth) || GET_INT(depth) < 0 ||
+        GET_INT(depth) >= cp[th]) {
+        exception(ILLEGAL_ARGS, makeind("n_catch_rest", 2, th), arglist, th);
+        return NO;
+    }
+    int pt = GET_INT(depth);
+    /* Keep the slot reserved while excluding the caller's continuation. */
+    catch_active[pt][th] = NO;
+    int res = prove_all(addtail_body(rest, cadr(arglist), th), sp[th], th);
+    catch_active[pt][th] = YES;
+    return res;
+}
+
 int b_catch(int arglist, int rest, int th)
 {
     int n, ind, arg1, arg2, arg3, pt, res;
+    int saved_np = scbm_np[th], saved_rp = scbm_rp[th];
+    int saved_nt = scbm_nt[th];
+    int saved_cps = cps_depth[th];
 
     n = length(arglist);
     ind = makeind("catch", n, th);
@@ -1595,31 +1675,29 @@ int b_catch(int arglist, int rest, int th)
 	if (!callablep(arg1))
 	    exception(NOT_CALLABLE, ind, arg1, th);
 
-	catch_data[cp[th]][0][th] = arg2;	//tag
-	catch_data[cp[th]][1][th] = sp[th];	//sp for restore catch
-	int ret = setjmp(catch_buf[cp[th]][th]);
 	pt = cp[th];
-
-	if (cp[th] > CTRLSTK) {
+	if (pt >= CTRLSTK) {
 	    exception(RESOURCE_ERR, ind, makestr("ctrlstk"), th);
+	    return NO;
 	}
+	catch_data[pt][0][th] = arg2;
+	catch_data[pt][1][th] = sp[th];
+	catch_active[pt][th] = YES;
+	int ret = setjmp(catch_buf[pt][th]);
 
 	if (ret == 0) {
 	    cp[th]++;
-	    if (prove_all(arg1, sp[th], th) == YES) {
-		res = prove_all(rest, sp[th], th);
-		cp[th]--;
-		return (res);
-	    } else
-		return (NO);
+	    int cont = wlist3(makesys("n_catch_rest"), makeint(pt), rest, th);
+	    res = prove_cps(arg1, cont, th);
+	    cp[th] = pt;
+	    return res == YES ? YES : NO;
 	} else if (ret == 1) {
-	    sp[th] = catch_data[pt][1][th];
-	    if (prove_all(arg3, sp[th], th) == YES) {
-		res = prove_all(rest, sp[th], th);
-		cp[th]--;
-		return (res);
-	    } else
-		return (NO);
+	    scbm_np[th] = saved_np;
+	    scbm_rp[th] = saved_rp;
+	    scbm_nt[th] = saved_nt;
+	    cps_depth[th] = saved_cps;
+	    cp[th] = pt;
+	    return prove_cps(arg3, rest, th) == YES ? YES : NO;
 	}
 	return (NO);
     }
@@ -1632,8 +1710,16 @@ void throw(int tag, int th)
     int i;
 
     for (i = cp[th] - 1; i >= 0; i--) {
-	if (unify(catch_data[i][0][th], tag, th) == YES)
+	if (catch_active[i][th] != YES)
+	    continue;
+	int saved_sp = sp[th];
+	if (unify(catch_data[i][0][th], tag, th) == YES) {
+	    int value = copy_heap(deref(tag, th));
+	    unbind(catch_data[i][1][th], th);
+	    unify(catch_data[i][0][th], value, th);
 	    longjmp(catch_buf[i][th], 1);
+	}
+	unbind(saved_sp, th);
     }
 }
 

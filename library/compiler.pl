@@ -53,6 +53,7 @@ compile_file4(X) :-
 
 pass1(X) :-
     retractall(type(_,_,_)),
+    retractall(option(library,_)),
     assertz((type(dummy,dummy,dummy))),
 	write(user_output,'phase pass1'),
     nl(user_output),
@@ -63,7 +64,8 @@ pass2(_) :-
     write(user_output,'phase pass2'),
     nl(user_output),
     analize,
-    retype_halt.
+    retype_halt,
+    retype_cps.
 
 retype_halt :-
     retract(type(P,A,halt)),
@@ -92,26 +94,18 @@ system builtin predicate invoke GCC
 gcc -O3 -w -shared -fPIC -o <filenam>.c <filename>.o <option>
 */
 invoke_gcc(X) :-
-	write(user_output,'invoke GCC'),nl(user_output),
-	n_filename(X,F),
-    atom_concat(F,'.c ',Cfile),
-    atom_concat(F,'.o ',Ofile),
-    atom_concat(Ofile,Cfile,Files),
-    atom_concat('gcc -O3 -w -flto -shared -fPIC -I$HOME/scbm -o ',Files,Gen1),
-    (option(library,Opt1),atom_string(Opt,Opt1),atom_concat(Gen1,Opt,Gen) ; Gen = Gen1),
-    shell(Gen),
-    atom_concat('rm ',Cfile,Del),
-    shell(Del).
+    invoke_gcc_not_remove(X),
+    n_filename(X,F),
+    atom_concat(F,'.c',Cfile),
+    delete(Cfile).
 
 invoke_gcc_not_remove(X) :-
-	write(user_output,'invoke GCC'),
-    nl(user_output),
-	n_filename(X,F),
-    atom_concat(F,'.c ',Cfile),
-    atom_concat(F,'.o ',Ofile),
-    atom_concat(Ofile,Cfile,Files),
-    atom_concat('gcc -O3 -w -flto -shared -fPIC -I$HOME/scbm -o ',Files,Gen),
-    shell(Gen).
+    write(user_output,'invoke GCC'),nl(user_output),
+    n_filename(X,F),
+    atom_concat(F,'.c',Cfile),
+    atom_concat(F,'.o',Ofile),
+    ifthenelse(option(library,Opt),true,Opt=""),
+    ifthenelse(n_compile(Cfile,Ofile,Opt),true,invoke_error('GCC failed: ',Cfile)).
 
 
 /*
@@ -146,6 +140,7 @@ gen_pred_def(P) :-
     write(','),write(A),write(','),write(T1),write(');'),nl,!.
 
 pred_type(nondet,1).
+pred_type(cps,1).
 pred_type(det,2).
 pred_type(tail,3).
 pred_type(dyn,4).
@@ -253,6 +248,8 @@ gen_predicate.
 % generate predicate P
 gen_a_pred(P) :- 
     type(P,_,nondet),gen_nondet_pred(P).     
+gen_a_pred(P) :-
+    type(P,_,cps),gen_cps_pred(P).
 gen_a_pred(P) :- 
     type(P,_,det),gen_det_pred(P).
 gen_a_pred(P) :- 
@@ -495,11 +492,13 @@ gen_head1([X|Xs],N) :-
 % --------- generate big SCBM function-----------
 
 gen_SCBM_function :-
+    write('/* Label addresses must survive GCC inlining and cloning. */'),nl,
+    write('__attribute__((noinline,noclone))'),nl,
     write('static int user_scbm(int pred, int arity, int clause, int arglist, int rest, int th){'),nl,
     write('void *next;'),nl,
     write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number'),
     gen_all_variable,write(';'),nl,
-    write('np[th] = 0; rp[th] = 0;'),nl,
+    write('int base_np = np[th], base_rp = rp[th], base_nt = nt[th], resume, cut_base;'),nl,
     write('Spush_back(&&allfail,arglist,th);'),nl,
     write('Spush_next(&&success,th);'),nl,
     gen_pred_switch,
@@ -548,6 +547,7 @@ gen_pred_switch :-
     write('}'),nl.
 
 gen_pred_switch1 :-
+    n_reconsult_predicate(P),
     type(P,_,nondet),
     ctr_is(0,N),
     ctr_inc(0,_),
@@ -595,10 +595,13 @@ gen_SCBM_function31(P,A,[],N) :-
     write('goto allfail;'),nl,nl,!.
 gen_SCBM_function31(P,A,[C|Cs],N) :-
     write(P),write('_'),write(A),write('_'),write(N),write(':'),nl,
+    write('cut_base = rp[th];'),nl,
     gen_var_assign(1,A),!,
     write('Srelease(th);'),nl,
     n_variable_convert(C,X),
     n_generate_variable(X,V),
+    length(V,Count),
+    ifthenelse(Count < 255,true,invoke_error('SCBM local variable limit: ',Count)),
     gen_var(V),!,
     gen_a_nondet_clause(X,A,N,P,V),
     N1 is N+1,
@@ -607,29 +610,35 @@ gen_SCBM_function31(P,A,[C|Cs],N) :-
 gen_SCBM_function4 :-
     write('success:'),nl,
     gen_debug_print('success'),
-    write('if(np[th] == 0){'),nl,
-    write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
+    write('if(np[th] == base_np){'),nl,
+    write('if(Jprove_all(rest,Jget_sp(th),th) == YES){'),nl,
+    write('np[th] = base_np; rp[th] = base_rp; nt[th] = base_nt; return YES;}'),nl,
+    write('goto retry;'),nl,
+    write('}else{'),nl,
+    write('resume = np[th];'),nl,
+    write('next = next_goto[resume][th];'),nl,
+    write('Spop_next(th);'),nl,
+    write('clause = Sget_choice(th);'),nl,
+    write('goto *next;}'),nl,
+    write('retry:'),nl,
     write('next = back_goto[rp[th]][th];'),nl,
     write('clause = Sget_choice(th);'),nl,
     write('arglist = Sget_arg(th);'),nl,
-    write('np[th] = Sget_np(th);'),nl,
-    write('Spush_next(&&success,th);'),nl,
-    write('goto *next;'),nl,
-    write('}else{'),nl,
-    write('next = next_goto[np[th]][th];'),nl,
-    write('Spop_next(th);'),nl,
-    write('clause = Sget_choice(th);'),nl,
-    write('goto *next;}'),nl.
+    write('np[th] = back_stack[rp[th]][RETURN_SCBM][th];'),nl,
+    write('nt[th] = np[th];'),nl,
+    write('goto *next;'),nl.
 
 
 gen_SCBM_function5 :-
     write('allfail:'),nl,
     gen_debug_print('allfail'),
-    write('if(rp[th]==0) {return(NO);}'),nl,
-    write('next = back_goto[rp[th]][th];'),nl,
+    write('if(rp[th] == base_rp){np[th] = base_np; nt[th] = base_nt; return NO;}'),nl,
+    write('Srelease(th);'),nl,
+    write('next = back_goto1[rp[th]][th];'),nl,
     write('np[th] = Sget_np(th);'),nl,
+    write('nt[th] = back_stack[rp[th]][NT_SCBM][th];'),nl,
     write('Spop_back(th);'),nl,
-    write('arglist = Sget_arg(th);'),nl,
+    write('if(rp[th] > base_rp) arglist = Sget_arg(th);'),nl,
     write('goto *next;'),nl.
    
 
@@ -657,7 +666,6 @@ gen_nondet_pred(P) :-
     write('(int arglist, int rest, int th){'),nl,
     write('int n;'),nl,
     write('n = Jlength(arglist);'),nl,
-    write('Ssave_arg(arglist,th);'),nl,
     write('return(user_scbm('),write(N),write(',n,0,arglist,rest,th));'),nl,
     write('}'),nl,nl.
 
@@ -720,15 +728,24 @@ gen_nondet_body(X,A,M,H,P,V) :-
 % D is Disjuction nest level 1,2,3...
 
 
-%disjunction
-gen_nondet_body1(((X;Y),end_of_body),A,M,N,B,H,P,V,T,D) :- 
-    D1 is D+1,
-    D2 is D+2,
-    N1 is N+1,
-    gen_nondet_body1((X,end_of_body),A,M,N,[],H,P,V,T,D1),
-    gen_nondet_body1((Y,end_of_body),A,M,N,[],H,P,V,T,D2),
-    gen_nondet_body_label([P,A,M,N1],D),write(':'),nl,
-    write('goto success;'),nl.
+% Preserve the branch checkpoint until every left alternative is exhausted.
+gen_nondet_body1(((X;Y),Rest),A,M,N,B,H,P,V,T,D) :-
+    D1 is D*2+1,
+    D2 is D*2+2,
+    gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_pack_back(V,1),
+    write('Spush_back(&&'),gen_nondet_body_label([P,A,M,N],D),write('right,arglist,th);'),nl,
+    join_body(X,Rest,Left),
+    gen_nondet_body1(Left,A,M,0,cut,H,P,V,nil,D1),
+    gen_nondet_body_label([P,A,M,N],D),write('right:'),nl,
+    gen_unpack_back(V,1),
+    join_body(Y,Rest,Right),
+    gen_nondet_body1(Right,A,M,0,B,H,P,V,T,D2).
+
+join_body((X,Y),Rest,(X,Tail)) :- !,
+    join_body(Y,Rest,Tail).
+join_body(X,Rest,(X,Rest)).
 
 % end of body
 gen_nondet_body1(end_of_body,A,M,N,B,H,P,V,T,D) :-
@@ -740,8 +757,8 @@ gen_nondet_body1(end_of_body,A,M,N,B,H,P,V,T,D) :-
 % last cut operator
 gen_nondet_body1((!,end_of_body),A,M,N,B,H,P,V,T,D) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
-    gen_debug_path([P,A,M,N],path),
-    write('Sset_back(&&allfail,th);'),
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_cut,
     write('goto success;'),nl.
 
 
@@ -761,15 +778,8 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_path([P,A,M,N],path),
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
-    ifthenelse(T\=det,gen_pack_back(V,1),true),
     gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
-    write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
-    gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
-    gen_debug_path([P,A,M,N],back),
-    gen_unpack_back(V,1),
-    gen_nondet_body_label([P,A,M,N],D),write('join:'),nl,
-    gen_debug_path([P,A,M,N],join),
     N1 is N+1,
     gen_pack_pointer(V,1),
     write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
@@ -788,12 +798,6 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
     gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
-    write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
-    gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
-    gen_debug_path([P,A,M,N],back),
-    gen_unpack_pointer(V,1),
-    gen_nondet_body_label([P,A,M,N],D),write('join:'),nl,
-    gen_debug_path([P,A,M,N],join),
     N1 is N+1,
     gen_pack_pointer(V,1),
     write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
@@ -804,7 +808,20 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
 
 % cut operator
 gen_nondet_body1((!,Y),A,M,N,B,H,P,V,T,D) :-
-    gen_nondet_body1(Y,A,M,N,cut,H,P,V,nil,D).
+    gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_cut,
+    gen_pack_pointer(V,1),
+    write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N],D),write('cut,th);'),nl,
+    write('resume = np[th]; Spop_next(th);'),nl,
+    gen_nondet_body_label([P,A,M,N],D),write('cut:'),nl,
+    N1 is N+1,
+    gen_nondet_body1(Y,A,M,N1,B,H,P,V,T,D).
+
+gen_cut :-
+    write('for(int i = rp[th]; i >= cut_base; --i){'),nl,
+    write('back_goto[i][th] = &&allfail;'),nl,
+    write('if(i > cut_base) back_goto1[i][th] = &&allfail;}'),nl.
 
 % builtin
 gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
@@ -813,9 +830,9 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_path([P,A,M,N],path),
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
-    ifthenelse(T\=det,gen_pack_back(V,1),true),
     gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
+    write('Sset_back(&&allfail,th);'),nl,
     N1 is N+1,
     gen_pack_pointer(V,1),
     write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
@@ -832,9 +849,9 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_path([P,A,M,N],path),
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
-    ifthenelse(T\=det,gen_pack_back(V,1),true),
     gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
+    write('Sset_back(&&allfail,th);'),nl,
     N1 is N+1,
     gen_pack_pointer(V,1),
     write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
@@ -858,28 +875,42 @@ gen_nondet_body_argument(Args,Vars) :-
     write('arglist = '),gen_a_argument(Args),write(';'),nl.
 
 
-gen_pack_pointer([],_).
-gen_pack_pointer([L|Ls],N) :-
-    write('next_stack[np[th]+1]['),write(N),write('][th] = '),write(L),write(';'),nl,
+gen_pack_pointer(V,N) :-
+    write('Scheck_next(th);'),nl,
+    write('next_stack[nt[th]+1][0][th] = cut_base;'),nl,
+    gen_pack_pointer1(V,N).
+
+gen_pack_pointer1([],_) :-
+    write('next_stack[nt[th]+1][255][th] = arglist;'),nl.
+gen_pack_pointer1([L|Ls],N) :-
+    write('next_stack[nt[th]+1]['),write(N),write('][th] = '),write(L),write(';'),nl,
     N1 is N+1,
-    gen_pack_pointer(Ls,N1).
+    gen_pack_pointer1(Ls,N1).
    
 
-gen_unpack_pointer([],_).
+gen_unpack_pointer([],_) :-
+    write('cut_base = next_stack[resume][0][th];'),nl,
+    write('arglist = next_stack[resume][255][th];'),nl.
 gen_unpack_pointer([L|Ls],N) :-
-    write(L),write('= next_stack[np[th]+1]['),write(N),write('][th];'),nl,
+    write(L),write('= next_stack[resume]['),write(N),write('][th];'),nl,
     N1 is N+1,
     gen_unpack_pointer(Ls,N1).
 
 
-gen_pack_back([],_).
-gen_pack_back([L|Ls],N) :-
+gen_pack_back(V,N) :-
+    write('Scheck_back(th);'),nl,
+    write('back_stack[rp[th]+1][0][th] = cut_base;'),nl,
+    gen_pack_back1(V,N).
+
+gen_pack_back1([],_).
+gen_pack_back1([L|Ls],N) :-
     write('back_stack[rp[th]+1]['),write(N),write('][th] = '),write(L),write(';'),nl,
     N1 is N+1,
-    gen_pack_back(Ls,N1).
+    gen_pack_back1(Ls,N1).
    
 
-gen_unpack_back([],_).
+gen_unpack_back([],_) :-
+    write('cut_base = back_stack[rp[th]+1][0][th];'),nl.
 gen_unpack_back([L|Ls],N) :-
     write(L),write('= back_stack[rp[th]+1]['),write(N),write('][th];'),nl,
     N1 is N+1,
@@ -890,12 +921,9 @@ nth_var(X,[_|Xs],N) :-
     nth_var(X,Xs,N1),
     N is N1+1.
 
-gen_push_back([P,A,M],B,T,D) :-
-    M1 is M+1,
-    case([B==[] -> (write('Spush_back(&&'),gen_nondet_clause_label([P,A,M1]),write(',arglist,th);'),nl),
-          B==cut -> (write('Spush_back(&&allfail,arglist,th);'),nl),
-          T==det -> true
-          |(write('Spush_back(&&'),gen_nondet_body_label([P|B],D),write('back,arglist,th);'),nl)]).
+gen_push_back(_,B,_,_) :-
+    ifthenelse(B==cut,write('Spush_back(&&allfail,arglist,th);'),
+                     write('Spush_back(&&retry,arglist,th);')),nl.
 
 
 gen_succ_cont([P,A,M,N1],0) :-
@@ -910,20 +938,20 @@ gen_succ_cont([P,A,M,N1],D) :-
     X == 0, %right disjunction goto exit 
     write('goto '),gen_nondet_body_label([P,A,M,N1],0),write(';'),nl.
 
-gen_debug_print(_) :- not(option(debug,on)).
+gen_debug_print(_) :- not(option(debug,on)),!.
 gen_debug_print(Msg) :-
     write('printf("'),write(Msg),write('");'),
     write("Snewline();"),
     write('Jdebug();').
 
 
-gen_debug_pred(_) :- not(option(debug,on)).
+gen_debug_pred(_) :- not(option(debug,on)),!.
 gen_debug_pred(P) :-
     write('printf("'),write(P),write(' rp=%d np=%d", rp[th], np[th]);'),
     write('Jprint(arglist); Jprint(Jderef(arglist,th));'),
     write('Snewline();').
 
-gen_debug_path(_,_) :- not(option(debug,on)).
+gen_debug_path(_,_) :- not(option(debug,on)),!.
 gen_debug_path([P,A,M,N],Msg) :-
     write('printf("'),write(Msg),write(' '),
     write(P),write('_'),
@@ -935,6 +963,43 @@ gen_debug_path([P,A,M,N],Msg) :-
 
 
 %---------------det determinant predicate-------------------
+% ponytail: meta-call components use the existing recursive engine, not SCBM jumps.
+% Specialize them only when a continuation bridge preserves choice and cut scope.
+gen_cps_pred(P) :-
+    n_atom_convert(P,P1),
+    write('static int c_'),write(P1),write('(int arglist, int rest, int th){'),nl,
+    gen_var_declare(P),
+    write('save1 = Jget_wp(th); save2 = Jget_sp(th); save3 = Jget_ac(th);'),nl,
+    n_arity_count(P,[A]),
+    write('if(Jlength(arglist) != '),write(A),write(') return NO;'),nl,
+    gen_var_assign(1,A),
+    n_clause_with_arity(P,A,C),
+    gen_cps_clauses(C),
+    write('return NO;'),nl,
+    write('}'),nl,!.
+
+gen_cps_clauses([]).
+gen_cps_clauses([C|Cs]) :-
+    n_variable_convert(C,X),
+    n_generate_variable(X,V),
+    gen_var(V),
+    gen_cps_clause(X),
+    write('Junbind(save2,th); Jset_wp(save1,th); Jset_ac(save3,th);'),nl,
+    write('if(res == NFALSE) return NO;'),nl,
+    gen_cps_clauses(Cs).
+
+gen_cps_clause((Head :- Body)) :- !,
+    write('res = NO;'),nl,
+    gen_head(Head),write('{'),nl,
+    write('body = '),gen_a_argument(Body),write(';'),nl,
+    write('res = Jprove_cps(body,rest,th);'),nl,
+    write('if(res == YES) return YES;}'),nl.
+gen_cps_clause(Head) :-
+    write('res = NO;'),nl,
+    gen_head(Head),write('{'),nl,
+    write('res = Jprove_all(rest,Jget_sp(th),th);'),nl,
+    write('if(res == YES) return YES;}'),nl.
+
 gen_det_pred(P) :-
 	atom_concat('compiling ',P,M),
     write(user_output,M),
@@ -945,12 +1010,13 @@ gen_det_pred(P) :-
     gen_var_declare(P),
     write('Jinc_proof(th);'),nl,
     write('n = Jarity_count(arglist);'),nl,
-    ifthenelse(option(debug,on),gen_debug(P),true),
+    gen_debug_pred(P),
     write('save1 = Jget_wp(th);'),nl,
     write('save2 = Jget_sp(th);'),nl,
     write('save3 = Jget_ac(th);'),nl,
     n_arity_count(P,L),
     gen_det_pred1(P,L),
+    write('Junbind(save2,th); Jset_ac(save3,th); return NO;'),nl,
     write('}'),nl.
 
 gen_det_pred1(P,[]).
@@ -1631,9 +1697,10 @@ gen_tail_pred(P) :-
     write('save3 = Jget_ac(th);'),nl,
     write('Jinc_proof(th);'),nl,
     write('n = Jarity_count(arglist);'),nl,
-    ifthenelse(option(debug,on),gen_debug(P),true),
+    gen_debug_pred(P),
     n_arity_count(P,L),
     gen_tail_pred1(P,L),
+    write('Junbind(save2,th); Jset_ac(save3,th); return NO;'),nl,
     write('}'),nl.
 
 gen_tail_pred1(P,[]).
@@ -1646,7 +1713,7 @@ gen_tail_pred1(P,[A|As]) :-
 gen_tail_arity(P,A) :-
 	write('if(n == '),write(A),write('){'),nl,
     gen_tail_clause(P,A),
-    write('else return(NO);}'),nl,!.
+    write('}'),nl,!.
 
 gen_tail_clause(P,A) :-
     gen_var_assign(1,A),
@@ -1658,6 +1725,7 @@ gen_tail_clause1([],_,_).
 gen_tail_clause1([C|Cs],A,M) :-
 	n_variable_convert(C,X),
     n_generate_variable(X,V),
+    write('Junbind(save2,th); Jset_ac(save3,th);'),nl,
     gen_var(V),
     gen_a_tail_clause(X,A,M),
     M1 is M+1,
@@ -1667,15 +1735,14 @@ gen_a_tail_clause(P,A,M) :-
 	n_property(P,predicate),
     P =.. [P1|_],
 	gen_head(P),
-    write('{Junbind(save2,th);'),nl,
-    write('Jset_ac(save3,th);'),nl,
-    write('return(YES);}'),nl.
+    write('{if(Jprove_all(rest,Jget_sp(th),th) == YES) return YES;}'),nl.
 
 gen_a_tail_clause((Head :- Body),A,M) :-
     tail_body(Head,Body),
     Head =.. [P|Args],
-	gen_head(Head),
-    gen_tail_body(Body,A).
+	gen_head(Head),write('{'),nl,
+    gen_tail_body(Body,A),
+    write('}'),nl.
 
 
 gen_tail_body((X,Y),N) :-
@@ -2216,6 +2283,29 @@ analize :-
     analize_pred(P),
     fail.
 analize.
+
+% A jump caller must not discard alternatives returned by a CPS callee.
+retype_cps :-
+    type(P,A,T),integer(A),T \= cps,T \= dyn,
+    n_clause_with_arity(P,A,Clauses),
+    member((_ :- Body),Clauses),
+    n_variable_convert(Body,Converted),
+    needs_cps(Converted),!,
+    retractall(type(P,A,_)),assertz(type(P,A,cps)),
+    retype_cps.
+retype_cps.
+
+needs_cps(X) :- n_compiler_variable(X),!.
+needs_cps((X,Y)) :- !,(needs_cps(X);needs_cps(Y)).
+needs_cps((X;Y)) :- !,(needs_cps(X);needs_cps(Y)).
+needs_cps(X) :-
+    functor(X,P,A),
+    member(P/A,[call/1,catch/3,select/3,repeat/0,current_op/3,current_predicate/1,
+                clause/2,retract/1,ifthen/2,ifthenelse/3,case/1,'->'/2]),!.
+needs_cps(X) :-
+    functor(X,P,A),type(P,A,cps),!.
+needs_cps(X) :-
+    n_property(X,predicate),functor(X,P,A),not(type(P,A,_)).
 
 
 analize_pred(P) :-

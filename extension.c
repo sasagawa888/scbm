@@ -1,4 +1,9 @@
 #include <string.h>
+#include <errno.h>
+#include <spawn.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <wordexp.h>
 #ifdef __rpiwiring__
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
@@ -14,6 +19,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "mpl.h"
+
+extern char **environ;
 
 //-----------JUMP project(builtin for compiler)------------
 
@@ -80,33 +87,102 @@ int b_n_dynamic_predicate(int arglist, int rest, int th)
 
 int b_n_filename(int arglist, int rest, int th)
 {
-    int n, arg1, arg2, pos, len;
+    int n, arg1, arg2;
     char str1[STRSIZE];
 
     n = length(arglist);
     if (n == 2) {
 	arg1 = deref(car(arglist), th);
 	arg2 = cadr(arglist);
-	strcpy(str1, GET_NAME(arg1));
-	len = strlen(GET_NAME(arg1));
-	for (pos = 0; pos < len; pos++)
-	    if (pos == 0 && str1[pos] == '.') {	// ./
-		pos = pos + 2;
-	    } else if (pos == 0 && str1[pos] == '.' && str1[pos + 1] == '.') {	// ../
-		pos = pos + 3;
-	    } else if (str1[pos] == '.') {
-		str1[pos] = NUL;
-		if (unify(arg2, makeconst(str1), th) == YES)
-		    return (prove_all(rest, sp[th], th));
-		else
-		    return (NO);
-	    }
-	if (unify(arg1, arg2, th) == YES)
+	if (!singlep(arg1))
+	    exception(NOT_ATOM, makeind("n_filename", n, th), arg1, th);
+	strcpy(str1, prolog_file_name(GET_NAME(arg1)));
+	char *base = strrchr(str1, '/');
+	char *suffix = strrchr(base ? base + 1 : str1, '.');
+	if (suffix) *suffix = NUL;
+	if (unify(makeconst(str1), arg2, th) == YES)
 	    return (prove_all(rest, sp[th], th));
 	else
 	    return (NO);
     }
     return (NO);
+}
+
+int b_n_compile(int arglist, int rest, int th)
+{
+    int ind = makeind("n_compile", length(arglist), th);
+    if (length(arglist) != 3)
+        exception(ARITY_ERR, ind, arglist, th);
+    int source = deref(car(arglist), th);
+    int object = deref(cadr(arglist), th);
+    int options = deref(caddr(arglist), th);
+    if (!singlep(source) || !singlep(object) || (!singlep(options) && !stringp(options)))
+        exception(NOT_ATOM, ind, arglist, th);
+
+    char temporary[STRSIZE], include[STRSIZE];
+    if (snprintf(temporary, sizeof(temporary), "%s.XXXXXX", GET_NAME(object)) >= sizeof(temporary))
+        exception(RESOURCE_ERR, ind, object, th);
+    strcpy(include, prolog_file_name("jump.h"));
+    char *slash = strrchr(include, '/');
+    if (slash) *slash = NUL;
+    else strcpy(include, ".");
+
+    wordexp_t words = {0};
+    int rc = wordexp(GET_NAME(options), &words, WRDE_NOCMD | WRDE_UNDEF);
+    if (rc != 0) {
+        if (rc == WRDE_NOSPACE) wordfree(&words);
+        fprintf(stderr, "Invalid GCC library options\n");
+        return NO;
+    }
+    char *fixed[] = {"gcc", "-O3", "-flto", "-Werror=return-type", "-shared", "-fPIC",
+                     "-I", include, "-o", temporary, GET_NAME(source)};
+    size_t count = sizeof(fixed) / sizeof(fixed[0]);
+    char **args = calloc(count + words.we_wordc + 1, sizeof(*args));
+    if (!args) {
+        wordfree(&words);
+        exception(RESOURCE_ERR, ind, arglist, th);
+        return NO;
+    }
+    memcpy(args, fixed, sizeof(fixed));
+    for (size_t i = 0; i < words.we_wordc; ++i)
+        args[count + i] = words.we_wordv[i];
+
+    int fd = mkstemp(temporary);
+    if (fd < 0) {
+        free(args);
+        wordfree(&words);
+        exception(CANT_OPEN, ind, object, th);
+        return NO;
+    }
+    close(fd);
+    pid_t child;
+    rc = posix_spawnp(&child, "gcc", NULL, NULL, args, environ);
+    free(args);
+    wordfree(&words);
+    int status = 0;
+    if (rc == 0) {
+        pid_t result;
+        do { result = waitpid(child, &status, 0); } while (result < 0 && errno == EINTR);
+        if (result < 0) rc = errno;
+    }
+    if (rc != 0 || !WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+        unlink(temporary);
+        if (rc != 0) fprintf(stderr, "Cannot run GCC: %s\n", strerror(rc));
+        else if (WIFSIGNALED(status)) fprintf(stderr, "GCC terminated by signal %d\n", WTERMSIG(status));
+        else fprintf(stderr, "GCC exited with status %d\n", WEXITSTATUS(status));
+        return NO;
+    }
+    struct stat artifact;
+    if (stat(temporary, &artifact) != 0 || artifact.st_size == 0) {
+        unlink(temporary);
+        fprintf(stderr, "GCC produced no object\n");
+        return NO;
+    }
+    if (rename(temporary, GET_NAME(object)) != 0) {
+        unlink(temporary);
+        exception(CANT_OPEN, ind, object, th);
+    }
+    return prove_all(rest, sp[th], th);
 }
 
 //convert atom for C language function name

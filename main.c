@@ -89,6 +89,10 @@ int system_tag;
 //------pointer----
 int hp;				//heap pointer
 int sp[THREADSIZE];		//stack pointer
+int scbm_np[THREADSIZE];
+int cps_depth[THREADSIZE];
+int scbm_rp[THREADSIZE];
+int scbm_nt[THREADSIZE];
 int fc;				//free counter
 int ac[THREADSIZE];		//alpha conversion variable count
 int wp[THREADSIZE];		//working pointer
@@ -464,6 +468,8 @@ void init_repl(void)
     nest = 0;
     for (i = 0; i < THREADSIZE; i++) {
 	sp[i] = 0;
+	scbm_np[i] = scbm_rp[i] = scbm_nt[i] = 0;
+	cps_depth[i] = 0;
 	proof[i] = 0;
 	ac[i] = cell_size + 1;
 	cp[i] = 0;
@@ -702,6 +708,16 @@ int prove(int goal, int bindings, int rest, int th)
     }
 
     goal = deref(goal, th);
+
+    /* Resolve generated calls whose target was not loaded at compile time. */
+    if (predicatep(goal)) {
+	int pred = atomp(goal) ? goal : car(goal);
+	if (nullp(GET_CAR(pred))) {
+	    int compiled = getatom(GET_NAME(pred), COMP, hash(GET_NAME(pred)));
+	    if (compiled != 0 && GET_SUBR(compiled) != NULL)
+		goal = atomp(goal) ? compiled : wcons(compiled, cdr(goal), th);
+	}
+    }
 
     if (nullp(goal)) {
 	return (prove_all(rest, bindings, th));

@@ -20,6 +20,7 @@ address
 30,000,001 - 32,000,000  variant area
 */
 #define VERSION     1.01
+#define SCBM_ABI_VERSION 2
 //#define CELLSIZE    30000000  // if raspberry PI set smaller size.
 #define HEAPSIZE     5000000
 #define FREESIZE         500
@@ -169,8 +170,10 @@ enum { CHECKGBC_IDX, GBC_IDX, FRESHCELL_IDX,
        NUM_FN0S
 };
 
+typedef void (*scbm_function)(void);
+
 enum { CAR_IDX, CDR_IDX, CADR_IDX, CADDR_IDX, CAAR_IDX, CADAR_IDX, PRINT_IDX,
-       LENGTH_IDX,  GET_INT_IDX, INTEGER_IDX, ABS_IDX,
+       LENGTH_IDX,  GET_INT_IDX, RANDOM_IDX,
        LISTP_IDX,  STRUCTUREP_IDX, VARIABLEP_IDX, GET_SP_IDX, GET_WP_IDX, GET_AC_IDX, INC_PROOF_IDX,
        MAKEVARIANT_IDX, ADD_DYNAMIC_IDX, BIGX_TO_PARMANENT_IDX, ARITY_COUNT_IDX,  
        NUM_FN1S
@@ -182,14 +185,14 @@ enum { CONS_IDX, EQP_IDX, EQUALP_IDX, NUMEQP_IDX, SMALLERP_IDX, EQSMALLERP_IDX,
        NOT_NUMEQP_IDX, SET_VAR_IDX, NTH_IDX, 
        UNBIND_IDX, SET_SP_IDX, SET_WP_IDX, SET_AC_IDX, DEREF_IDX, WLIST1_IDX, 
        SIN_IDX, ASIN_IDX, COS_IDX, ACOS_IDX, TAN_IDX, ATAN_IDX, EXP_IDX, LOG_IDX,
-       LN_IDX, LIST1_IDX, RANDOM_IDX, RANDI_IDX, UNIFY_NIL_IDX, SQRT_IDX, COMPLEMENT_IDX,
-       COPY_WORK_IDX, 
+       LN_IDX, LIST1_IDX, RANDI_IDX, UNIFY_NIL_IDX, SQRT_IDX, COMPLEMENT_IDX,
+       COPY_WORK_IDX, INTEGER_IDX, ABS_IDX,
        NUM_FN2S
 };
 
 enum { LIST3_IDX, ERRORCOMP_IDX, WLISTCONS_IDX,UNIFY_IDX, UNIFY_PAIR_IDX,
        UNIFY_INT_IDX, UNIFY_FLT_IDX, UNIFY_LONG_IDX, UNIFY_BIG_IDX, UNIFY_STR_IDX,
-       UNIFY_VAR_IDX, UNIFY_ATOM_IDX, PROVE_ALL_IDX, WCONS_IDX,
+       UNIFY_VAR_IDX, UNIFY_ATOM_IDX, PROVE_ALL_IDX, PROVE_CPS_IDX, WCONS_IDX,
        WLIST2_IDX, ADDTAIL_BODY_IDX, PLUS_IDX, MINUS_IDX, MULT_IDX, DIVIDE_IDX, REMAINDER_IDX,
        QUOTIENT_IDX,  MOD_IDX, EXPT_IDX, DIV_IDX, XOR_IDX,
        LEFTSHIFT_IDX, RIGHTSHIFT_IDX, LOGICALAND_IDX, LOGICALOR_IDX, ROUND_IDX,
@@ -222,7 +225,7 @@ enum {
 enum {
     DATA_SIZE = 256, 
     SP_SCBM, CHOICE_SCBM, WP_SCBM, AC_SCBM,
-    ARGLIST_SCBM, NP_SCBM,
+    ARGLIST_SCBM, NP_SCBM, NT_SCBM, RETURN_SCBM,
     SCBM_ELT_SIZE,
 };
 
@@ -588,6 +591,10 @@ extern int compiler_flag;
 //------pointer----
 extern int hp; 
 extern int sp[THREADSIZE];
+extern int scbm_np[THREADSIZE];
+extern int cps_depth[THREADSIZE];
+extern int scbm_rp[THREADSIZE];
+extern int scbm_nt[THREADSIZE];
 extern int fc;
 extern int ac[THREADSIZE];
 extern int wp[THREADSIZE];
@@ -824,6 +831,9 @@ int b_break(int arglist, int rest, int th);
 int b_call(int arglist, int rest, int th);
 int b_case(int arglist, int rest, int th);
 int b_catch(int arglist, int rest, int th);
+int b_n_catch_rest(int arglist, int rest, int th);
+int b_n_cps_cut(int arglist, int rest, int th);
+int prove_cps(int body, int rest, int th);
 int b_chdir(int arglist , int rest, int th);
 int b_char_code(int arglist, int rest, int th);
 int b_char_conversion(int arglist, int rest, int th);
@@ -898,6 +908,7 @@ int b_findall(int arglist, int rest, int th);
 int b_n_findatom(int arglist, int rest, int th);
 int b_fileerrors(int arglist, int rest, int th);
 int b_n_filename(int arglist, int rest, int th);
+int b_n_compile(int arglist, int rest, int th);
 int b_float_text(int arglist, int rest, int th);
 int b_flush(int arglist, int rest, int th);
 int b_flush_output(int arglist, int rest, int th);
@@ -1496,7 +1507,7 @@ void discard_trail(void);
 void discard_trail_n(int n);
 void dynamic_link(int x);
 void exit_para(void);
-void exception(int errnum, int ind, int arg, int th);
+_Noreturn void exception(int errnum, int ind, int arg, int th);
 void errorcomp(int errnum, int name, int arg);
 void execute(int x);
 void gbc(void);

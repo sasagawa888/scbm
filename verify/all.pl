@@ -2,12 +2,21 @@ verify(X) :-
  ifthenelse(
   call(X), 
   true, 
-  (write('wrong '), write(X), nl)
+  (write('wrong '), write(X), nl, fail)
  ).
 
 alltest :-
-    test(Test),write(Test),nl,fail.
-alltest.
+    ctr_set(30,0),
+    run_tests,
+    ctr_is(30,Failures),
+    Failures == 0.
+
+run_tests :-
+    clause(test(Test),Body),
+    ifthenelse(call(Body),write(Test),
+        (write('failed test '),write(Test),ctr_inc(30,_))),
+    nl,fail.
+run_tests.
 
 
 test(atmark) :-
@@ -208,7 +217,7 @@ test(arg) :-
 
 test(concat) :-
     concat(a123,asdf,X),
-    X = a123asdf,
+    X = $a123asdf$,
 
     concat($asdf$,$123$,Y),
     Y = $asdf123$.
@@ -571,7 +580,8 @@ test(atom_length) :-
 
 
 test(copy_term) :-
-    copy_term(f(a, b), a(a, b)), 
+    verify(copy_term(f(a, b), f(a, b))),
+    verify(not(copy_term(f(a, b), a(a, b)))),
     copy_term(p(X, 1), p(_G1X,1)),
     copy_term([], []),             
     copy_term(f(X, Y),f(_G2X, _G2Y)).         
@@ -590,4 +600,3 @@ test(select) :-
 main :- alltest,write('All tests are done'),nl.
 
 :- initialization(main).
-
