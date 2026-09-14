@@ -32,6 +32,7 @@ void dynamic_link(int x)
     void (*init_deftinfix)(tuser x);
     void (*init_tpredicate)();
     void (*init_declare)();
+    void (*init_scbm)(int *, int *, int *);
 
     if (snprintf(str, sizeof(str), "%s%s",
 		 strchr(GET_NAME(x), '/') ? "" : "./", GET_NAME(x)) >= sizeof(str))
@@ -61,11 +62,14 @@ void dynamic_link(int x)
     init_deftinfix = dlsym(hmod, "init_deftinfix");
     init_tpredicate = dlsym(hmod, "init_tpredicate");
     init_declare = dlsym(hmod, "init_declare");
+    init_scbm = dlsym(hmod, "init_scbm");
 
     if (!init_f0 || !init_f1 || !init_f2 || !init_f3 || !init_f4 ||
 	!init_f5 || !init_f6 || !init_f7 || !init_deftpred || !init_deftinfix ||
-	!init_tpredicate || !init_declare)
+	!init_tpredicate || !init_declare || !init_scbm)
 	goto incompatible;
+
+    init_scbm(scbm_np, scbm_rp, scbm_nt);
 
 #define REGISTER(table, index, function) \
     do { \

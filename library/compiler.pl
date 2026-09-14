@@ -495,11 +495,13 @@ gen_head1([X|Xs],N) :-
 % --------- generate big SCBM function-----------
 
 gen_SCBM_function :-
+    write('/* Label addresses must survive GCC inlining and cloning. */'),nl,
+    write('__attribute__((noinline,noclone))'),nl,
     write('static int user_scbm(int pred, int arity, int clause, int arglist, int rest, int th){'),nl,
     write('void *next;'),nl,
     write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number'),
     gen_all_variable,write(';'),nl,
-    write('np[th] = 0; rp[th] = 0;'),nl,
+    write('int base_np = np[th], base_rp = rp[th], base_nt = nt[th], resume, cut_base;'),nl,
     write('Spush_back(&&allfail,arglist,th);'),nl,
     write('Spush_next(&&success,th);'),nl,
     gen_pred_switch,
@@ -548,6 +550,7 @@ gen_pred_switch :-
     write('}'),nl.
 
 gen_pred_switch1 :-
+    n_reconsult_predicate(P),
     type(P,_,nondet),
     ctr_is(0,N),
     ctr_inc(0,_),
@@ -595,6 +598,7 @@ gen_SCBM_function31(P,A,[],N) :-
     write('goto allfail;'),nl,nl,!.
 gen_SCBM_function31(P,A,[C|Cs],N) :-
     write(P),write('_'),write(A),write('_'),write(N),write(':'),nl,
+    write('cut_base = rp[th];'),nl,
     gen_var_assign(1,A),!,
     write('Srelease(th);'),nl,
     n_variable_convert(C,X),
@@ -609,29 +613,35 @@ gen_SCBM_function31(P,A,[C|Cs],N) :-
 gen_SCBM_function4 :-
     write('success:'),nl,
     ifthenelse(option(debug,on),write('printf("success");'),true),
-    write('if(np[th] == 0){'),nl,
-    write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
+    write('if(np[th] == base_np){'),nl,
+    write('if(Jprove_all(rest,Jget_sp(th),th) == YES){'),nl,
+    write('np[th] = base_np; rp[th] = base_rp; nt[th] = base_nt; return YES;}'),nl,
+    write('goto retry;'),nl,
+    write('}else{'),nl,
+    write('resume = np[th];'),nl,
+    write('next = next_goto[resume][th];'),nl,
+    write('Spop_next(th);'),nl,
+    write('clause = Sget_choice(th);'),nl,
+    write('goto *next;}'),nl,
+    write('retry:'),nl,
     write('next = back_goto[rp[th]][th];'),nl,
     write('clause = Sget_choice(th);'),nl,
     write('arglist = Sget_arg(th);'),nl,
-    write('np[th] = Sget_np(th);'),nl,
-    write('Spush_next(&&success,th);'),nl,
-    write('goto *next;'),nl,
-    write('}else{'),nl,
-    write('next = next_goto[np[th]][th];'),nl,
-    write('Spop_next(th);'),nl,
-    write('clause = Sget_choice(th);'),nl,
-    write('goto *next;}'),nl.
+    write('np[th] = back_stack[rp[th]][RETURN_SCBM][th];'),nl,
+    write('nt[th] = np[th];'),nl,
+    write('goto *next;'),nl.
 
 
 gen_SCBM_function5 :-
     write('allfail:'),nl,
     ifthenelse(option(debug,on),write('printf("allfail");'),true),
-    write('if(rp[th]==0) {return(NO);}'),nl,
-    write('next = back_goto[rp[th]][th];'),nl,
+    write('if(rp[th] == base_rp){np[th] = base_np; nt[th] = base_nt; return NO;}'),nl,
+    write('Srelease(th);'),nl,
+    write('next = back_goto1[rp[th]][th];'),nl,
     write('np[th] = Sget_np(th);'),nl,
+    write('nt[th] = back_stack[rp[th]][NT_SCBM][th];'),nl,
     write('Spop_back(th);'),nl,
-    write('arglist = Sget_arg(th);'),nl,
+    write('if(rp[th] > base_rp) arglist = Sget_arg(th);'),nl,
     write('goto *next;'),nl.
    
 
@@ -659,7 +669,6 @@ gen_nondet_pred(P) :-
     write('(int arglist, int rest, int th){'),nl,
     write('int n;'),nl,
     write('n = Jlength(arglist);'),nl,
-    write('Ssave_arg(arglist,th);'),nl,
     write('return(user_scbm('),write(N),write(',n,0,arglist,rest,th));'),nl,
     write('}'),nl,nl.
 
@@ -727,15 +736,24 @@ gen_nondet_body(X,A,M,H,P,V) :-
 % D is Disjuction nest level 1,2,3...
 
 
-%disjunction
-gen_nondet_body1(((X;Y),end_of_body),A,M,N,B,H,P,V,T,D) :- 
-    D1 is D+1,
-    D2 is D+2,
-    N1 is N+1,
-    gen_nondet_body1((X,end_of_body),A,M,N,[],H,P,V,T,D1),
-    gen_nondet_body1((Y,end_of_body),A,M,N,[],H,P,V,T,D2),
-    gen_nondet_body_label([P,A,M,N1],D),write(':'),nl,
-    write('goto success;'),nl.
+% Preserve the branch checkpoint until every left alternative is exhausted.
+gen_nondet_body1(((X;Y),Rest),A,M,N,B,H,P,V,T,D) :-
+    D1 is D*2+1,
+    D2 is D*2+2,
+    gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_pack_back(V,1),
+    write('Spush_back(&&'),gen_nondet_body_label([P,A,M,N],D),write('right,arglist,th);'),nl,
+    join_body(X,Rest,Left),
+    gen_nondet_body1(Left,A,M,0,cut,H,P,V,nil,D1),
+    gen_nondet_body_label([P,A,M,N],D),write('right:'),nl,
+    gen_unpack_back(V,1),
+    join_body(Y,Rest,Right),
+    gen_nondet_body1(Right,A,M,0,B,H,P,V,T,D2).
+
+join_body((X,Y),Rest,(X,Tail)) :- !,
+    join_body(Y,Rest,Tail).
+join_body(X,Rest,(X,Rest)).
 
 % end of body
 gen_nondet_body1(end_of_body,A,M,N,B,H,P,V,T,D) :-
@@ -746,7 +764,8 @@ gen_nondet_body1(end_of_body,A,M,N,B,H,P,V,T,D) :-
 % last cut operator
 gen_nondet_body1((!,end_of_body),A,M,N,B,H,P,V,T,D) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
-    write('Sset_back(&&allfail,th);'),
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_cut,
     write('goto success;'),nl.
 
 
@@ -764,13 +783,8 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     type(Pred,Arity,nondet),
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
-    ifthenelse(T\=det,gen_pack_back(V,1),true),
     gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
-    write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
-    gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
-    gen_unpack_back(V,1),
-    gen_nondet_body_label([P,A,M,N],D),write('join:'),nl,
     N1 is N+1,
     gen_pack_pointer(V,1),
     write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
@@ -788,10 +802,6 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
     gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
-    write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
-    gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
-    gen_unpack_pointer(V,1),
-    gen_nondet_body_label([P,A,M,N],D),write('join:'),nl,
     N1 is N+1,
     gen_pack_pointer(V,1),
     write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
@@ -802,7 +812,20 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
 
 % cut operator
 gen_nondet_body1((!,Y),A,M,N,B,H,P,V,T,D) :-
-    gen_nondet_body1(Y,A,M,N,cut,H,P,V,nil,D).
+    gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_cut,
+    gen_pack_pointer(V,1),
+    write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N],D),write('cut,th);'),nl,
+    write('resume = np[th]; Spop_next(th);'),nl,
+    gen_nondet_body_label([P,A,M,N],D),write('cut:'),nl,
+    N1 is N+1,
+    gen_nondet_body1(Y,A,M,N1,B,H,P,V,T,D).
+
+gen_cut :-
+    write('for(int i = rp[th]; i >= cut_base; --i){'),nl,
+    write('back_goto[i][th] = &&allfail;'),nl,
+    write('if(i > cut_base) back_goto1[i][th] = &&allfail;}'),nl.
 
 % builtin
 gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
@@ -810,9 +833,9 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     X =.. [Pred|Args],
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
-    ifthenelse(T\=det,gen_pack_back(V,1),true),
     gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
+    write('Sset_back(&&allfail,th);'),nl,
     N1 is N+1,
     gen_pack_pointer(V,1),
     write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
@@ -828,9 +851,9 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     X =.. [Pred|Args],
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
-    ifthenelse(T\=det,gen_pack_back(V,1),true),
     gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
+    write('Sset_back(&&allfail,th);'),nl,
     N1 is N+1,
     gen_pack_pointer(V,1),
     write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
@@ -856,26 +879,29 @@ gen_nondet_body_argument(Args,Vars) :-
 
 gen_pack_pointer(V,N) :-
     write('Scheck_next(th);'),nl,
+    write('next_stack[nt[th]+1][0][th] = cut_base;'),nl,
     gen_pack_pointer1(V,N).
 
 gen_pack_pointer1([],_) :-
-    write('next_stack[np[th]+1][255][th] = arglist;'),nl.
+    write('next_stack[nt[th]+1][255][th] = arglist;'),nl.
 gen_pack_pointer1([L|Ls],N) :-
-    write('next_stack[np[th]+1]['),write(N),write('][th] = '),write(L),write(';'),nl,
+    write('next_stack[nt[th]+1]['),write(N),write('][th] = '),write(L),write(';'),nl,
     N1 is N+1,
     gen_pack_pointer1(Ls,N1).
    
 
 gen_unpack_pointer([],_) :-
-    write('arglist = next_stack[np[th]+1][255][th];'),nl.
+    write('cut_base = next_stack[resume][0][th];'),nl,
+    write('arglist = next_stack[resume][255][th];'),nl.
 gen_unpack_pointer([L|Ls],N) :-
-    write(L),write('= next_stack[np[th]+1]['),write(N),write('][th];'),nl,
+    write(L),write('= next_stack[resume]['),write(N),write('][th];'),nl,
     N1 is N+1,
     gen_unpack_pointer(Ls,N1).
 
 
 gen_pack_back(V,N) :-
     write('Scheck_back(th);'),nl,
+    write('back_stack[rp[th]+1][0][th] = cut_base;'),nl,
     gen_pack_back1(V,N).
 
 gen_pack_back1([],_).
@@ -885,7 +911,8 @@ gen_pack_back1([L|Ls],N) :-
     gen_pack_back1(Ls,N1).
    
 
-gen_unpack_back([],_).
+gen_unpack_back([],_) :-
+    write('cut_base = back_stack[rp[th]+1][0][th];'),nl.
 gen_unpack_back([L|Ls],N) :-
     write(L),write('= back_stack[rp[th]+1]['),write(N),write('][th];'),nl,
     N1 is N+1,
@@ -896,12 +923,9 @@ nth_var(X,[_|Xs],N) :-
     nth_var(X,Xs,N1),
     N is N1+1.
 
-gen_push_back([P,A,M],B,T,D) :-
-    M1 is M+1,
-    case([B==[] -> (write('Spush_back(&&'),gen_nondet_clause_label([P,A,M1]),write(',arglist,th);'),nl),
-          B==cut -> (write('Spush_back(&&allfail,arglist,th);'),nl),
-          T==det -> true
-          |(write('Spush_back(&&'),gen_nondet_body_label([P|B],D),write('back,arglist,th);'),nl)]).
+gen_push_back(_,B,_,_) :-
+    ifthenelse(B==cut,write('Spush_back(&&allfail,arglist,th);'),
+                     write('Spush_back(&&retry,arglist,th);')),nl.
 
 
 gen_succ_cont([P,A,M,N1],0) :-
@@ -934,6 +958,7 @@ gen_det_pred(P) :-
     write('save3 = Jget_ac(th);'),nl,
     n_arity_count(P,L),
     gen_det_pred1(P,L),
+    write('Junbind(save2,th); Jset_ac(save3,th); return NO;'),nl,
     write('}'),nl.
 
 gen_det_pred1(P,[]).
@@ -1617,6 +1642,7 @@ gen_tail_pred(P) :-
     ifthenelse(option(debug,on),gen_debug(P),true),
     n_arity_count(P,L),
     gen_tail_pred1(P,L),
+    write('Junbind(save2,th); Jset_ac(save3,th); return NO;'),nl,
     write('}'),nl.
 
 gen_tail_pred1(P,[]).
@@ -1629,7 +1655,7 @@ gen_tail_pred1(P,[A|As]) :-
 gen_tail_arity(P,A) :-
 	write('if(n == '),write(A),write('){'),nl,
     gen_tail_clause(P,A),
-    write('else return(NO);}'),nl,!.
+    write('}'),nl,!.
 
 gen_tail_clause(P,A) :-
     gen_var_assign(1,A),
@@ -1641,6 +1667,7 @@ gen_tail_clause1([],_,_).
 gen_tail_clause1([C|Cs],A,M) :-
 	n_variable_convert(C,X),
     n_generate_variable(X,V),
+    write('Junbind(save2,th); Jset_ac(save3,th);'),nl,
     gen_var(V),
     gen_a_tail_clause(X,A,M),
     M1 is M+1,
@@ -1650,15 +1677,14 @@ gen_a_tail_clause(P,A,M) :-
 	n_property(P,predicate),
     P =.. [P1|_],
 	gen_head(P),
-    write('{Junbind(save2,th);'),nl,
-    write('Jset_ac(save3,th);'),nl,
-    write('return(YES);}'),nl.
+    write('{if(Jprove_all(rest,Jget_sp(th),th) == YES) return YES;}'),nl.
 
 gen_a_tail_clause((Head :- Body),A,M) :-
     tail_body(Head,Body),
     Head =.. [P|Args],
-	gen_head(Head),
-    gen_tail_body(Body,A).
+	gen_head(Head),write('{'),nl,
+    gen_tail_body(Body,A),
+    write('}'),nl.
 
 
 gen_tail_body((X,Y),N) :-

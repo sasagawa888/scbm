@@ -574,8 +574,8 @@ int b_findall(int arglist, int rest, int th)
 	nonfree_list = NIL;
 	prove_all(goal, sp[th], th);
 
-	unify(arg3, listreverse(cdar(bag_list)), th);
-	if (prove_all(rest, sp[th], th) == YES)
+	if (unify(arg3, listreverse(cdar(bag_list)), th) == YES &&
+	    prove_all(rest, sp[th], th) == YES)
 	    return (YES);
 
 	wp[th] = save1;
@@ -1584,6 +1584,8 @@ int b_number_chars(int arglist, int rest, int th)
 int b_catch(int arglist, int rest, int th)
 {
     int n, ind, arg1, arg2, arg3, pt, res;
+    int saved_np = scbm_np[th], saved_rp = scbm_rp[th];
+    int saved_nt = scbm_nt[th];
 
     n = length(arglist);
     ind = makeind("catch", n, th);
@@ -1595,28 +1597,31 @@ int b_catch(int arglist, int rest, int th)
 	if (!callablep(arg1))
 	    exception(NOT_CALLABLE, ind, arg1, th);
 
-	catch_data[cp[th]][0][th] = arg2;	//tag
-	catch_data[cp[th]][1][th] = sp[th];	//sp for restore catch
-	int ret = setjmp(catch_buf[cp[th]][th]);
 	pt = cp[th];
-
-	if (cp[th] > CTRLSTK) {
+	if (pt >= CTRLSTK) {
 	    exception(RESOURCE_ERR, ind, makestr("ctrlstk"), th);
 	}
+	catch_data[pt][0][th] = arg2;
+	catch_data[pt][1][th] = sp[th];
+	int ret = setjmp(catch_buf[pt][th]);
 
 	if (ret == 0) {
 	    cp[th]++;
 	    if (prove_all(arg1, sp[th], th) == YES) {
+		cp[th] = pt;
 		res = prove_all(rest, sp[th], th);
-		cp[th]--;
 		return (res);
-	    } else
+	    } else {
+		cp[th] = pt;
 		return (NO);
+	    }
 	} else if (ret == 1) {
-	    sp[th] = catch_data[pt][1][th];
+	    scbm_np[th] = saved_np;
+	    scbm_rp[th] = saved_rp;
+	    scbm_nt[th] = saved_nt;
+	    cp[th] = pt;
 	    if (prove_all(arg3, sp[th], th) == YES) {
 		res = prove_all(rest, sp[th], th);
-		cp[th]--;
 		return (res);
 	    } else
 		return (NO);
@@ -1632,8 +1637,14 @@ void throw(int tag, int th)
     int i;
 
     for (i = cp[th] - 1; i >= 0; i--) {
-	if (unify(catch_data[i][0][th], tag, th) == YES)
+	int saved_sp = sp[th];
+	if (unify(catch_data[i][0][th], tag, th) == YES) {
+	    int value = copy_heap(deref(tag, th));
+	    unbind(catch_data[i][1][th], th);
+	    unify(catch_data[i][0][th], value, th);
 	    longjmp(catch_buf[i][th], 1);
+	}
+	unbind(saved_sp, th);
     }
 }
 

@@ -225,7 +225,7 @@ enum {
 enum {
     DATA_SIZE = 256, 
     SP_SCBM, CHOICE_SCBM, WP_SCBM, AC_SCBM,
-    ARGLIST_SCBM, NP_SCBM,
+    ARGLIST_SCBM, NP_SCBM, NT_SCBM, RETURN_SCBM,
     SCBM_ELT_SIZE,
 };
 
@@ -591,6 +591,9 @@ extern int compiler_flag;
 //------pointer----
 extern int hp; 
 extern int sp[THREADSIZE];
+extern int scbm_np[THREADSIZE];
+extern int scbm_rp[THREADSIZE];
+extern int scbm_nt[THREADSIZE];
 extern int fc;
 extern int ac[THREADSIZE];
 extern int wp[THREADSIZE];

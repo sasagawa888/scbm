@@ -83,7 +83,7 @@ class SCBMTest(unittest.TestCase):
         self.assertTrue(c_file.exists())
         obj = source.with_suffix('.o')
         flags = ['-O1', '-g', '-fsanitize=undefined'] if sanitize else ['-O3', '-flto']
-        result = self.process(['gcc', *flags, '-shared', '-fPIC', '-I', str(ROOT),
+        result = self.process(['gcc', *flags, '-Werror=return-type', '-shared', '-fPIC', '-I', str(ROOT),
                                '-o', str(obj), str(c_file)], timeout=60)
         self.succeeded(result)
         self.assertTrue(obj.exists())
@@ -172,13 +172,62 @@ class SearchTests(SCBMTest):
     def test_findall_rollback(self):
         obj = self.compile(ROOT / 'tests/stress1.pl')
         self.expect_ok('findall(X,color(X),R),R==[red,green,blue],var(X)', [obj])
+        self.expect_ok('findall(X,(color(X),fail),R),R==[],var(X)', [obj])
+        self.expect_ok('\\+ findall(X,color(X),[red])', [obj])
+
+    def test_composition(self):
+        first = self.compile(self.source('p(a).\np(b).\n', 'first'), sanitize=True)
+        second = self.compile(self.source('q(1).\nq(2).\n', 'second'), sanitize=True)
+        self.answers('p(X),q(Y)', '[[a,1],[a,2],[b,1],[b,2]]', [first, second], '[X,Y]')
+        self.answers('p(X),call(p(Y))', '[[a,a],[a,b],[b,a],[b,b]]', [first], '[X,Y]')
+
+    def test_cut_scope(self):
+        obj = self.compile(self.source(
+            'p(a).\np(b).\nq(1).\nq(2).\n'
+            'pick(X) :- p(X),!.\npick(other).\n'
+            'pairs(X,Y) :- p(X),!,q(Y).\npairs(other,other).\n'
+            'branch(X) :- (p(X),!;X=c).\n'), sanitize=True)
+        self.answers('pick(X)', '[a]', [obj])
+        self.answers('pairs(X,Y)', '[[a,1],[a,2]]', [obj], '[X,Y]')
+        self.answers('branch(X)', '[a]', [obj])
+        self.answers('p(X),pick(Y)', '[[a,a],[b,a]]', [obj], '[X,Y]')
+
+    def test_exception_cleanup(self):
+        obj = self.compile(self.source(
+            'p(a).\np(b).\nboom :- p(_),throw(stop).\n'
+            'bound(X) :- p(X),throw(stop).\n'
+            'bad :- p(_),_ is 1//0.\n'), sanitize=True)
+        self.expect_ok('catch(boom,stop,true),findall(X,p(X),R),R==[a,b]', [obj])
+        self.answers('p(X),catch(boom,stop,true)', '[a,b]', [obj])
+        self.expect_ok('catch(bound(X),stop,true),var(X)', [obj])
+        self.expect_ok('catch(catch(boom,other,true),stop,true),p(a)', [obj])
+        self.expect_ok('catch(bad,_,true),findall(X,p(X),R),R==[a,b]', [obj])
+
+    def test_typed_unification(self):
+        for sanitize in [False, True]:
+            obj = self.compile(self.source('same(X,X).\nempty([]).\npair([a]).\n'), sanitize=sanitize)
+            self.expect_ok('same(X,X),var(X)', [obj])
+            self.expect_ok('findall(X,empty(X),L),L==[[]],var(X)', [obj])
+            self.expect_ok('X=[b],\\+ pair(X),X==[b]', [obj])
 
     def test_disjunction(self):
-        obj = self.compile(self.source('p(a).\np(b).\nq(X) :- (p(X);X=c).\n'))
+        obj = self.compile(self.source('p(a).\np(b).\nq(X) :- (p(X);X=c).\n'
+            'left(X) :- (fail;p(X)).\nright(X) :- (p(X);fail).\n'
+            'nested(X) :- ((p(X);X=c);(X=d;fail)).\n'
+            'suffix(X) :- (p(X);X=c),X\\=b.\n'
+            'prefix(X,Y) :- p(X),(Y=1;Y=2).\n'
+            'filter(X,Y) :- p(X),X\\=b,p(Y).\n'), sanitize=True)
         self.answers('q(X)', '[a,b,c]', [obj])
+        self.answers('left(X)', '[a,b]', [obj])
+        self.answers('right(X)', '[a,b]', [obj])
+        self.answers('nested(X)', '[a,b,c,d]', [obj])
+        self.answers('suffix(X)', '[a,c]', [obj])
+        self.answers('prefix(X,Y)', '[[a,1],[a,2],[b,1],[b,2]]', [obj], '[X,Y]')
+        self.answers('filter(X,Y)', '[[a,a],[a,b]]', [obj], '[X,Y]')
 
     def test_sorting(self):
         obj = self.compile(ROOT / 'tests/stress4.pl')
+        self.expect_ok('\\+ (ordered([1,2]),fail)', [obj])
         for values in itertools.permutations([1, 2, 3]):
             with self.subTest(values=values):
                 self.answers(f'sort_test({list(values)},X)', '[[1,2,3]]', [obj])
