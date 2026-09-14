@@ -58,6 +58,11 @@ SCBM-Prolog requires ncurses library. Please install ncurses.
 sudo apt install libncurses-dev
 ```
 
+For a source checkout, set `SCBM_HOME` to its absolute path. After the default
+installation, use `export SCBM_HOME=/usr/local/share/scbm` so the interpreter
+finds the installed library and matching compiler headers. See
+[Build and regression checks](document/TESTING.md) for verified commands.
+
 # Supported OS:
 
 - Raspberry Pi OS
@@ -75,12 +80,12 @@ If your modifications are successful, we encourage you to publish a branch so th
 
 When loading files, SCBM-Prolog automatically resolves file paths based on the following rules:
 
-1. **Relative paths** (starting with `./` or `../`) are used directly. If no extension is present, `.pl` is appended.
+1. **Absolute paths and explicit relative paths** (starting with `/`, `./` or `../`) are used directly. If no extension is present, `.pl` is appended.
 2. If the environment variable `SCBM_HOME` is set, files are loaded from that directory.
 3. If `SCBM_HOME` is not set but `HOME` is, files are loaded from `$HOME/scbm/`.
 4. Otherwise, the given name is used as-is. If it lacks an extension, `.pl` is appended.
 
-In all cases, if the file name already contains a dot (`.`), it is assumed to include an extension and `.pl` will not be added.
+Only the final filename is checked for an extension. Dots in parent directory names do not suppress `.pl`.
 
 
 ## Uninstall

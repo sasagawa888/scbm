@@ -1600,6 +1600,7 @@ int b_catch(int arglist, int rest, int th)
 	pt = cp[th];
 	if (pt >= CTRLSTK) {
 	    exception(RESOURCE_ERR, ind, makestr("ctrlstk"), th);
+	    return NO;
 	}
 	catch_data[pt][0][th] = arg2;
 	catch_data[pt][1][th] = sp[th];

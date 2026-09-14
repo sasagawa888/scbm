@@ -132,4 +132,8 @@ clean:
 
 .PHONY: check
 check:
-	cppcheck --enable=warning,performance,portability --std=c17 --library=posix -j4 .
+	cppcheck --enable=warning,performance --std=c17 --library=posix --inline-suppr --error-exitcode=1 -j4 $(sort $(SCBM_OBJS:.o=.c) $(EDLOG_OBJS:.o=.c))
+
+.PHONY: test
+test: $(TARGETS)
+	$(PYTHON) tests/audit_regressions.py

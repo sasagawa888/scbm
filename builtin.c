@@ -676,11 +676,15 @@ int b_n_notunify(int arglist, int rest, int th)
     if (n == 2) {
 	arg1 = car(arglist);
 	arg2 = cadr(arglist);
+	int saved_sp = sp[th], saved_wp = wp[th], saved_ac = ac[th];
 	if (operationp(arg1))
 	    arg1 = operate(arg1, th);
 	if (operationp(arg2))
 	    arg2 = operate(arg2, th);
 	res = unify(arg1, arg2, th);
+	unbind(saved_sp, th);
+	wp[th] = saved_wp;
+	ac[th] = saved_ac;
 	if (res == NO)
 	    return (prove_all(rest, sp[th], th));
 	else
@@ -2205,11 +2209,7 @@ int b_n_equalp(int arglist, int rest, int th)
 	arg1 = car(arglist);
 	arg2 = cadr(arglist);
 
-	if (anonymousp(arg1) || anonymousp(arg2))
-	    return (YES);
-	else if (variablep(arg1) || variablep(arg2))
-	    return (YES);
-	else if (equalp(arg1, arg2))
+	if (equalp(arg1, arg2))
 	    return (prove_all(rest, sp[th], th));
 	else
 	    return (NO);
@@ -2616,7 +2616,11 @@ int b_not(int arglist, int rest, int th)
 	if (!callablep(arg1))
 	    exception(NOT_CALLABLE, ind, arg1, th);
 
+	int saved_sp = sp[th], saved_wp = wp[th], saved_ac = ac[th];
 	res = prove_all(arg1, sp[th], th);
+	unbind(saved_sp, th);
+	wp[th] = saved_wp;
+	ac[th] = saved_ac;
 	if (res == YES)
 	    return (NO);
 	else

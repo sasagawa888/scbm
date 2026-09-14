@@ -1503,7 +1503,7 @@ void discard_trail(void);
 void discard_trail_n(int n);
 void dynamic_link(int x);
 void exit_para(void);
-void exception(int errnum, int ind, int arg, int th);
+_Noreturn void exception(int errnum, int ind, int arg, int th);
 void errorcomp(int errnum, int name, int arg);
 void execute(int x);
 void gbc(void);

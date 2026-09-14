@@ -141,6 +141,7 @@ int b_n_compile(int arglist, int rest, int th)
     if (!args) {
         wordfree(&words);
         exception(RESOURCE_ERR, ind, arglist, th);
+        return NO;
     }
     memcpy(args, fixed, sizeof(fixed));
     for (size_t i = 0; i < words.we_wordc; ++i)
@@ -151,6 +152,7 @@ int b_n_compile(int arglist, int rest, int th)
         free(args);
         wordfree(&words);
         exception(CANT_OPEN, ind, object, th);
+        return NO;
     }
     close(fd);
     pid_t child;

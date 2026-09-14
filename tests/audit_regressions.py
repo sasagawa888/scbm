@@ -343,6 +343,32 @@ class CompilerTests(SCBMTest):
 
 
 class GateTests(SCBMTest):
+    def test_identity_and_negation(self):
+        for goal in ['X==X', '\\+ (X==2)', '\\+ (X==Y)',
+                     '\\+ (X==X,fail)', '\\+ (X\\=2),var(X)',
+                     '\\+ (X=2,fail),var(X)']:
+            with self.subTest(goal=goal):
+                self.expect_ok(goal)
+
+    def test_failing_test_copy(self):
+        runner = self.folder / 'negative.py'
+        source = Path(__file__).read_text()
+        needle = 'twice(3,Y),Y==' + '6'
+        self.assertEqual(source.count(needle), 1)
+        runner.write_text(source.replace(needle, 'twice(3,Y),Y==99'))
+        result = self.process([sys.executable, str(runner),
+                               'BuildSmokeTests.test_deterministic_compilation'])
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn('FAILED', result.stdout)
+
+    def test_legacy_failure(self):
+        text = (ROOT / 'verify/all.pl').read_text().replace('verify(3 @> 2.1)', 'verify(2 @> 3)')
+        source = self.source(text)
+        result = self.expect_ok('\\+ main', [source])
+        self.assertIn('wrong ', result.stdout)
+        self.assertIn('failed test atmark', result.stdout)
+        self.assertNotIn('All tests are done', result.stdout)
+
     def test_legacy_suite(self):
         result = self.run_prolog('halt.\n', [ROOT / 'verify/all.pl'])
         self.succeeded(result)
@@ -356,6 +382,10 @@ class GateTests(SCBMTest):
             ('test.expect_ok("fail")', 'AssertionError'),
             ('test.process([sys.executable,"-c","import time;time.sleep(1)"],timeout=0.03)',
              'Timed out'),
+            ('test.succeeded(test.process([sys.executable,"-c",'
+             '"import os,signal,resource;resource.setrlimit(resource.RLIMIT_CORE,(0,0));'
+             'print(\\\"audit_ok\\\",flush=True);os.kill(os.getpid(),signal.SIGSEGV)"]))',
+             'AssertionError'),
         ]:
             with self.subTest(body=body):
                 result = self.process([sys.executable, '-c', setup + body])
@@ -369,4 +399,10 @@ if __name__ == '__main__':
         check.expect_ok(f'compile_file({atom(Path(sys.argv[2]).resolve())})',
                         [ROOT / 'library/compiler.pl'])
     else:
-        unittest.main(verbosity=2)
+        program = unittest.main(verbosity=2, exit=False)
+        result = program.result
+        print(f'Executed: {result.testsRun - len(result.skipped)}; skipped: {len(result.skipped)}; '
+              f'failures: {len(result.failures)}; errors: {len(result.errors)}; '
+              f'expected failures: {len(result.expectedFailures)}')
+        sys.exit(0 if result.wasSuccessful() and result.testsRun > 0 and
+                 not result.skipped and not result.expectedFailures else 1)
