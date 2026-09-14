@@ -75,6 +75,17 @@ than calling missing functions. Live continuation chains are retained until
 their choice points are discarded; each invocation restores the caller's cursor
 bases, while catch and REPL recovery restore shared cursors across modules.
 
+Predicates containing meta-calls (including `call/1` and `catch/3`), and their
+direct or transitive callers, use C wrappers around the existing recursive
+Prolog engine. This conservative path passes the full continuation and preserves
+alternatives; it is not a constant-stack SCBM optimization. First-order SCBM
+predicates retain their jump-based path. The regression gate checks both paths,
+including meta-call suffix failure, cut scope and exception-handler scope.
+Clauses with cuts reserve an explicit cut boundary; clauses without cuts do
+not. The cut-boundary stack also uses `RECURSIZE`, and catch/REPL recovery
+restores its depth. Its regression exercises 4096 live scopes and a controlled
+resource error at 4097, followed by another successful query.
+
 Storage remains bounded by `RECURSIZE` (4096 slots, with slot zero reserved).
 Exhaustion produces a resource error before writing outside a stack. A generated
 clause supports at most 254 saved local variables; the other continuation slots

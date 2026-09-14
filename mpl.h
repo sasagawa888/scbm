@@ -192,7 +192,7 @@ enum { CONS_IDX, EQP_IDX, EQUALP_IDX, NUMEQP_IDX, SMALLERP_IDX, EQSMALLERP_IDX,
 
 enum { LIST3_IDX, ERRORCOMP_IDX, WLISTCONS_IDX,UNIFY_IDX, UNIFY_PAIR_IDX,
        UNIFY_INT_IDX, UNIFY_FLT_IDX, UNIFY_LONG_IDX, UNIFY_BIG_IDX, UNIFY_STR_IDX,
-       UNIFY_VAR_IDX, UNIFY_ATOM_IDX, PROVE_ALL_IDX, WCONS_IDX,
+       UNIFY_VAR_IDX, UNIFY_ATOM_IDX, PROVE_ALL_IDX, PROVE_CPS_IDX, WCONS_IDX,
        WLIST2_IDX, ADDTAIL_BODY_IDX, PLUS_IDX, MINUS_IDX, MULT_IDX, DIVIDE_IDX, REMAINDER_IDX,
        QUOTIENT_IDX,  MOD_IDX, EXPT_IDX, DIV_IDX, XOR_IDX,
        LEFTSHIFT_IDX, RIGHTSHIFT_IDX, LOGICALAND_IDX, LOGICALOR_IDX, ROUND_IDX,
@@ -592,6 +592,7 @@ extern int compiler_flag;
 extern int hp; 
 extern int sp[THREADSIZE];
 extern int scbm_np[THREADSIZE];
+extern int cps_depth[THREADSIZE];
 extern int scbm_rp[THREADSIZE];
 extern int scbm_nt[THREADSIZE];
 extern int fc;
@@ -830,6 +831,9 @@ int b_break(int arglist, int rest, int th);
 int b_call(int arglist, int rest, int th);
 int b_case(int arglist, int rest, int th);
 int b_catch(int arglist, int rest, int th);
+int b_n_catch_rest(int arglist, int rest, int th);
+int b_n_cps_cut(int arglist, int rest, int th);
+int prove_cps(int body, int rest, int th);
 int b_chdir(int arglist , int rest, int th);
 int b_char_code(int arglist, int rest, int th);
 int b_char_conversion(int arglist, int rest, int th);

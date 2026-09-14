@@ -4,6 +4,13 @@ The SCBM compiler is still incomplete. It can currently compile simple Prolog pr
 
 The `queens.pl` program in the `tests` directory has been confirmed to compile and run successfully.
 
+For reproducible builds, the strict regression gate, installation paths and
+compatibility limits, see [Build and Regression Checks](TESTING.md). Recompile
+existing modules with the matching compiler and headers after an ABI change.
+Failed GCC invocations retain generated C and any previous object. For scripts,
+use `python3 tests/audit_regressions.py --compile ./program.pl` so compilation
+failure produces a nonzero process status; REPL exit status alone is insufficient.
+
 
 # Usage
 To use the compiler in SCBM-Prolog, you need to load the module. Compilation is performed using compile_file/1.

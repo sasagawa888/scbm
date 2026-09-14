@@ -445,6 +445,10 @@ static inline int Jwlist2(int x, int y, int th) {
 }
 
 
+static inline int Jprove_cps(int body, int rest, int th) {
+    return f3[PROVE_CPS_IDX](body, rest, th);
+}
+
 static inline int Jaddtail_body(int x, int y, int th) {
     return f3[ADDTAIL_BODY_IDX](x, y, th);
 }

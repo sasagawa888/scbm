@@ -164,6 +164,7 @@ void dynamic_link(int x)
     REGISTER(3, UNIFY_STR_IDX, unify_str);
     REGISTER(3, UNIFY_ATOM_IDX, unify_atom);
     REGISTER(3, PROVE_ALL_IDX, prove_all);
+    REGISTER(3, PROVE_CPS_IDX, prove_cps);
     REGISTER(3, WCONS_IDX, wcons);
     REGISTER(3, WLIST2_IDX, wlist2);
     REGISTER(3, ADDTAIL_BODY_IDX, addtail_body);

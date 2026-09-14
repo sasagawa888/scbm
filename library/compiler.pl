@@ -64,7 +64,8 @@ pass2(_) :-
     write(user_output,'phase pass2'),
     nl(user_output),
     analize,
-    retype_halt.
+    retype_halt,
+    retype_cps.
 
 retype_halt :-
     retract(type(P,A,halt)),
@@ -139,6 +140,7 @@ gen_pred_def(P) :-
     write(','),write(A),write(','),write(T1),write(');'),nl,!.
 
 pred_type(nondet,1).
+pred_type(cps,1).
 pred_type(det,2).
 pred_type(tail,3).
 pred_type(dyn,4).
@@ -246,6 +248,8 @@ gen_predicate.
 % generate predicate P
 gen_a_pred(P) :- 
     type(P,_,nondet),gen_nondet_pred(P).     
+gen_a_pred(P) :-
+    type(P,_,cps),gen_cps_pred(P).
 gen_a_pred(P) :- 
     type(P,_,det),gen_det_pred(P).
 gen_a_pred(P) :- 
@@ -958,6 +962,43 @@ gen_debug_path([P,A,M,N],Msg) :-
 
 
 %---------------det determinant predicate-------------------
+% ponytail: meta-call components use the existing recursive engine, not SCBM jumps.
+% Specialize them only when a continuation bridge preserves choice and cut scope.
+gen_cps_pred(P) :-
+    n_atom_convert(P,P1),
+    write('static int c_'),write(P1),write('(int arglist, int rest, int th){'),nl,
+    gen_var_declare(P),
+    write('save1 = Jget_wp(th); save2 = Jget_sp(th); save3 = Jget_ac(th);'),nl,
+    n_arity_count(P,[A]),
+    write('if(Jlength(arglist) != '),write(A),write(') return NO;'),nl,
+    gen_var_assign(1,A),
+    n_clause_with_arity(P,A,C),
+    gen_cps_clauses(C),
+    write('return NO;'),nl,
+    write('}'),nl,!.
+
+gen_cps_clauses([]).
+gen_cps_clauses([C|Cs]) :-
+    n_variable_convert(C,X),
+    n_generate_variable(X,V),
+    gen_var(V),
+    gen_cps_clause(X),
+    write('Junbind(save2,th); Jset_wp(save1,th); Jset_ac(save3,th);'),nl,
+    write('if(res == NFALSE) return NO;'),nl,
+    gen_cps_clauses(Cs).
+
+gen_cps_clause((Head :- Body)) :- !,
+    write('res = NO;'),nl,
+    gen_head(Head),write('{'),nl,
+    write('body = '),gen_a_argument(Body),write(';'),nl,
+    write('res = Jprove_cps(body,rest,th);'),nl,
+    write('if(res == YES) return YES;}'),nl.
+gen_cps_clause(Head) :-
+    write('res = NO;'),nl,
+    gen_head(Head),write('{'),nl,
+    write('res = Jprove_all(rest,Jget_sp(th),th);'),nl,
+    write('if(res == YES) return YES;}'),nl.
+
 gen_det_pred(P) :-
 	atom_concat('compiling ',P,M),
     write(user_output,M),
@@ -2241,6 +2282,29 @@ analize :-
     analize_pred(P),
     fail.
 analize.
+
+% A jump caller must not discard alternatives returned by a CPS callee.
+retype_cps :-
+    type(P,A,T),integer(A),T \= cps,T \= dyn,
+    n_clause_with_arity(P,A,Clauses),
+    member((_ :- Body),Clauses),
+    n_variable_convert(Body,Converted),
+    needs_cps(Converted),!,
+    retractall(type(P,A,_)),assertz(type(P,A,cps)),
+    retype_cps.
+retype_cps.
+
+needs_cps(X) :- n_compiler_variable(X),!.
+needs_cps((X,Y)) :- !,(needs_cps(X);needs_cps(Y)).
+needs_cps((X;Y)) :- !,(needs_cps(X);needs_cps(Y)).
+needs_cps(X) :-
+    functor(X,P,A),
+    member(P/A,[call/1,catch/3,select/3,repeat/0,current_op/3,current_predicate/1,
+                clause/2,retract/1,ifthen/2,ifthenelse/3,case/1,'->'/2]),!.
+needs_cps(X) :-
+    functor(X,P,A),type(P,A,cps),!.
+needs_cps(X) :-
+    n_property(X,predicate),functor(X,P,A),not(type(P,A,_)).
 
 
 analize_pred(P) :-

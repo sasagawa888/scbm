@@ -210,6 +210,8 @@ void init_builtin(void)
     defbuiltin("peek_byte", b_peek_byte, list2(1, 2));
     defbuiltin("flush_output", b_flush_output, list2(0, 1));
     defbuiltin("catch", b_catch, 3);
+    defbuiltin("n_catch_rest", b_n_catch_rest, 2);
+    defbuiltin("n_cps_cut", b_n_cps_cut, 1);
     defbuiltin("throw", b_throw, 1);
     defbuiltin("unify_with_occurs_check", b_unify_with_occurs_check, 2);
     defbuiltin("current_input", b_current_input, 1);
@@ -2596,7 +2598,7 @@ int b_call(int arglist, int rest, int th)
 	if (atom_constant_p(arg1))
 	    arg1 = makeatom(GET_NAME(arg1), PRED);
 
-	return (prove_all(addtail_body(rest, arg1, th), sp[th], th));
+	return prove_cps(arg1, rest, th) == YES ? YES : NO;
     }
     exception(ARITY_ERR, ind, arglist, th);
     return (NO);

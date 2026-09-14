@@ -103,6 +103,16 @@ class BuildSmokeTests(SCBMTest):
         obj = self.compile(ROOT / 'tests/stress1.pl')
         self.answers('pair(X,Y)', '[[a,1],[a,2],[b,1],[b,2]]', [obj], '[X,Y]')
 
+    def test_debug_compilation(self):
+        source = self.source('p(a).\np(b).\ntwice(X,Y) :- Y is X*2.\n')
+        obj = self.compile(source)
+        result = self.expect_ok('p(a),twice(3,6)', [obj])
+        self.assertNotIn('rp=', result.stdout)
+        self.expect_ok(f'compile_file({atom(self.relative(source))},d)',
+                       [ROOT / 'library/compiler.pl'])
+        result = self.expect_ok('p(a),twice(3,6)', [obj])
+        self.assertIn('rp=', result.stdout)
+
 
 class MemoryTests(SCBMTest):
     def test_registration_bounds(self):
@@ -148,6 +158,16 @@ class MemoryTests(SCBMTest):
         result = self.run_prolog('halt.\n', [obj])
         self.assertGreaterEqual(result.returncode, 0, result.stdout)
         self.assertRegex(result.stdout, r'(?i)(error|missing|invalid)')
+
+    def test_cps_scope_limit(self):
+        obj = self.compile(self.source(
+            'walk(0).\nwalk(N) :- N>0,N1 is N-1,call(walk(N1)),!.\n'), sanitize=True)
+        self.expect_ok('walk(4096)', [obj])
+        self.expect_ok('catch((walk(4097),fail),error(resource_error(_),_),true),walk(32)',
+                       [obj])
+        self.expect_ok('catch(n_cps_cut(-1),_,true),catch(n_cps_cut(0),_,true)', [obj])
+        self.expect_ok('catch(n_catch_rest(-1,true),_,true),'
+                       'catch(n_catch_rest(10,true),_,true)', [obj])
 
     def test_local_variable_limit(self):
         variables = ','.join(f'V{i}' for i in range(254))
@@ -199,6 +219,9 @@ class SearchTests(SCBMTest):
         second = self.compile(self.source('q(1).\nq(2).\n', 'second'), sanitize=True)
         self.answers('p(X),q(Y)', '[[a,1],[a,2],[b,1],[b,2]]', [first, second], '[X,Y]')
         self.answers('p(X),call(p(Y))', '[[a,a],[a,b],[b,a],[b,b]]', [first], '[X,Y]')
+        caller = self.compile(self.source('via(X) :- p(X).\n', 'caller'), sanitize=True)
+        self.answers('via(X)', '[a,b]', [first, caller])
+        self.answers('via(X),X=b', '[b]', [first, caller])
 
     def test_cut_scope(self):
         obj = self.compile(self.source(
@@ -211,6 +234,39 @@ class SearchTests(SCBMTest):
         self.answers('branch(X)', '[a]', [obj])
         self.answers('p(X),pick(Y)', '[[a,a],[b,a]]', [obj], '[X,Y]')
 
+    def test_compiled_meta_continuation(self):
+        source = self.source(
+            'p(a).\np(b).\n'
+            'direct(X) :- call(p(X)).\n'
+            'via(X) :- p(a),call(p(X)).\n'
+            'filtered(X) :- p(a),call(p(X)),X=b.\n'
+            'variable(G) :- p(a),call(G).\n'
+            'caught(X) :- p(a),catch(p(X),_,fail).\n'
+            'outer(X) :- p(a),via(X),X=b.\n'
+            'cutmeta(X) :- p(a),call(p(X)),!.\ncutmeta(other).\n'
+            'first(X) :- second(X).\nsecond(X) :- third(X).\n'
+            'third(X) :- call(p(X)).\n'
+            'chosen(X) :- select(X,[a,b],_).\n'
+            'condition(X) :- (true->p(X);X=c).\n'
+            'repeatstop :- repeat,!.\n'
+            'choice(a).\nchoice(_) :- throw(stop).\n')
+        for sanitize in [False, True]:
+            obj = self.compile(source, sanitize=sanitize)
+            for goal, expected in [('direct(X)', '[a,b]'), ('via(X)', '[a,b]'),
+                                   ('filtered(X)', '[b]'), ('variable(p(X))', '[a,b]'),
+                                   ('caught(X)', '[a,b]'), ('outer(X)', '[b]'),
+                                   ('cutmeta(X)', '[a]'), ('first(X)', '[a,b]'),
+                                   ('chosen(X)', '[a,b]'), ('condition(X)', '[a,b]')]:
+                with self.subTest(sanitize=sanitize, goal=goal):
+                    self.answers(goal, expected, [obj])
+            self.answers('catch(throw(stop),stop,p(X))', '[a,b]', [obj])
+            self.answers('catch(choice(X),stop,X=recovered),catch(true,_,true)',
+                         '[a,recovered]', [obj])
+            self.expect_ok('catch((catch(p(_),outside,fail),throw(outside)),outside,true)',
+                           [obj])
+            self.answers('p(Y),cutmeta(X)', '[[a,a],[b,a]]', [obj], '[Y,X]')
+            self.answers('repeatstop,X=ok', '[ok]', [obj])
+
     def test_exception_cleanup(self):
         obj = self.compile(self.source(
             'p(a).\np(b).\nboom :- p(_),throw(stop).\n'
@@ -221,6 +277,28 @@ class SearchTests(SCBMTest):
         self.expect_ok('catch(bound(X),stop,true),var(X)', [obj])
         self.expect_ok('catch(catch(boom,other,true),stop,true),p(a)', [obj])
         self.expect_ok('catch(bad,_,true),findall(X,p(X),R),R==[a,b]', [obj])
+
+    def test_meta_cut_scope(self):
+        source = self.source(
+            'p(a).\np(b).\nq(1).\nq(2).\n'
+            'protected(X) :- catch((!,fail),tag,true),X=bad.\nprotected(ok).\n'
+            'recovery(X) :- catch(throw(tag),tag,(!,fail)),X=bad.\nrecovery(ok).\n'
+            'opaque(X) :- call((!,fail)),X=bad.\nopaque(ok).\n'
+            'branch(X,Y) :- p(X),(call(q(Y)),!;Y=3).\n'
+            'after(X,Y) :- p(X),call(true),!,q(Y).\n'
+            'nested(X,Y) :- p(X),(call(q(Y)),(!;fail);Y=3).\n'
+            'ops(W,S) :- current_op(W,S,+).\n')
+        for sanitize in [False, True]:
+            obj = self.compile(source, sanitize=sanitize)
+            for predicate in ['protected', 'recovery', 'opaque']:
+                self.answers(f'{predicate}(X)', '[ok]', [obj])
+            self.answers('branch(X,Y)', '[[a,1]]', [obj], '[X,Y]')
+            self.answers('nested(X,Y)', '[[a,1]]', [obj], '[X,Y]')
+            self.answers('after(X,Y)', '[[a,1],[a,2]]', [obj], '[X,Y]')
+            self.answers('p(Z),branch(X,Y)', '[[a,a,1],[b,a,1]]', [obj], '[Z,X,Y]')
+            self.answers('ops(W,S)', '[[200,fy],[500,yfx]]', [obj], '[W,S]')
+            self.expect_ok('catch((branch(_,_),throw(tag)),tag,true),'
+                           'findall(X,protected(X),R),R==[ok]', [obj])
 
     def test_typed_unification(self):
         for sanitize in [False, True]:
