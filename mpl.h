@@ -20,7 +20,7 @@ address
 30,000,001 - 32,000,000  variant area
 */
 #define VERSION     1.01
-#define SCBM_ABI_VERSION 1
+#define SCBM_ABI_VERSION 2
 //#define CELLSIZE    30000000  // if raspberry PI set smaller size.
 #define HEAPSIZE     5000000
 #define FREESIZE         500

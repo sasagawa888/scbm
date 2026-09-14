@@ -15,7 +15,7 @@ typedef char* (*fn6)(int);
 typedef double (*fn7)(int);
 typedef int (*fn8)(int , int , int , int , int);
 typedef void (*tpred)(char*, int(*pred)(int , int, int), int, int);
-typedef void (*tuser)(char*, int(*user)(int , int), int weight, int spec);
+typedef void (*tuser)(char*, int(*user)(int, int, int), int weight, int spec);
 
 static fn0 f0[NUM_FN0S];
 static fn1 f1[NUM_FN1S];

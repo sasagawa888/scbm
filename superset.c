@@ -1603,6 +1603,7 @@ int prove_cps(int body, int rest, int th)
     int scope = cps_depth[th];
     int saved_cp = cp[th], saved_np = scbm_np[th];
     int saved_rp = scbm_rp[th], saved_nt = scbm_nt[th];
+    int saved_sp = sp[th], saved_wp = wp[th], saved_ac = ac[th];
     int scoped_body = scope_cuts(body, scope, th);
     if (scoped_body == body)
         return prove_all(addtail_body(rest, body, th), sp[th], th);
@@ -1617,6 +1618,9 @@ int prove_cps(int body, int rest, int th)
         scbm_rp[th] = saved_rp;
         scbm_nt[th] = saved_nt;
         cps_depth[th] = scope;
+        unbind(saved_sp, th);
+        wp[th] = saved_wp;
+        ac[th] = saved_ac;
         return NFALSE;
     }
     int res = prove_all(addtail_body(rest, scoped_body, th), sp[th], th);

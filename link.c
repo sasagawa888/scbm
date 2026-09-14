@@ -5,7 +5,7 @@
 
 
 typedef void (*tpred)(char *, int (*pred)(int, int, int), int, int);
-typedef void (*tuser)(char *, int (*user)(int, int), int weight, int spec);
+typedef void (*tuser)(char *, int (*user)(int, int, int), int weight, int spec);
 
 
 char *get_name(int x)

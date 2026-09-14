@@ -122,6 +122,10 @@ class MemoryTests(SCBMTest):
                          f'assert(init{i}(0,stub)==YES);' for i in range(8))
         source = self.folder / 'bounds.c'
         source.write_text('#include <assert.h>\n#include "jump.h"\n'
+                          '_Static_assert(__builtin_types_compatible_p(tpred, '
+                          '__typeof__(&defcompiled)), "predicate initializer type");\n'
+                          '_Static_assert(__builtin_types_compatible_p(tuser, '
+                          '__typeof__(&definfixcomp)), "operator initializer type");\n'
                           'static void stub(void) {}\nint main(void) {' + checks + 'return 0;}\n')
         binary = self.folder / 'bounds'
         self.succeeded(self.process(['gcc', '-O1', '-g', '-fsanitize=undefined',
@@ -193,7 +197,7 @@ class MemoryTests(SCBMTest):
 
     def test_old_abi(self):
         c_file = self.folder / 'old.c'
-        c_file.write_text('int scbm_abi_version(void) { return -1; }\n')
+        c_file.write_text('int scbm_abi_version(void) { return 1; }\n')
         obj = c_file.with_suffix('.o')
         self.succeeded(self.process(['gcc', '-shared', '-fPIC', '-o', str(obj), str(c_file)]))
         result = self.run_prolog('halt.\n', [obj])
@@ -287,6 +291,9 @@ class SearchTests(SCBMTest):
             'branch(X,Y) :- p(X),(call(q(Y)),!;Y=3).\n'
             'after(X,Y) :- p(X),call(true),!,q(Y).\n'
             'nested(X,Y) :- p(X),(call(q(Y)),(!;fail);Y=3).\n'
+            'guard(X) :- ((p(Y),(Y=a,!,fail;true)) -> X=then;X=else).\n'
+            'guardonly(X) :- ((p(Y),(Y=a,!,fail;true)) -> X=then).\n'
+            'guardonly(else).\n'
             'ops(W,S) :- current_op(W,S,+).\n')
         for sanitize in [False, True]:
             obj = self.compile(source, sanitize=sanitize)
@@ -297,6 +304,11 @@ class SearchTests(SCBMTest):
             self.answers('after(X,Y)', '[[a,1],[a,2]]', [obj], '[X,Y]')
             self.answers('p(Z),branch(X,Y)', '[[a,a,1],[b,a,1]]', [obj], '[Z,X,Y]')
             self.answers('ops(W,S)', '[[200,fy],[500,yfx]]', [obj], '[W,S]')
+            self.answers('guard(X)', '[else]', [obj])
+            self.answers('guardonly(X)', '[else]', [obj])
+            self.expect_ok('findall(X,call((p(X),!,fail)),R),R==[],var(X)', [obj])
+            self.expect_ok('findall(X,catch((p(X),!,fail),_,true),R),R==[],var(X)',
+                           [obj])
             self.expect_ok('catch((branch(_,_),throw(tag)),tag,true),'
                            'findall(X,protected(X),R),R==[ok]', [obj])
 

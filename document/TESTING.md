@@ -96,3 +96,7 @@ These tests establish specific regression properties, not full ISO compliance,
 unbounded search, all foreign-library configurations, concurrent-query safety,
 or production certification. General engine redesign and performance claims are
 outside this change.
+
+Use explicit parentheses around a compound if-then condition, for example
+`((p(X),q(X)) -> yes ; no)`. The existing parser does not group the unparenthesized
+conjunction like standard Prolog; parser precedence is outside these fixes.

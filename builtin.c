@@ -3730,7 +3730,7 @@ int b_ifthen(int arglist, int rest, int th)
 	if (variablep(arg2))
 	    exception(INSTANTIATION_ERR, ind, arg2, th);
 
-	if (prove_all(arg1, sp[th], th) == YES) {
+	if (prove_cps(arg1, NIL, th) == YES) {
 	    return (prove_all(addtail_body(rest, arg2, th), sp[th], th));
 	} else {
 	    unbind(save1, th);
@@ -3763,7 +3763,7 @@ int b_ifthenelse(int arglist, int rest, int th)
 	if (variablep(arg3))
 	    exception(INSTANTIATION_ERR, ind, arg3, th);
 
-	if (prove_all(arg1, sp[th], th) == YES) {
+	if (prove_cps(arg1, NIL, th) == YES) {
 	    return (prove_all(addtail_body(rest, arg2, th), sp[th], th));
 	} else {
 	    unbind(save1, th);
@@ -3808,7 +3808,7 @@ int b_case(int arglist, int rest, int th)
 	while (!(predicatep(arg1) || builtinp(arg1) || compiledp(arg1)
 		 || conjunctionp(arg1) || disjunctionp(arg1))) {
 	    ifthen = car(arg1);
-	    if (prove_all(cadr(ifthen), sp[th], th) == YES)
+	    if (prove_cps(cadr(ifthen), NIL, th) == YES)
 		return (prove_all
 			(addtail_body(rest, caddr(ifthen), th), sp[th],
 			 th));
