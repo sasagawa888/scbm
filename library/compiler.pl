@@ -560,7 +560,7 @@ gen_arity_switch(P,[L|Ls]) :-
 gen_SCBM_function2 :-
     type(P,A,nondet),
     write(P),write('_'),write(A),write(':'),nl,
-    ifthenelse(option(debug,on),gen_debug(P),true),
+    gen_debug_pred(P),
     write('Jinc_proof(th);'),nl,
     write('switch(clause){'),nl,
     n_clause_count_with_arity(P,A,M),
@@ -605,7 +605,7 @@ gen_SCBM_function31(P,A,[C|Cs],N) :-
 
 gen_SCBM_function4 :-
     write('success:'),nl,
-    ifthenelse(option(debug,on),write('printf("success");'),true),
+    gen_debug_print('success'),
     write('if(np[th] == base_np){'),nl,
     write('if(Jprove_all(rest,Jget_sp(th),th) == YES){'),nl,
     write('np[th] = base_np; rp[th] = base_rp; nt[th] = base_nt; return YES;}'),nl,
@@ -627,7 +627,7 @@ gen_SCBM_function4 :-
 
 gen_SCBM_function5 :-
     write('allfail:'),nl,
-    ifthenelse(option(debug,on),write('printf("allfail");'),true),
+    gen_debug_print('allfail'),
     write('if(rp[th] == base_rp){np[th] = base_np; nt[th] = base_nt; return NO;}'),nl,
     write('Srelease(th);'),nl,
     write('next = back_goto1[rp[th]][th];'),nl,
@@ -689,11 +689,6 @@ gen_a_nondet_clause(P,A,M,_,_) :-
     write('goto success;'),nl,
     write('}'),nl,!.
 
-gen_debug(P) :-
-    write('printf("'),write(P),write('");'),
-    write('Jprint(arglist); Jprint(Jderef(arglist,th));').
-
-
 % varA,varB,...
 gen_all_var([]).
 gen_all_var([L|Ls]) :-
@@ -751,6 +746,7 @@ join_body(X,Rest,(X,Rest)).
 % end of body
 gen_nondet_body1(end_of_body,A,M,N,B,H,P,V,T,D) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
+    gen_debug_path([P,A,M,N],path),
     write('goto success;'),nl.
 
 
@@ -765,6 +761,7 @@ gen_nondet_body1((!,end_of_body),A,M,N,B,H,P,V,T,D) :-
 % last fail body
 gen_nondet_body1((fail,end_of_body),A,M,N,B,H,P,V,T,D) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
+    gen_debug_path([P,A,M,N],path),
     gen_push_back([P,A,M],B,T,D),
     write('goto allfail;'),nl.
 
@@ -775,6 +772,7 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     functor(X,_,Arity),
     type(Pred,Arity,nondet),
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
+    gen_debug_path([P,A,M,N],path),
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
     gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
@@ -792,6 +790,7 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     functor(X,_,Arity),
     member(Pred/Arity,[append/3,between/3,length/2,member/2]),
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
+    gen_debug_path([P,A,M,N],path),
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
     gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
@@ -825,6 +824,7 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     n_property(X,builtin),
     X =.. [Pred|Args],
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
+    gen_debug_path([P,A,M,N],path),
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
     gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
@@ -843,6 +843,7 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     (type(Pred,Arity,det);type(Pred,Arity,tail)),
     X =.. [Pred|Args],
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
+    gen_debug_path([P,A,M,N],path),
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
     gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
@@ -933,6 +934,28 @@ gen_succ_cont([P,A,M,N1],D) :-
     X == 0, %right disjunction goto exit 
     write('goto '),gen_nondet_body_label([P,A,M,N1],0),write(';'),nl.
 
+gen_debug_print(_) :- not(option(debug,on)),!.
+gen_debug_print(Msg) :-
+    write('printf("'),write(Msg),write(' rp=%d np=%d", rp[th], np[th]);'),
+    write("Snewline();").
+
+
+gen_debug_pred(_) :- not(option(debug,on)),!.
+gen_debug_pred(P) :-
+    write('printf("'),write(P),write(' rp=%d np=%d", rp[th], np[th]);'),
+    write('Jprint(arglist); Jprint(Jderef(arglist,th));'),
+    write('Snewline();').
+
+gen_debug_path(_,_) :- not(option(debug,on)),!.
+gen_debug_path([P,A,M,N],Msg) :-
+    write('printf("'),write(Msg),write(' '),
+    write(P),write('_'),
+    write(A),write('_'),
+    write(M),write('_'),
+    write(N),write(' rp=%d np=%d", rp[th], np[th]); Snewline();').
+
+
+
 
 %---------------det determinant predicate-------------------
 gen_det_pred(P) :-
@@ -945,7 +968,7 @@ gen_det_pred(P) :-
     gen_var_declare(P),
     write('Jinc_proof(th);'),nl,
     write('n = Jarity_count(arglist);'),nl,
-    ifthenelse(option(debug,on),gen_debug(P),true),
+    gen_debug_pred(P),
     write('save1 = Jget_wp(th);'),nl,
     write('save2 = Jget_sp(th);'),nl,
     write('save3 = Jget_ac(th);'),nl,
@@ -1632,7 +1655,7 @@ gen_tail_pred(P) :-
     write('save3 = Jget_ac(th);'),nl,
     write('Jinc_proof(th);'),nl,
     write('n = Jarity_count(arglist);'),nl,
-    ifthenelse(option(debug,on),gen_debug(P),true),
+    gen_debug_pred(P),
     n_arity_count(P,L),
     gen_tail_pred1(P,L),
     write('Junbind(save2,th); Jset_ac(save3,th); return NO;'),nl,

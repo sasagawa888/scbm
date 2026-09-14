@@ -657,6 +657,11 @@ static inline void Scheck_back(int th)
         Jerrorcomp(RESOURCE_ERR, Jmakestr("SCBM back stack size"), NIL);
 }
 
+static inline void Snewline()
+{
+    printf("\n");
+}
+
 static inline void Spush_next(void *cont,int th)
 {
     #ifdef DBG
