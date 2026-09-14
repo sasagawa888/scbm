@@ -294,7 +294,9 @@ class SearchTests(SCBMTest):
             'guard(X) :- ((p(Y),(Y=a,!,fail;true)) -> X=then;X=else).\n'
             'guardonly(X) :- ((p(Y),(Y=a,!,fail;true)) -> X=then).\n'
             'guardonly(else).\n'
-            'ops(W,S) :- current_op(W,S,+).\n')
+            'ops(W,S) :- current_op(W,S,+).\n'
+            'allops(X) :- current_op(_,_,X).\n'
+            'tripleops(W,S,X) :- current_op(W,S,X).\n')
         for sanitize in [False, True]:
             obj = self.compile(source, sanitize=sanitize)
             for predicate in ['protected', 'recovery', 'opaque']:
@@ -304,6 +306,11 @@ class SearchTests(SCBMTest):
             self.answers('after(X,Y)', '[[a,1],[a,2]]', [obj], '[X,Y]')
             self.answers('p(Z),branch(X,Y)', '[[a,a,1],[b,a,1]]', [obj], '[Z,X,Y]')
             self.answers('ops(W,S)', '[[200,fy],[500,yfx]]', [obj], '[W,S]')
+            self.expect_ok('findall(X,current_op(_,_,X),E),findall(X,allops(X),A),'
+                           'E==A,length(E,N),N>0,var(X)', [obj])
+            self.expect_ok('findall([W,S,X],current_op(W,S,X),E),'
+                           'findall([W,S,X],tripleops(W,S,X),A),E==A,var(W),var(S),var(X)',
+                           [obj])
             self.answers('guard(X)', '[else]', [obj])
             self.answers('guardonly(X)', '[else]', [obj])
             self.expect_ok('findall(X,call((p(X),!,fail)),R),R==[],var(X)', [obj])

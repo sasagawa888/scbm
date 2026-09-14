@@ -4697,7 +4697,7 @@ int b_current_op(int arglist, int rest, int th)
 	   e.g. ',' ':-'  aux of operator is SIMP
 	   beclause of parsing. so change to OPE from SIMP
 	 */
-	if (getatom(GET_NAME(arg3), OPE, hash(GET_NAME(arg3))))
+	if (!wide_variable_p(arg3) && getatom(GET_NAME(arg3), OPE, hash(GET_NAME(arg3))))
 	    arg3 = makeatom(GET_NAME(arg3), OPE);
 
 	lis = op_list;
