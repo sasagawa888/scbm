@@ -1,19 +1,44 @@
 # Compiler
 
+The SCBM compiler is still incomplete. It can currently compile simple Prolog programs.
+
+The `queens.pl` program in the `tests` directory has been confirmed to compile and run successfully.
+
+
 # Usage
-To use the compiler in N-Prolog, you need to load the module. Compilation is performed using compile_file/1.
+To use the compiler in SCBM-Prolog, you need to load the module. Compilation is performed using compile_file/1.
 
 ```
-N-Prolog Ver 3.91
+SCBM-Prolog Ver 1.01 [30M cells]
 ?- use_module(compiler).
 yes
-?- compile_file('./tests/fact.pl').
+?- compile_file('./tests/queens').
 phase pass1
 phase pass2
-compiling fact
+phase pass3
+compiling test/0 nondet
+compiling test1/0 nondet
+compiling queen/2 nondet
+compiling queen2/3 nondet
+compiling qdelete/4 nondet
+compiling nodiag/3 tail
 invoke GCC
 yes
+?- ['./tests/queens.o'].
+yes
+?- test.
+[1,3,6,8,2,4,9,7,5]
+[1,3,7,2,8,5,9,4,6]
+[1,3,8,6,9,2,5,7,4]
+[1,4,2,8,6,9,3,5,7]
+[1,4,6,3,9,2,8,5,7]
+[1,4,6,8,2,5,3,9,7]
+...
+[9,7,3,8,2,5,1,6,4]
+[9,7,4,2,8,6,1,3,5]
+no
 ?- 
+
 
 ```
 # Note
