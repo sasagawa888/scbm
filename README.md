@@ -16,6 +16,28 @@ license is modified BSD.
 
 ![scbm](scbm.png)
 
+## SCBM in One Minute
+
+Prolog is based on ideas that are quite different from those of most other programming languages. One of its distinctive features is **backtracking**.
+
+When a predicate is executed and unification succeeds, Prolog proceeds to the next predicate. If it fails, Prolog goes back to a previous predicate and tries another possibility. By repeating this process, Prolog searches for solutions.
+
+Efficiently implementing this control flow—moving forward on success and going back to retry on failure—is one of the challenging parts of implementing Prolog.
+
+SCBM implements this mechanism using two kinds of continuations: a **success continuation** and a **failure continuation**.
+
+When executing a predicate:
+
+* If it succeeds, the **success continuation** specifies where execution should continue.
+* If it fails, the **failure continuation** specifies where execution should return to retry another possibility.
+
+The SCBM-Prolog compiler generates these continuations as control flow using C's `goto`.
+
+In short, SCBM implements Prolog backtracking with a simple mechanism based on these two continuations.
+
+That is **SCBM — the Sasagawa Continuation Backtracking Model**.
+
+
 ## Relation to ISO-Prolog
 Although SCBM-Prolog is a superset of ARITY/Prolog, it also implements most ISO-Prolog predicates. In addition, by adding the -d option at startup, strings are represented using double quotes, just as in ISO. For study and educational purposes, ISO-Prolog code can be sufficiently reproduced. Please refer to SUPER.md for details.
 
