@@ -761,7 +761,8 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     functor(X,_,Arity),
     type(Pred,Arity,nondet),
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
-    gen_nondet_body_argument(Args,V,N),
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_nondet_body_argument(Args,V),
     ifthenelse(T\=det,gen_pack_back(V,1),true),
     gen_push_back([P,A,M],B,T,D),
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
@@ -782,7 +783,8 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     functor(X,_,Arity),
     member(Pred/Arity,[append/3,between/3,length/2,member/2]),
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
-    gen_nondet_body_argument(Args,V,N),
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
     gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
@@ -805,7 +807,8 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     n_property(X,builtin),
     X =.. [Pred|Args],
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
-    gen_nondet_body_argument(Args,V,N),
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_nondet_body_argument(Args,V),
     ifthenelse(T\=det,gen_pack_back(V,1),true),
     gen_push_back([P,A,M],B,T,D),
     N1 is N+1,
@@ -822,7 +825,8 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     (type(Pred,Arity,det);type(Pred,Arity,tail)),
     X =.. [Pred|Args],
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
-    gen_nondet_body_argument(Args,V,N),
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_nondet_body_argument(Args,V),
     ifthenelse(T\=det,gen_pack_back(V,1),true),
     gen_push_back([P,A,M],B,T,D),
     N1 is N+1,
@@ -844,13 +848,8 @@ gen_nondet_body_label([P,A,M,N],0) :-
 gen_nondet_body_label([P,A,M,N],D) :-
     write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N),write('_'),write(D).
 
-gen_nondet_body_argument(Args,Vars,0) :-
+gen_nondet_body_argument(Args,Vars) :-
     write('arglist = '),gen_a_argument(Args),write(';'),nl.
-
-gen_nondet_body_argument(Args,Vars,_) :-
-    gen_unpack_pointer(Vars,1),
-    write('arglist = '),gen_a_argument(Args),write(';'),nl.
-
 
 
 gen_pack_pointer([],_).
