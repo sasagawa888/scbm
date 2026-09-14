@@ -105,9 +105,23 @@ class BuildSmokeTests(SCBMTest):
 
 
 class MemoryTests(SCBMTest):
+    def test_registration_bounds(self):
+        checks = ''.join(f'assert(init{i}(-1,stub)==NO);'
+                         f'assert(init{i}(NUM_FN{i}S,stub)==NO);'
+                         f'assert(init{i}(0,NULL)==NO);'
+                         f'assert(init{i}(0,stub)==YES);' for i in range(8))
+        source = self.folder / 'bounds.c'
+        source.write_text('#include <assert.h>\n#include "jump.h"\n'
+                          'static void stub(void) {}\nint main(void) {' + checks + 'return 0;}\n')
+        binary = self.folder / 'bounds'
+        self.succeeded(self.process(['gcc', '-O1', '-g', '-fsanitize=undefined',
+                                     '-I', str(ROOT), '-o', str(binary), str(source)]))
+        self.succeeded(self.process([str(binary)]))
+
     def test_module_registration(self):
         obj = self.compile(self.source('value(a).\nvalue(b).\n'), sanitize=True)
         self.answers('value(X)', '[a,b]', [obj])
+        self.answers('value(X)', '[a,b]', [obj, obj, obj])
 
     def test_depth_limit(self):
         obj = self.compile(ROOT / 'tests/stress2.pl', sanitize=True)
@@ -136,6 +150,11 @@ class MemoryTests(SCBMTest):
         self.assertRegex(result.stdout, r'(?i)(error|missing|invalid)')
 
     def test_local_variable_limit(self):
+        variables = ','.join(f'V{i}' for i in range(254))
+        source = self.source(f'many(f({variables})) :- pick(a).\n'
+                             'many(done).\npick(a).\npick(b).\n')
+        obj = self.compile(source, sanitize=True)
+        self.expect_ok('many(done)', [obj])
         variables = ','.join(f'V{i}' for i in range(255))
         source = self.source(f'many(f({variables})) :- pick(a).\n'
                              'many(done).\npick(a).\npick(b).\n')
@@ -282,7 +301,7 @@ class CompilerTests(SCBMTest):
         self.assertEqual(list(self.folder.glob('*.o.*')), [])
 
     def test_path_characters(self):
-        source = self.source('p(a).\np(b).\n', "space's;touch AUDIT_PWN;v1")
+        source = self.source('p(a).\np(b).\n', "space's;touch AUDIT_PWN;v1.program")
         self.succeeded(self.compile_cli(source))
         self.answers('p(X)', '[a,b]', [source.with_suffix('.o')])
         self.assertFalse((ROOT / 'AUDIT_PWN').exists())
@@ -292,6 +311,14 @@ class CompilerTests(SCBMTest):
         self.assertNotEqual(result.returncode, 0)
         self.assertNotIn('SIGSEGV', result.stdout)
         self.assertRegex(result.stdout, r'(?i)(exist|open)')
+
+    def test_invalid_paths(self):
+        for name, message in [('', "Can't open"), ('x' * 2040, 'file path length')]:
+            with self.subTest(length=len(name)):
+                result = self.run_prolog(f'consult({atom(name)}),write(unexpected_success),halt.\n')
+                self.assertGreaterEqual(result.returncode, 0, result.stdout)
+                self.assertIn(message, result.stdout)
+                self.assertNotIn('unexpected_success', result.stdout)
 
     def test_compiler_process_failures(self):
         source = self.source('p(a).\np(b).\n')
@@ -360,6 +387,13 @@ class GateTests(SCBMTest):
                                'BuildSmokeTests.test_deterministic_compilation'])
         self.assertNotEqual(result.returncode, 0, result.stdout)
         self.assertIn('FAILED', result.stdout)
+        runner.write_text(source.replace('    def test_deterministic_compilation(self):',
+                         '    @unittest.skip("gate negative")\n'
+                         '    def test_deterministic_compilation(self):', 1))
+        result = self.process([sys.executable, str(runner),
+                               'BuildSmokeTests.test_deterministic_compilation'])
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn('skipped: 1', result.stdout)
 
     def test_legacy_failure(self):
         text = (ROOT / 'verify/all.pl').read_text().replace('verify(3 @> 2.1)', 'verify(2 @> 3)')
