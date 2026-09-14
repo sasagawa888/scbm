@@ -111,27 +111,55 @@ class MemoryTests(SCBMTest):
 
     def test_depth_limit(self):
         obj = self.compile(ROOT / 'tests/stress2.pl', sanitize=True)
-        for count in [32, 4100]:
+        for count in [32, 4094, 4095, 4096, 4100]:
             with self.subTest(count=count):
                 values = '[' + ','.join(['a'] * count) + ']'
                 result = self.run_prolog(
                     f'findall(X,mem(X,{values}),R),length(R,N),write(N),nl,halt.\n', [obj])
                 self.assertNotIn('runtime error:', result.stdout, result.stdout)
                 self.assertNotEqual(result.returncode, -signal.SIGSEGV, result.stdout)
-                if count == 32:
+                if count < 4095:
                     self.succeeded(result)
-                    self.assertRegex(result.stdout, r'\b32\b')
+                    self.assertRegex(result.stdout, rf'\b{count}\b')
                 else:
                     self.assertIn('Resource error', result.stdout)
 
     def test_missing_initializer(self):
         c_file = self.folder / 'invalid.c'
-        c_file.write_text('int unrelated(void) { return 0; }\n')
+        c_file.write_text('#include "mpl.h"\n'
+                          'int scbm_abi_version(void) { return SCBM_ABI_VERSION; }\n')
+        obj = c_file.with_suffix('.o')
+        self.succeeded(self.process(['gcc', '-shared', '-fPIC', '-I', str(ROOT),
+                                     '-o', str(obj), str(c_file)]))
+        result = self.run_prolog('halt.\n', [obj])
+        self.assertGreaterEqual(result.returncode, 0, result.stdout)
+        self.assertRegex(result.stdout, r'(?i)(error|missing|invalid)')
+
+    def test_local_variable_limit(self):
+        variables = ','.join(f'V{i}' for i in range(255))
+        source = self.source(f'many(f({variables})) :- pick(a).\n'
+                             'many(done).\npick(a).\npick(b).\n')
+        result = self.run_prolog(
+            f'compile_file({atom(self.relative(source))},c),write(unexpected_success),halt.\n',
+            [ROOT / 'library/compiler.pl'])
+        self.assertGreaterEqual(result.returncode, 0, result.stdout)
+        self.assertIn('SCBM local variable limit', result.stdout)
+        self.assertNotIn('unexpected_success', result.stdout)
+
+    def test_numeric_registration(self):
+        obj = self.compile(self.source(
+            'numbers(I,A,R) :- I is integer(3.75), A is abs(-5), R is random.\n'),
+            sanitize=True)
+        self.expect_ok('numbers(I,A,R),I==3,A==5,R>=0,R=<1', [obj])
+
+    def test_old_abi(self):
+        c_file = self.folder / 'old.c'
+        c_file.write_text('int scbm_abi_version(void) { return -1; }\n')
         obj = c_file.with_suffix('.o')
         self.succeeded(self.process(['gcc', '-shared', '-fPIC', '-o', str(obj), str(c_file)]))
         result = self.run_prolog('halt.\n', [obj])
         self.assertGreaterEqual(result.returncode, 0, result.stdout)
-        self.assertRegex(result.stdout, r'(?i)(error|missing|invalid)')
+        self.assertIn('incompatible module', result.stdout)
 
 
 class SearchTests(SCBMTest):

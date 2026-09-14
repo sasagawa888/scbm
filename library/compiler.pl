@@ -599,6 +599,8 @@ gen_SCBM_function31(P,A,[C|Cs],N) :-
     write('Srelease(th);'),nl,
     n_variable_convert(C,X),
     n_generate_variable(X,V),
+    length(V,Count),
+    ifthenelse(Count < 255,true,invoke_error('SCBM local variable limit: ',Count)),
     gen_var(V),!,
     gen_a_nondet_clause(X,A,N,P,V),
     N1 is N+1,
@@ -852,12 +854,16 @@ gen_nondet_body_argument(Args,Vars) :-
     write('arglist = '),gen_a_argument(Args),write(';'),nl.
 
 
-gen_pack_pointer([],_) :-
+gen_pack_pointer(V,N) :-
+    write('Scheck_next(th);'),nl,
+    gen_pack_pointer1(V,N).
+
+gen_pack_pointer1([],_) :-
     write('next_stack[np[th]+1][255][th] = arglist;'),nl.
-gen_pack_pointer([L|Ls],N) :-
+gen_pack_pointer1([L|Ls],N) :-
     write('next_stack[np[th]+1]['),write(N),write('][th] = '),write(L),write(';'),nl,
     N1 is N+1,
-    gen_pack_pointer(Ls,N1).
+    gen_pack_pointer1(Ls,N1).
    
 
 gen_unpack_pointer([],_) :-
@@ -868,11 +874,15 @@ gen_unpack_pointer([L|Ls],N) :-
     gen_unpack_pointer(Ls,N1).
 
 
-gen_pack_back([],_).
-gen_pack_back([L|Ls],N) :-
+gen_pack_back(V,N) :-
+    write('Scheck_back(th);'),nl,
+    gen_pack_back1(V,N).
+
+gen_pack_back1([],_).
+gen_pack_back1([L|Ls],N) :-
     write('back_stack[rp[th]+1]['),write(N),write('][th] = '),write(L),write(';'),nl,
     N1 is N+1,
-    gen_pack_back(Ls,N1).
+    gen_pack_back1(Ls,N1).
    
 
 gen_unpack_back([],_).
