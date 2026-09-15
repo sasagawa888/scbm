@@ -655,7 +655,7 @@ loop:
 
 void debug(int th)
 {
-    printf("sp=%d wp=%d ac=%d\n", sp[th], wp[th], ac[th]);
+    printf("\nsp=%d wp=%d ac=%d\n", sp[th], wp[th], ac[th]);
     int i;
     for(i=0;i<sp[th];i++)
 	    debug_deref1(localstack[i][th],th);

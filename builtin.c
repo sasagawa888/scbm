@@ -613,10 +613,7 @@ int b_n_ask(int arglist, int rest, int th)
 
 	fflush(stdout);
 
-	
-	//--------debug----------
-	debug(th);
-	//-----------------------
+
 
       loop:
 	c = n_getch();

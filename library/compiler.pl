@@ -921,7 +921,7 @@ gen_debug_pred(_) :- not(option(debug,on)).
 gen_debug_pred(P) :-
     write('printf("'),write(P),write(' rp=%d np=%d", rp[th], np[th]);'),
     write('Jprint(arglist); Jprint(Jderef(arglist,th));'),
-    write('Snewline();').
+    write('Jdebug(th);Snewline();').
 
 gen_debug_path(_,_) :- not(option(debug,on)).
 gen_debug_path([P,A,M,N],Msg) :-
