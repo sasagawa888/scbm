@@ -657,7 +657,7 @@ gen_nondet_pred(P) :-
     write('(int arglist, int rest, int th){'),nl,
     write('int n;'),nl,
     write('n = Jlength(arglist);'),nl,
-    write('Ssave_arg(arglist,th);'),nl,
+    %write('Ssave_arg(arglist,th);'),nl,
     write('return(user_scbm('),write(N),write(',n,0,arglist,rest,th));'),nl,
     write('}'),nl,nl.
 
