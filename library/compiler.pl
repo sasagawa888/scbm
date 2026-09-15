@@ -761,13 +761,16 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_path([P,A,M,N],path),
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    ifthenelse(N\=0,gen_debug_var(V,unpack_pointer),true),
     ifthenelse(T\=det,gen_pack_back(V,1),true),
+    ifthenelse(T\=det,gen_debug_var(V,pack_back),true),
     gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
     gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
-    gen_debug_path([P,A,M,N],back),
+    gen_debug_path([P,A,M,N],unpack_back),
     gen_unpack_back(V,1),
+    gen_debug_var(V,unpack_back),
     gen_nondet_body_label([P,A,M,N],D),write('join:'),nl,
     gen_debug_path([P,A,M,N],join),
     N1 is N+1,
@@ -786,12 +789,14 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_path([P,A,M,N],path),
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    ifthenelse(N\=0,gen_debug_var(V,unpack_pointer),true),
     gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
     gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
     gen_debug_path([P,A,M,N],back),
     gen_unpack_pointer(V,1),
+    gen_debug_var(V,unpack_pointer),
     gen_nondet_body_label([P,A,M,N],D),write('join:'),nl,
     gen_debug_path([P,A,M,N],join),
     N1 is N+1,
@@ -813,7 +818,9 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_path([P,A,M,N],path),
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    ifthenelse(N\=0,gen_debug_var(V,unpack_pointer),true),
     ifthenelse(T\=det,gen_pack_back(V,1),true),
+    ifthenelse(T\=det,gen_debug_var(V,pack_back),true),
     gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
     N1 is N+1,
@@ -832,7 +839,9 @@ gen_nondet_body1((X,Y),A,M,N,B,H,P,V,T,D) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_path([P,A,M,N],path),
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    ifthenelse(N\=0,gen_debug_var(V,unpack_pointer),true),
     ifthenelse(T\=det,gen_pack_back(V,1),true),
+    ifthenelse(T\=det,gen_debug_var(V,pack_back),true),
     gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M],B,T,D),
     N1 is N+1,
@@ -913,8 +922,7 @@ gen_succ_cont([P,A,M,N1],D) :-
 gen_debug_print(_) :- not(option(debug,on)).
 gen_debug_print(Msg) :-
     write('printf("'),write(Msg),write('");'),
-    write("Snewline();"),
-    write('Jdebug();').
+    write("Snewline();").
 
 
 gen_debug_pred(_) :- not(option(debug,on)).
@@ -932,7 +940,16 @@ gen_debug_path([P,A,M,N],Msg) :-
     write(N),write(' rp=%d np=%d", rp[th], np[th]); Snewline();').
 
 
+gen_debug_var(_,_) :- not(option(debug,on)).
+gen_debug_var(V,Msg) :- 
+    write('printf("'),write(Msg),write(' ");'),
+    gen_debug_var1(V),
+    write('Snewline();').
 
+gen_debug_var1([]).
+gen_debug_var1([V|Vs]) :-
+    write('printf("'),write(V),write('=%d ",'),write(V),write(');'),
+    gen_debug_var1(Vs).
 
 %---------------det determinant predicate-------------------
 gen_det_pred(P) :-
