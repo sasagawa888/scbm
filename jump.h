@@ -637,6 +637,7 @@ static inline void Spush_next(void *cont,int th)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("Spush_next SCBM stack size"), NIL);
 
     np[th]++;
+    next_stack[np[th]][CHOICE_SCBM][th] = 0;
     next_goto[np[th]][th] = cont;
 }
 
@@ -681,7 +682,7 @@ static inline void Sinc_choice(int th)
     #ifdef DBG
     printf(" Sinc_choice (%d)\n",rp[th]);
     #endif
-    back_stack[rp[th]][CHOICE_SCBM][th]++;
+    next_stack[np[th]][CHOICE_SCBM][th]++;
 }
 
 
