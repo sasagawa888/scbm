@@ -745,7 +745,8 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D,B) :-
     type(Pred,Arity,nondet),
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_print([P,A,M,N],path),
-    gen_nondet_body_argument(Args,V,N),
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_nondet_body_argument(Args,V),
     gen_pack_back(V,1),
     gen_push_back([P,A,M,N],D),
     write('clause = 0;'),nl,
@@ -770,7 +771,8 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D,B) :-
     member(Pred/Arity,[append/3,between/3,length/2,member/2]),
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_print([P,A,M,N],path),
-    gen_nondet_body_argument(Args,V,N),
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_nondet_body_argument(Args,V),
     gen_pack_back(V,1),
     gen_push_back([P,A,M,N],D),
     write('clause = 0;'),nl,
@@ -810,7 +812,8 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D,B) :-
     X =.. [Pred|Args],
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_print([P,A,M,N],path),
-    gen_nondet_body_argument(Args,V,N),
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_nondet_body_argument(Args,V),
     N1 is N+1,
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N1],path),
@@ -829,7 +832,8 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D,B) :-
     X =.. [Pred|Args],
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_print([P,A,M,N],path),
-    gen_nondet_body_argument(Args,V,N),
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_nondet_body_argument(Args,V),
     N1 is N+1,
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N],path),
@@ -847,7 +851,8 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D,B) :-
     type(Pred,Arity,nondet),
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_print([P,A,M,N],path),
-    gen_nondet_body_argument(Args,V,N),
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M,N],D),
     write('clause = 0;'),nl,
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
@@ -873,7 +878,8 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D,B) :-
     member(Pred/Arity,[append/3,between/3,length/2,member/2]),
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_print([P,A,M,N],path),
-    gen_nondet_body_argument(Args,V,N),
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_nondet_body_argument(Args,V),
     gen_push_back([P,A,M,N],D),
     write('clause = 0;'),nl,
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
@@ -902,7 +908,8 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D,B) :-
     X =.. [Pred|Args],
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_print([P,A,M,N],path),
-    gen_nondet_body_argument(Args,V,N),
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_nondet_body_argument(Args,V),
     N1 is N+1,
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N1],next),
@@ -919,7 +926,8 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D,B) :-
     X =.. [Pred|Args],
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_print([P,A,M,N],path),
-    gen_nondet_body_argument(Args,V,N),
+    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_nondet_body_argument(Args,V),
     N1 is N+1,
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N1],next),
@@ -941,14 +949,8 @@ gen_nondet_body_label([P,A,M,N],0) :-
 gen_nondet_body_label([P,A,M,N],D) :-
     write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N),write('_'),write(D).
 
-gen_nondet_body_argument(Args,Vars,0) :-
+gen_nondet_body_argument(Args,Vars) :-
     write('arglist = '),gen_a_argument(Args),write(';'),nl.
-
-gen_nondet_body_argument(Args,Vars,_) :-
-    gen_unpack_pointer(Vars,1),
-    write('arglist = '),gen_a_argument(Args),write(';'),nl.
-
-
 
 gen_pack_pointer([],_) :-
     write('next_stack[np[th]+1][ARGLIST_SCBM][th] = arglist;'),nl,
@@ -961,7 +963,6 @@ gen_pack_pointer([L|Ls],N) :-
     N1 is N+1,
     gen_pack_pointer(Ls,N1).
    
-
 gen_unpack_pointer([],_).
 gen_unpack_pointer([L|Ls],N) :-
     write(L),write('= next_stack[np[th]+1]['),write(N),write('][th];'),nl,
