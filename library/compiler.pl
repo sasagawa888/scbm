@@ -608,7 +608,6 @@ gen_SCBM_function31(P,A,[C|Cs],N) :-
 
 gen_SCBM_function4 :-
     write('success:'),nl,
-    write('Sprint("success");'),
     write('if(np[th] == 0){'),nl,
     write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
     write('next = back_goto[rp[th]][th];'),nl,
@@ -626,7 +625,6 @@ gen_SCBM_function4 :-
 
 gen_SCBM_function5 :-
     write('allfail:'),nl,
-    write('Sprint("allfail");'),
     write('Spop_back(th);'),nl,
     write('Spop_next(th);'),nl,
     write('if(rp[th]==0) {return(NO);}'),nl,
@@ -636,7 +634,6 @@ gen_SCBM_function5 :-
     write('arglist = Sget_arg(th);'),nl,
     write('goto *next;'),nl,
     write('false:'),nl,
-    write('Sprint("false");'),
     write('if(rp[th]==0) {return(NO);}'),nl,
     write('next = back_goto[rp[th]][th];'),nl,
     write('np[th] = Sget_np(th);'),nl,
@@ -690,12 +687,6 @@ gen_a_nondet_clause(P,A,M,_,_) :-
     write('{'),nl,
     write('goto success;'),nl,
     write('}'),nl,!.
-
-gen_debug(P) :-
-    write('printf("'),write(P),write('");'),
-    write('Jprint(arglist); Jprint(Jderef(arglist,th));'),
-    write('Sprint("");').
-
 
 % varA,varB,...
 gen_all_var([]).
@@ -1014,11 +1005,47 @@ gen_push_back([P,A,M,N],D) :-
     X == 0, % right disjunction
     write('Spush_back(&&'),gen_nondet_body_label([P,A,M,N],D),write('back,arglist,th);'),nl.
 
+gen_debug_print(_,_) :- not(option(debug,on)).
 gen_debug_print([P,A,M,N],Msg) :-
     write('Sprint(" '),write(Msg),write('_'),
     write(P),write('_'),
     write(M),write('_'),
     write(N),write('");'),nl.
+
+
+
+gen_debug_pred(_) :- not(option(debug,on)).
+gen_debug_pred(P) :-
+    write('printf("'),write(P),write(' rp=%d np=%d", rp[th], np[th]);'),
+    write('Jprint(arglist); Jprint(Jderef(arglist,th));'),
+    write('Snewline();').
+
+gen_debug_path(_,_) :- not(option(debug,on)).
+gen_debug_path([P,A,M,N],Msg) :-
+    write('printf("'),write(Msg),write(' '),
+    write(P),write('_'),
+    write(A),write('_'),
+    write(M),write('_'),
+    write(N),write(' rp=%d np=%d", rp[th], np[th]); Snewline();').
+
+gen_debug(_) :- not(option(debug,on)).
+gen_debug(P) :-
+    write('printf("'),write(P),write('");'),
+    write('Jprint(arglist); Jprint(Jderef(arglist,th));'),
+    write('Sprint("");').
+
+
+
+gen_debug_var(_,_) :- not(option(debug,on)).
+gen_debug_var(V,Msg) :- 
+    write('printf("'),write(Msg),write(' ");'),
+    gen_debug_var1(V),
+    write('Snewline();').
+
+gen_debug_var1([]).
+gen_debug_var1([V|Vs]) :-
+    write('printf("'),write(V),write('=%d ",'),write(V),write(');'),
+    gen_debug_var1(Vs).
 
 
 %---------------det determinant predicate-------------------

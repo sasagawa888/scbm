@@ -608,7 +608,7 @@ static void mouse_callback()
 
 static void *next_goto[RECURSIZE][THREADSIZE];
 static void *back_goto[RECURSIZE][THREADSIZE];
-static int next_stack[RECURSIZE][256][THREADSIZE];
+static int next_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static int back_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static int np[THREADSIZE]; // next pointer
 static int rp[THREADSIZE]; // recur pointer
@@ -620,12 +620,18 @@ static inline void Sprint(char *str)
 }
 
 
+static inline void Snewline(char *str)
+{
+    printf(" \n",str);
+}
+
+
 
 static inline void Spush_next(void *cont,int th)
 {
-    //#ifdef DBG
+    #ifdef DBG
     printf(" Spush_next (%d) np=%d\n",rp[th], np[th]);
-    //#endif
+    #endif
 
     if (np[th] + 1 >= RECURSIZE)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("Spush_next SCBM stack size"), NIL);
@@ -637,9 +643,9 @@ static inline void Spush_next(void *cont,int th)
 
 static inline void Spop_next(int th)
 {
-    //#ifdef DBG
+    #ifdef DBG
     printf(" Spop_next (%d)\n",rp[th]);
-    //#endif
+    #endif
 
     if (np[th] <= 0)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("Spop_next SCBM stack size"), NIL);
@@ -650,9 +656,9 @@ static inline void Spop_next(int th)
 
 static inline void Spush_back(void *cont, int arglist, int th)
 {
-    //#ifdef DBG
+    #ifdef DBG
     printf(" Spush_back (%d) cont=%p\n", rp[th], (void *)cont);
-    //#endif
+    #endif
    
 
     if (rp[th] + 1 >= RECURSIZE)
