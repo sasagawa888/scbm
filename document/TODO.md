@@ -14,3 +14,6 @@ For now, disjunctions are ignored. The immediate goal is to ensure that ordinary
 
 Specifically, the initial test cases are `queens` and `qsort`.
 
+Next, I will work on improving the backtracking mechanism. To simplify the code, I will introduce a single predicate that handles all end-of-body processing. This will reduce the number of predicates involved and make debugging easier.
+
+After that, as planned, I will modify the system so that a failure continuation is also generated at the end of the body.
