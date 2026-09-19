@@ -8,6 +8,13 @@ fib(N,X) :-
         fib(N2,X2),
         X is X1+X2.
 
+fact(0,1).
+fact(N,X) :-
+        N1 is N-1,
+        fact(N1,X1),
+        X is N*X1.
+
+
 
 color(red).
 color(green).

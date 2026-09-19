@@ -566,6 +566,8 @@ gen_SCBM_function2 :-
     write(P),write('_'),write(A),write('entry:'),nl,
     write('Spush_back(&&'),write(P),write('_'),write(A),write(',arglist,th);'),nl,
     write(P),write('_'),write(A),write(':'),nl,
+    gen_pack_pointer([],0),
+    write('Spush_next(&&success,th);'),nl,
     gen_debug(P),
     write('Jinc_proof(th);'),nl,
     write(P),write('_'),write(A),write('rp = rp[th];'),nl,

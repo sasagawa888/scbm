@@ -688,12 +688,13 @@ static inline void Sinc_choice(int th)
 
 static inline void Srelease(int th)
 {
-    Junbind(back_stack[rp[th]][SP_SCBM][th], th);
-    Jset_ac(back_stack[rp[th]][AC_SCBM][th] ,th);
-    
     #ifdef DBG
-    printf(" Srelease (%d) \n",rp[th]);
+    printf(" Srelease (%d) %d\n",rp[th],next_stack[np[th]][AC_SCBM][th]);
     #endif
+
+    Junbind(next_stack[np[th]][SP_SCBM][th], th);
+    Jset_ac(next_stack[np[th]][AC_SCBM][th] ,th);
+    
 }
 
 static inline int Sget_choice(int th)
