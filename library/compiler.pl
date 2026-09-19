@@ -737,63 +737,15 @@ gen_nondet_body1(((X;Y),end_of_body),A,M,N,H,P,V,D,B) :-
     write('goto success;'),nl.
 
 
-
-% A is arith Mth clause, Nth body B-retry[A,M,N] Head
-%last recur body
-gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D,B) :-
-    n_property(X,predicate),
-    X =.. [Pred|Args],
-    functor(X,_,Arity),
-    type(Pred,Arity,nondet),
+gen_nondet_body1(end_of_body,A,M,N,H,P,V,D,B) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_print([P,A,M,N],path),
-    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
+    gen_unpack_pointer(V,1),
     gen_pack_back(V,1),
     ifthenelse(B\=[],gen_push_back(B,D),true),
-    write('clause = 0;'),nl,
-    write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
-    gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
-    gen_debug_print([P,A,M,N],back),
     gen_unpack_back(V,1),
-    write('clause = Sget_choice(th);'),nl,
-    gen_nondet_body_label([P,A,M,N],D),write('join:'),nl,
-    gen_debug_print([P,A,M,N],join),
-    N1 is N+1,
-    gen_nondet_body_argument(Args,V),
     gen_pack_pointer(V,1),
-    gen_debug_print([P,A,M,N],end),
-    write('Spush_next(&&success,th);'),nl,
-    write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl.
-
-% append,between,length ...
-gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D,B) :-
-    n_property(X,builtin),
-    X =.. [Pred|Args],
-    functor(X,_,Arity),
-    member(Pred/Arity,[append/3,between/3,length/2,member/2]),
-    gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
-    gen_debug_print([P,A,M,N],path),
-    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
-    gen_pack_back(V,1),
-    ifthenelse(B\=[],gen_push_back(B,D),true),
-    write('clause = 0;'),nl,
-    write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
-    gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
-    gen_debug_print([P,A,M,N],back),
-    gen_unpack_back(V,1),
-    write('clause = Sget_choice(th);'),nl,
-    gen_nondet_body_label([P,A,M,N],D),write('join:'),nl,
-    gen_debug_print([P,A,M,N],join),
-    N1 is N+1,
-    gen_nondet_body_argument(Args,V),
-    gen_pack_pointer(V,1),
-    gen_debug_print([P,A,M,N1],next),
-    write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
-    write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl,
-    gen_nondet_body_label([P,A,M,N1],D),write(':'),nl,
-    gen_debug_print([P,A,M,N1],path),
     write('goto success;'),nl.
-
 
 % last cut operator
 gen_nondet_body1((!,end_of_body),A,M,N,H,P,V,D,B) :-
@@ -806,44 +758,6 @@ gen_nondet_body1((!,end_of_body),A,M,N,H,P,V,D,B) :-
 gen_nondet_body1((fail,end_of_body),A,M,N,H,P,V,D,B) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     write('goto false;'),nl.
-
-
-% last builtin body
-gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D,B) :-
-    n_property(X,builtin),
-    X =.. [Pred|Args],
-    gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
-    gen_debug_print([P,A,M,N],path),
-    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
-    N1 is N+1,
-    gen_nondet_body_argument(Args,V),
-    gen_pack_pointer(V,1),
-    gen_debug_print([P,A,M,N1],path),
-    write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),
-    n_findatom(Pred,builtin,Num),
-    write('subr_number = '),write(Num),write(';'),nl,
-    write('goto builtin_call;'),nl,
-    gen_nondet_body_label([P,A,M,N1],D),write(':'),nl,
-    gen_debug_print([P,A,M,N1],path),
-    gen_succ_cont([P,A,M,N1],D).
-
-% last det or tail body
-gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D,B) :-
-    functor(X,Pred,Arity),
-    (type(Pred,Arity,det);type(Pred,Arity,tail)),
-    X =.. [Pred|Args],
-    gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
-    gen_debug_print([P,A,M,N],path),
-    ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
-    N1 is N+1,
-    gen_nondet_body_argument(Args,V),
-    gen_pack_pointer(V,1),
-    gen_debug_print([P,A,M,N],path),
-    write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
-    write('subr_number = Jmakecomp("'),write(Pred),write('");'),nl,
-    write('goto builtin_call;'),nl,
-    gen_nondet_body_label([P,A,M,N1],D),write(':'),nl,
-    write('goto success;'),nl.
 
 % recur predicate
 gen_nondet_body1((X,Y),A,M,N,H,P,V,D,B) :-
