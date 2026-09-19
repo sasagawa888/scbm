@@ -666,6 +666,27 @@ static inline void Spush_back(void *cont, int arglist, int th)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("Spush_back SCBM stack size"), arglist);
 
     rp[th]++;
+    back_stack[rp[th]][SP_SCBM][th] = next_stack[np[th]+1][SP_SCBM][th];
+    back_stack[rp[th]][CHOICE_SCBM][th] = next_stack[np[th]+1][CHOICE_SCBM][th];
+    back_stack[rp[th]][WP_SCBM][th] = next_stack[np[th]+1][WP_SCBM][th];
+    back_stack[rp[th]][AC_SCBM][th] = next_stack[np[th]+1][AC_SCBM][th];
+    back_stack[rp[th]][ARGLIST_SCBM][th] = next_stack[np[th]+1][ARGLIST_SCBM][th];
+    back_stack[rp[th]][NP_SCBM][th] = next_stack[np[th]+1][NP_SCBM][th];
+    back_goto[rp[th]][th] = cont;
+}
+
+
+static inline void Sinit_back(void *cont, int arglist, int th)
+{
+    #ifdef DBG
+    printf(" Sinit_back (%d) cont=%p\n", rp[th], (void *)cont);
+    #endif
+   
+
+    if (rp[th] + 1 >= RECURSIZE)
+	Jerrorcomp(RESOURCE_ERR, Jmakestr("Sinit_back SCBM stack size"), arglist);
+
+    rp[th]++;
     back_stack[rp[th]][SP_SCBM][th] = Jget_sp(th);
     back_stack[rp[th]][CHOICE_SCBM][th] = 0;
     back_stack[rp[th]][WP_SCBM][th] = Jget_wp(th);

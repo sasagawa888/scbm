@@ -564,7 +564,7 @@ gen_SCBM_function2 :-
     type(P,A,nondet),
     write('int '),write(P),write('_'),write(A),write('rp;'),nl,
     write(P),write('_'),write(A),write('entry:'),nl,
-    write('Spush_back(&&'),write(P),write('_'),write(A),write(',arglist,th);'),nl,
+    write('Sinit_back(&&'),write(P),write('_'),write(A),write(',arglist,th);'),nl,
     write(P),write('_'),write(A),write(':'),nl,
     gen_pack_pointer([],0),
     write('Spush_next(&&success,th);'),nl,
