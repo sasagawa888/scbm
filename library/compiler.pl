@@ -749,7 +749,7 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D,B) :-
     gen_debug_print([P,A,M,N],path),
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
     gen_pack_back(V,1),
-    gen_push_back([P,A,M,N],D),
+    ifthenelse(B\=[],gen_push_back(B,D),true),
     write('clause = 0;'),nl,
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
     gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
@@ -775,7 +775,7 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D,B) :-
     gen_debug_print([P,A,M,N],path),
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
     gen_pack_back(V,1),
-    gen_push_back([P,A,M,N],D),
+    ifthenelse(B\=[],gen_push_back(B,D),true),
     write('clause = 0;'),nl,
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
     gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
@@ -854,7 +854,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D,B) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_print([P,A,M,N],path),
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
-    gen_push_back([P,A,M,N],D),
+    ifthenelse(B\=[],gen_push_back(B,D),true),
     write('clause = 0;'),nl,
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
     gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
@@ -869,7 +869,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D,B) :-
     gen_debug_print([P,A,M,N1],next),
     write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
     write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl,
-    gen_nondet_body1(Y,A,M,N1,H,P,V,D,[A,M,N]).
+    gen_nondet_body1(Y,A,M,N1,H,P,V,D,[P,A,M,N]).
 
 % append between length
 % recur predicate
@@ -881,7 +881,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D,B) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_print([P,A,M,N],path),
     ifthenelse(N\=0,gen_unpack_pointer(V,1),true),
-    gen_push_back([P,A,M,N],D),
+    ifthenelse(B\=[],gen_push_back(B,D),true),
     write('clause = 0;'),nl,
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
     gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
@@ -896,7 +896,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D,B) :-
     gen_debug_print([P,A,M,N1],next),
     write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
     write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl,
-    gen_nondet_body1(Y,A,M,N1,H,P,V,D,[A,M,N]).
+    gen_nondet_body1(Y,A,M,N1,H,P,V,D,[P,A,M,N]).
 
 
 % cut operator
@@ -1002,6 +1002,7 @@ gen_succ_cont([P,A,M,N1],D) :-
     X is D mod 2,
     X == 0, %right disjunction goto exit 
     write('goto '),gen_nondet_body_label([P,A,M,N1],0),write(';'),nl.
+
 
 gen_push_back([P,A,M,N],0) :-
     write('Spush_back(&&'),gen_nondet_body_label([P,A,M,N],0),write('back,arglist,th);'),nl.
