@@ -627,7 +627,7 @@ gen_SCBM_function4 :-
 gen_SCBM_function5 :-
     write('allfail:'),nl,
     write('Spop_back(th);'),nl,
-    write('Spop_next(th);'),nl,
+    %write('Spop_next(th);'),nl,
     write('if(rp[th]==0) {return(NO);}'),nl,
     write('next = back_goto[rp[th]][th];'),nl,
     write('np[th] = Sget_np(th);'),nl,
@@ -740,10 +740,7 @@ gen_nondet_body1(end_of_body,A,M,N,H,P,V,D,B) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_print([P,A,M,N],path),
     gen_unpack_pointer(V,1),
-    gen_pack_back(V,1),
     ifthenelse(B\=[],gen_push_back(B,D),true),
-    gen_unpack_back(V,1),
-    gen_pack_pointer(V,1),
     write('goto success;'),nl.
 
 % last cut operator
