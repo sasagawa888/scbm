@@ -883,7 +883,7 @@ gen_unpack_pointer([L|Ls],N) :-
 
 gen_unpack_back([],_).
 gen_unpack_back([L|Ls],N) :-
-    write(L),write('= back_stack[rp[th]+1]['),write(N),write('][th];'),nl,
+    write(L),write('= back_stack[rp[th]]['),write(N),write('][th];'),nl,
     N1 is N+1,
     gen_unpack_back(Ls,N1).
 
