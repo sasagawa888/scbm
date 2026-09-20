@@ -704,6 +704,9 @@ static inline void Sinc_choice(int th)
     printf(" Sinc_choice (%d)\n",rp[th]);
     #endif
     next_stack[np[th]][CHOICE_SCBM][th]++;
+
+    if(rp[th]==1)
+    back_stack[rp[th]][CHOICE_SCBM][th]++;
 }
 
 
