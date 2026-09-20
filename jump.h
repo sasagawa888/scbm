@@ -280,6 +280,12 @@ static inline int Junbind(int x, int th) {
     return f2[UNBIND_IDX](x, th);
 }
 
+
+static inline int Jset_sp(int x, int th) {
+    return f2[SET_SP_IDX](x,th);
+}
+
+
 static inline int Jset_wp(int x, int th) {
     return f2[SET_WP_IDX](x,th);
 }
