@@ -627,7 +627,7 @@ gen_SCBM_function4 :-
 gen_SCBM_function5 :-
     write('allfail:'),nl,
     write('Spop_back(th);'),nl,
-    %write('Spop_next(th);'),nl,
+    write('Spop_next(th);'),nl,
     write('if(rp[th]==0) {return(NO);}'),nl,
     write('next = back_goto[rp[th]][th];'),nl,
     write('np[th] = Sget_np(th);'),nl,
