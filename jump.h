@@ -679,7 +679,7 @@ static inline void Spush_back(void *cont, int arglist, int th)
 static inline void Sinit_back(void *cont, int arglist, int th)
 {
     #ifdef DBG
-    printf(" Sinit_back (%d) cont=%p\n", rp[th], (void *)cont);
+    printf(" Sinit_back (%d,%d) cont=%p\n", rp[th],np[th] ,(void *)cont);
     #endif
    
 
@@ -701,7 +701,7 @@ static inline void Sinit_back(void *cont, int arglist, int th)
 static inline void Sinc_choice(int th)
 {
     #ifdef DBG
-    printf(" Sinc_choice (%d)\n",rp[th]);
+    printf(" Sinc_choice (%d,%d)\n",rp[th],np[th],next_stack[np[th]][CHOICE_SCBM][th]);
     #endif
     next_stack[np[th]][CHOICE_SCBM][th]++;
 
@@ -713,7 +713,7 @@ static inline void Sinc_choice(int th)
 static inline void Srelease(int th)
 {
     #ifdef DBG
-    printf(" Srelease (%d) %d\n",rp[th],next_stack[np[th]][AC_SCBM][th]);
+    printf(" Srelease (%d,%d) ac=%d\n",rp[th],np[th],next_stack[np[th]][AC_SCBM][th]);
     #endif
 
     Junbind(next_stack[np[th]][SP_SCBM][th], th);
@@ -724,7 +724,7 @@ static inline void Srelease(int th)
 static inline int Sget_choice(int th)
 {
     #ifdef DBG
-    printf(" Sget_choice (%d) ch=%d\n", rp[th], back_stack[rp[th]][CHOICE_SCBM][th]);
+    printf(" Sget_choice (%d,%d) ch=%d\n", rp[th],np[th], back_stack[rp[th]][CHOICE_SCBM][th]);
     #endif
 
 	return(back_stack[rp[th]][CHOICE_SCBM][th]);
@@ -734,7 +734,8 @@ static inline int Sget_choice(int th)
 static inline int Sget_arg(int th)
 {
     #ifdef DBG
-    printf(" Sget_arg (%d) \n", rp[th]);
+    printf(" Sget_arg (%d,%d) ", rp[th],np[th]);
+    Jprint(back_stack[rp[th]][ARGLIST_SCBM][th]);printf("\n");
     #endif
 
     return(back_stack[rp[th]][ARGLIST_SCBM][th]);
@@ -744,7 +745,7 @@ static inline int Sget_arg(int th)
 static inline int Sget_np(int th)
 {
     #ifdef DBG
-    printf(" Sget_np (%d) \n", rp[th]);
+    printf(" Sget_np (%d,%d) \n", rp[th],np[th]);
     #endif
 
     return(back_stack[rp[th]][NP_SCBM][th]);
@@ -754,7 +755,7 @@ static inline int Sget_np(int th)
 static inline void Spop_back(int th)
 {
     #ifdef DBG
-    printf(" Spop_back (%d)\n", rp[th]);
+    printf(" Spop_back (%d,%d)\n", rp[th],np[th]);
     #endif
 
     if (rp[th] <= 0)
@@ -766,7 +767,7 @@ static inline void Spop_back(int th)
 static inline void Ssave_arg(int x, int th)
 {
     #ifdef DBG
-    printf(" Ssave_arg (%d)\n", rp[th]);
+    printf(" Ssave_arg (%d,%d)\n", rp[th],np[th]);
     #endif
 
     back_stack[rp[th]][ARGLIST_SCBM][th] = x;
