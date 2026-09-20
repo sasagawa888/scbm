@@ -711,7 +711,7 @@ static inline void Sinc_choice(int th)
     #endif
     next_stack[np[th]][CHOICE_SCBM][th]++;
 
-    if(rp[th]==1)
+    if(rp[th]==1 && np[th]==1)
     back_stack[rp[th]][CHOICE_SCBM][th]++;
 }
 
