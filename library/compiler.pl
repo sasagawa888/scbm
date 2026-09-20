@@ -881,7 +881,13 @@ gen_unpack_pointer([L|Ls],N) :-
     gen_unpack_pointer(Ls,N1).
 
 
-gen_unpack_back([],_).
+gen_unpack_back([],_) :-
+    write('arglist = back_stack[rp[th]][ARGLIST_SCBM][th];'),nl,
+    write('Jset_sp(back_stack[rp[th]][SP_SCBM][th],th);'),nl,
+    write('Jset_wp(back_stack[rp[th]][WP_SCBM][th],th);'),nl,
+    write('Jset_ac(back_stack[rp[th]][AC_SCBM][th],th);'),nl,
+    write('np[th] = back_stack[rp[th]][NP_SCBM][th];'),nl.
+
 gen_unpack_back([L|Ls],N) :-
     write(L),write('= back_stack[rp[th]]['),write(N),write('][th];'),nl,
     N1 is N+1,
