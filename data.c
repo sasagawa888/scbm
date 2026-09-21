@@ -2074,6 +2074,7 @@ int unify_str(int x, int y, int th)
 // typed unify. y is a variable
 int unify_var(int x, int y, int th)
 {
+
     int x1;
 
     if (anonymousp(x) || anonymousp(y))
