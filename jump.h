@@ -647,7 +647,6 @@ static inline void Spush_next(void *cont,int th)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("Spush_next SCBM stack size"), NIL);
 
     np[th]++;
-    next_stack[np[th]][CHOICE_SCBM][th] = 0;
     next_goto[np[th]][th] = cont;
 }
 

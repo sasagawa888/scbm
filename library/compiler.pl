@@ -874,6 +874,7 @@ gen_pack_pointer([],_) :-
     write('next_stack[np[th]+1][SP_SCBM][th] = Jget_sp(th);'),nl,
     write('next_stack[np[th]+1][WP_SCBM][th] = Jget_wp(th);'),nl,
     write('next_stack[np[th]+1][AC_SCBM][th] = Jget_ac(th);'),nl,
+    write('next_stack[np[th]+1][CHOICE_SCBM][th] = clause;'),nl,
     write('next_stack[np[th]+1][NP_SCBM][th] = np[th];'),nl.
 gen_pack_pointer([L|Ls],N) :-
     write('next_stack[np[th]+1]['),write(N),write('][th] = '),write(L),write(';'),nl,
