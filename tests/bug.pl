@@ -1,4 +1,16 @@
 
+
+likes(kim,robin).
+likes(sandy,lee).
+likes(sandy,kim).
+likes(robin,cats).
+likes(sandy,X) :- likes(X,cats).
+likes(kim,X) :- likes(X,lee),likes(X,kim).
+likes(X,X).
+
+
+
+
 fib(0,0).
 fib(1,1).
 fib(N,X) :-
@@ -20,15 +32,6 @@ color(red).
 color(green).
 color(blue).
 
-
-
-likes(kim,robin).
-likes(sandy,lee).
-likes(sandy,kim).
-likes(robin,cats).
-likes(sandy,X) :- likes(X,cats).
-likes(kim,X) :- likes(X,lee),likes(X,kim).
-likes(X,X).
 
 
 select1(X,[X|Xs],Xs).

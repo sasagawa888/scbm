@@ -202,10 +202,6 @@ static inline int Jarity_count(int x) {
 }
 
 
-static inline int Jdebug(int x) {
-    return f1[DEBUG_IDX](x);
-}
-
 
 
 static inline int Jcons(int x, int y) {
@@ -620,6 +616,12 @@ static int next_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static int back_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static int np[THREADSIZE]; // next pointer
 static int rp[THREADSIZE]; // recur pointer
+
+
+static inline int Jdebug(int th) {
+    printf("rp=%d np=%d ", rp[th], np[th]);
+    return f1[DEBUG_IDX](th);
+}
 
 
 static inline void Sprint(char *str)
