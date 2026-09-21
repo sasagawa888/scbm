@@ -91,10 +91,6 @@ static inline int Jfreshcell(void)
     return f0[FRESHCELL_IDX]();
 }
 
-static inline int Jdebug(void) {
-    return f0[DEBUG_IDX]();
-}
-
 static inline int Jstepper(void) {
     return f0[STEPPER_IDX]();
 }
@@ -204,6 +200,12 @@ static inline int Jbigx_to_parmanent(int x) {
 static inline int Jarity_count(int x) {
     return f1[ARITY_COUNT_IDX](x);
 }
+
+
+static inline int Jdebug(int x) {
+    return f1[DEBUG_IDX](x);
+}
+
 
 
 static inline int Jcons(int x, int y) {
@@ -719,11 +721,14 @@ static inline void Sinc_choice(int th)
 static inline void Srelease(int th)
 {
     #ifdef DBG
-    printf(" Srelease (%d,%d) ac=%d\n",rp[th],np[th],next_stack[np[th]][AC_SCBM][th]);
+    printf(" Srelease (%d,%d) sp=%d ac=%d\n",rp[th],np[th],
+        next_stack[np[th]][SP_SCBM][th],
+        next_stack[np[th]][AC_SCBM][th]);
     #endif
 
     Junbind(next_stack[np[th]][SP_SCBM][th], th);
     Jset_ac(next_stack[np[th]][AC_SCBM][th] ,th);
+
     
 }
 
@@ -741,7 +746,7 @@ static inline int Sget_arg(int th)
 {
     #ifdef DBG
     printf(" Sget_arg (%d,%d) ", rp[th],np[th]);
-    Jprint(back_stack[rp[th]][ARGLIST_SCBM][th]);printf("\n");
+    Jprint(Jderef(back_stack[rp[th]][ARGLIST_SCBM][th],th));printf("\n");
     #endif
 
     return(back_stack[rp[th]][ARGLIST_SCBM][th]);

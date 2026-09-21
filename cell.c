@@ -604,25 +604,62 @@ int makestrlong(char *str)
     return (makelong(atol(str)));
 }
 
-void debug(void)
+
+
+void debug_deref1(int x, int th)
 {
-    printf("\n----- debug print ------\n");
-    printf("sp=%d wp=%d ac=%d\n", sp[0], wp[0], ac[0]);
+    int res = NIL;
+
+loop:
+    if (!variablep(x)) {
+        print(x);
+        printf("\n");
+        return;
+    }
+
+    if (alpha_variable_p(x)) {
+        print(x);
+        printf("->");
+        res = variant[x - cell_size][th];
+    }
+    else if (atom_variable_p(x)) {
+        print(x);
+        printf("->");
+        res = GET_CAR(x);
+    }
+    else {
+        print(x);
+        printf("\n");
+        return;
+    }
+
+    if (res == UNBIND) {
+        printf("undef\n");
+        return;
+    }
+    else if (variablep(res)) {
+        x = res;
+        goto loop;
+    }
+    else if (structurep(res)) {
+        print(deref(res, th));
+        printf("\n");
+        return;
+    }
+    else {
+        print(res);
+        printf("\n");
+        return;
+    }
+}
+
+void debug(int th)
+{
+    printf("\nsp=%d wp=%d ac=%d\n", sp[th], wp[th], ac[th]);
     int i;
-    printf("backstack sp choice wp ac\n");
-    printf("variant\n");
-    for (i = 0; i < ac[0] - cell_size; i++) {
-	printf("%d ", i);
-	print(variant[i][0]);
-	printf("\n");
-    }
-    printf("localstack\n");
-    for (i = 0; i < sp[0]; i++) {
-	printf("%d ", i);
-	print(localstack[i][0]);
-	printf("\n");
-    }
-    printf("------------------------\n");
+    for(i=0;i<sp[th];i++)
+	    debug_deref1(localstack[i][th],th);
+    printf("\n");
 }
 
 
