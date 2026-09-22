@@ -676,11 +676,11 @@ static inline void Spush_back(void *cont, int arglist, int th)
 
 static inline void Ssnap_shot(int th)
 {
-    fprint("rp=%d np=%d sp=%d wp=%d ac=%d \n" ,
+    printf("rp=%d np=%d sp=%d wp=%d ac=%d \n" ,
     rp[th],np[th],Jget_sp(th),Jget_wp(th),Jget_ac(th)
     );
     Jprint(back_stack[rp[th]][ARGLIST_SCBM][th]);
-    fprint("\n");
+    printf("\n");
 }
 
 
