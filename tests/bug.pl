@@ -1,5 +1,13 @@
 
 
+warm(red).
+warm(orange).
+
+is_warm(X) :-
+    warm(X).
+
+
+
 likes(kim,robin).
 likes(sandy,lee).
 likes(sandy,kim).
@@ -43,3 +51,4 @@ perm1([],[]).
 perm1(Xs,[X|Ys]) :-
     select1(X,Xs,Zs),
     perm1(Zs,Ys).
+

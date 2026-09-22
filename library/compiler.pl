@@ -619,7 +619,6 @@ gen_SCBM_function4 :-
     write('}else{'),nl,
     write('next = next_goto[np[th]][th];'),nl,
     write('Spop_next(th);'),nl,
-    write('clause = Sget_choice(th);'),nl,
     write('goto *next;}'),nl.
 
 
