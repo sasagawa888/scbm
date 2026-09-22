@@ -874,7 +874,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
     gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
     gen_debug_print([P,A,M,N],back),
-    gen_unpack_pointer(V,1),
+    gen_unpack_back(V,1),
     gen_nondet_body_label([P,A,M,N],D),write('join:'),nl,
     gen_debug_print([P,A,M,N],join),
     N1 is N+1,
