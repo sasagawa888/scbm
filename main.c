@@ -352,7 +352,7 @@ int main(int argc, char *argv[])
 	    repl_flag = 0;
 	    break;
 	case 'v':
-	    printf("SCBM-Prolog Ver %1.2f\n", VERSION);
+	    printf("SCBM-Prolog Ver %1.2f (SLD)\n", VERSION);
 	    exit(EXIT_SUCCESS);
 	case 'h':
 	    usage();
@@ -384,7 +384,7 @@ int main(int argc, char *argv[])
     }
 
     if (init_flag) {
-	printf("SCBM-Prolog Ver %1.2f [%dM cells]\n", VERSION,
+	printf("SCBM-Prolog Ver %1.2f (SLD)[%dM cells]\n", VERSION,
 	       cell_size / 1000000);
 	init_flag = 0;
     }
