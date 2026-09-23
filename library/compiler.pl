@@ -614,7 +614,6 @@ gen_SCBM_function4 :-
     write('clause = Sget_choice(th);'),nl,
     write('arglist = Sget_arg(th);'),nl,
     write('np[th] = Sget_np(th);'),nl,
-    write('Spush_next(&&success,th);'),nl,
     write('goto *next;'),nl,
     write('}else{'),nl,
     write('next = next_goto[np[th]][th];'),nl,
