@@ -614,6 +614,7 @@ gen_SCBM_function4 :-
     write('clause = Sget_choice(th);'),nl,
     write('arglist = Sget_arg(th);'),nl,
     write('np[th] = Sget_np(th);'),nl,
+    write('mode[th] = 0;'),nl,
     write('goto *next;'),nl,
     write('}else{'),nl,
     write('next = next_goto[np[th]][th];'),nl,
@@ -631,6 +632,7 @@ gen_SCBM_function5 :-
     write('np[th] = Sget_np(th);'),nl,
     write('clause = Sget_choice(th);'),nl,
     write('arglist = Sget_arg(th);'),nl,
+    write('mode[th] = 1;'),nl,
     write('goto *next;'),nl,
     write('false:'),nl,
     write('if(rp[th]==0) {return(NO);}'),nl,
@@ -638,6 +640,7 @@ gen_SCBM_function5 :-
     write('np[th] = Sget_np(th);'),nl,
     write('clause = Sget_choice(th);'),nl,
     write('arglist = Sget_arg(th);'),nl,
+    write('mode[th] = 0;'),nl,
     write('goto *next;'),nl.
    
 
@@ -972,7 +975,7 @@ gen_pack_back([L|Ls],N) :-
 gen_unpack_back([],_) :-
     write('Srelease(th);'),nl.
 gen_unpack_back([L|Ls],N) :-
-    write(L),write('= back_stack[rp[th]]['),write(N),write('][th];'),nl,
+    write(L),write('= back_stack[rp[th]+mode[th]]['),write(N),write('][th];'),nl,
     N1 is N+1,
     gen_unpack_back(Ls,N1).
 

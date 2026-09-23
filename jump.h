@@ -612,6 +612,7 @@ static int next_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static int back_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static int np[THREADSIZE]; // next pointer
 static int rp[THREADSIZE]; // recur pointer
+static int mode[THREADSIZE]; //backtrack mode 1=allfail; 0=false/success_fail
 
 
 static inline void Sprint(char *str)
@@ -697,6 +698,7 @@ static inline void Srelease(int th)
 {
     Junbind(back_stack[rp[th]][SP_SCBM][th], th);
     Jset_ac(back_stack[rp[th]][AC_SCBM][th] ,th);
+    Jset_wp(back_stack[rp[th]][WP_SCBM][th] ,th);
     
     #ifdef DBG
     printf(" Srelease (%d) \n",rp[th]);
