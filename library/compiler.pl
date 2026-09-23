@@ -969,7 +969,8 @@ gen_pack_back([L|Ls],N) :-
     gen_pack_back(Ls,N1).
    
 
-gen_unpack_back([],_).
+gen_unpack_back([],_) :-
+    write('Srelease(th);'),nl.
 gen_unpack_back([L|Ls],N) :-
     write(L),write('= back_stack[rp[th]]['),write(N),write('][th];'),nl,
     N1 is N+1,
