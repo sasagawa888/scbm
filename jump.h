@@ -744,7 +744,7 @@ static inline void Sprint(char *str)
 }
 
 
-static inline void Snewline(char *str)
+static inline void Snewline()
 {
     printf(" \n",str);
 }
