@@ -501,6 +501,7 @@ gen_SCBM_function :-
     gen_all_variable,write(';'),nl,
     write('np[th] = 0; rp[th] = 0; back_stack[0][AC_SCBM][th] = Jget_ac(th);'),nl,
     write('Spush_next(&&success,th);'),nl,
+    gen_trace_next([init,0,0,0]),
     gen_pred_switch,
     gen_SCBM_function1,
     gen_SCBM_function2,
@@ -751,6 +752,7 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D) :-
     gen_nondet_body_argument(Args,V,N),
     gen_pack_back(V,1),
     gen_push_back([P,A,M,N],D),
+    gen_trace_back([P,A,M,N]),
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
     gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
     gen_debug_print([P,A,M,N],back),
@@ -775,6 +777,7 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D) :-
     gen_nondet_body_argument(Args,V,N),
     gen_pack_back(V,1),
     gen_push_back([P,A,M,N],D),
+    gen_trace_back([P,A,M,N]),
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
     gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
     gen_debug_print([P,A,M,N],back),
@@ -835,6 +838,7 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D) :-
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N],path),
     gen_push_next([P,A,M,N1],D),
+    gen_trace_next([P,A,M,N1]),
     write('subr_number = Jmakecomp("'),write(Pred),write('");'),nl,
     write('goto builtin_call;'),nl,
     gen_nondet_body_label([P,A,M,N1],D),write(':'),nl,
@@ -850,6 +854,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_debug_print([P,A,M,N],path),
     gen_nondet_body_argument(Args,V,N),
     gen_push_back([P,A,M,N],D),
+    gen_trace_back([P,A,M,N]),
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
     gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
     gen_debug_print([P,A,M,N],back),
@@ -860,6 +865,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N1],next),
     gen_push_next([P,A,M,N1],D),
+    gen_trace_next([P,A,M,N1]),
     write('clause = Sget_choice(th);'),nl,
     write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
@@ -875,6 +881,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_debug_print([P,A,M,N],path),
     gen_nondet_body_argument(Args,V,N),
     gen_push_back([P,A,M,N],D),
+    gen_trace_back([P,A,M,N]),
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
     gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
     gen_debug_print([P,A,M,N],back),
@@ -885,6 +892,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N1],next),
     gen_push_next([P,A,M,N1],D),
+    gen_trace_next([P,A,M,N1]),
     write('clause = Sget_choice(th);'),nl,
     write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
@@ -906,6 +914,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N1],next),
     gen_push_next([P,A,M,N1],D),
+    gen_trace_next([P,A,M,N1]),
     n_findatom(Pred,builtin,Num),
     write('subr_number = '),write(Num),write(';'),nl,
     write('goto builtin_call;'),nl,
@@ -923,6 +932,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N1],next),
     gen_push_next([P,A,M,N1],D),
+    gen_trace_next([P,A,M,N1]),
     n_findatom(Pred,builtin,Num),
     write('subr_number = Jmakecomp("'),write(Pred),write('");'),nl,
     write('goto builtin_call;'),nl,
@@ -1069,6 +1079,17 @@ gen_snap_shot(V,Msg,[P,A,M,N]) :-
     write('");'),
     gen_debug_var1(V),
     write('Ssnap_shot(th);}'),nl.
+
+gen_trace_next([P,A,M,N]) :-
+    write('Strace_next("'),write(P),write('",'),
+    write(A),write(','),write(M),write(','),write(N),write(',th);'),nl.
+
+gen_trace_back([P,A,M,N]) :-
+    write('Strace_back("'),write(P),write('",'),
+    write(A),write(','),write(M),write(','),write(N),write(',th);'),nl.
+
+
+
 
 
 %---------------det determinant predicate-------------------
