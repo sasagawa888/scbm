@@ -784,7 +784,7 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D) :-
     N1 is N+1,
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N1],next),
-    write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
+    gen_push_next([P,A,M,N1],D),
     write('clause = Sget_choice(th);'),nl,
     write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl,
     gen_nondet_body_label([P,A,M,N1],D),write(':'),nl,
@@ -815,7 +815,7 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D) :-
     N1 is N+1,
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N1],path),
-    write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),
+    gen_push_next([P,A,M,N1],D),
     n_findatom(Pred,builtin,Num),
     write('subr_number = '),write(Num),write(';'),nl,
     write('goto builtin_call;'),nl,
@@ -834,7 +834,7 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D) :-
     N1 is N+1,
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N],path),
-    write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
+    gen_push_next([P,A,M,N1],D),
     write('subr_number = Jmakecomp("'),write(Pred),write('");'),nl,
     write('goto builtin_call;'),nl,
     gen_nondet_body_label([P,A,M,N1],D),write(':'),nl,
@@ -859,7 +859,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     N1 is N+1,
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N1],next),
-    write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
+    gen_push_next([P,A,M,N1],D),
     write('clause = Sget_choice(th);'),nl,
     write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
@@ -884,7 +884,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     N1 is N+1,
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N1],next),
-    write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
+    gen_push_next([P,A,M,N1],D),
     write('clause = Sget_choice(th);'),nl,
     write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
@@ -905,7 +905,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     N1 is N+1,
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N1],next),
-    write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
+    gen_push_next([P,A,M,N1],D),
     n_findatom(Pred,builtin,Num),
     write('subr_number = '),write(Num),write(';'),nl,
     write('goto builtin_call;'),nl,
@@ -922,7 +922,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     N1 is N+1,
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N1],next),
-    write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
+    gen_push_next([P,A,M,N1],D),
     n_findatom(Pred,builtin,Num),
     write('subr_number = Jmakecomp("'),write(Pred),write('");'),nl,
     write('goto builtin_call;'),nl,
@@ -994,6 +994,13 @@ gen_succ_cont([P,A,M,N1],D) :-
     X is D mod 2,
     X == 0, %right disjunction goto exit 
     write('goto '),gen_nondet_body_label([P,A,M,N1],0),write(';'),nl.
+
+gen_push_next([P,A,M,N],0) :-
+    write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N],0),write(',th);'),nl.
+
+gen_push_next([P,A,M,N],D) :-
+    write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N],D),write(',th);'),nl.
+
 
 gen_push_back([P,A,M,N],0) :-
     write('Spush_back(&&'),gen_nondet_body_label([P,A,M,N],0),write('back,arglist,th);'),nl.
