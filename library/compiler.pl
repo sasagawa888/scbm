@@ -751,18 +751,19 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D) :-
     gen_nondet_body_argument(Args,V,N),
     gen_pack_back(V,1),
     gen_push_back([P,A,M,N],D),
-    gen_snap_shot(V,create),
+    %gen_snap_shot(V,create,[P,A,M,N]),
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
     gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
     gen_debug_print([P,A,M,N],back),
     gen_unpack_back(V,1),
-    gen_snap_shot(V,backtrack),
+    %gen_snap_shot(V,backtrack,[P,A,M,N]),
     gen_nondet_body_label([P,A,M,N],D),write('join:'),nl,
     gen_debug_print([P,A,M,N],join),
     N1 is N+1,
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N],end),
     write('Spush_next(&&success,th);'),nl,
+    gen_snap_shot(V,pusn_next,[P,A,M,N1]),
     write('clause = Sget_choice(th);'),nl,
     write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl.
 
@@ -852,18 +853,19 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_debug_print([P,A,M,N],path),
     gen_nondet_body_argument(Args,V,N),
     gen_push_back([P,A,M,N],D),
-    gen_snap_shot(V,create),
+    %gen_snap_shot(V,create,[P,A,M,N]),
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
     gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
     gen_debug_print([P,A,M,N],back),
     gen_unpack_back(V,1),
-    gen_snap_shot(V,backtrack),
+    %gen_snap_shot(V,backtrack.[P,A,M,N]),
     gen_nondet_body_label([P,A,M,N],D),write('join:'),nl,
     gen_debug_print([P,A,M,N],join),
     N1 is N+1,
     gen_pack_pointer(V,1),
     gen_debug_print([P,A,M,N1],next),
     write('Spush_next(&&'),gen_nondet_body_label([P,A,M,N1],D),write(',th);'),nl,
+    gen_snap_shot(V,pusn_next,[P,A,M,N1]),
     write('clause = Sget_choice(th);'),nl,
     write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
@@ -1056,10 +1058,16 @@ gen_debug_var1([V|Vs]) :-
     write('printf("'),write(V),write('=%d ",'),write(V),write(');'),
     gen_debug_var1(Vs).
 
-gen_snap_shot(V,Msg) :-
-    write('Sprint("'),write(Msg),write('");'),
+gen_snap_shot(V,Msg,[P,A,M,N]) :-
+    write('if(np[th]==2){'),
+    write('Sprint("'),write(Msg),write(' '),
+    write(P),write('_'),
+    write(A),write('_'),
+    write(M),write('_'),
+    write(N),
+    write('");'),
     gen_debug_var1(V),
-    write('Ssnap_shot(th);'),nl.
+    write('Ssnap_shot(th);}'),nl.
 
 
 %---------------det determinant predicate-------------------
