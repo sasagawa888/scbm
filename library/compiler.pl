@@ -594,16 +594,18 @@ gen_SCBM_function3.
 
 gen_SCBM_function31(P,A,[],N) :- 
     write(P),write('_'),write(A),write('_'),write(N),write(':'),nl,
+    %write('Sreset_back(th);'),nl,
     write('goto allfail;'),nl,nl,!.
 gen_SCBM_function31(P,A,[C|Cs],N) :-
     write(P),write('_'),write(A),write('_'),write(N),write(':'),nl,
+    N1 is N+1,
+    %write('Sset_back(&&'),write(P),write('_'),write(A),write('_'),write(N1),write(',th);'),nl,
     gen_var_assign(1,A),!,
     write('Srelease(th);'),nl,
     n_variable_convert(C,X),
     n_generate_variable(X,V),
     gen_var(V),!,
     gen_a_nondet_clause(X,A,N,P,V),
-    N1 is N+1,
     gen_SCBM_function31(P,A,Cs,N1).
 
 gen_SCBM_function4 :-

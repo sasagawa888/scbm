@@ -621,7 +621,7 @@ static inline void Sset_back(void *cont, int th)
 }
 
 
-static inline void Sreset_back(void *cont, int th)
+static inline void Sreset_back(int th)
 {
     back_goto[rp[th]][th] = back_goto1[rp[th]][th];
 }
