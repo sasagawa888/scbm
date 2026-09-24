@@ -653,7 +653,7 @@ static inline void Sdisp_queue()
 {
     int i;
     for(i=0;i<QUEUE_SIZE;i++)
-        printf("%d: %s %d %d %d %s\n", 
+        printf("%d: %s_%d_%d_%d_%s\n", 
                 i,
                 trace_queue1[i][0] ? trace_queue1[i][0] : "-",
                 trace_queue[i][0],
@@ -667,7 +667,7 @@ static inline void Sdisp_next_stack(th)
 {
     int i;
     for(i=0;i<10;i++){
-         printf("%d: %s %d %d %d\n", 
+         printf("%d: %s_%d_%d_%d\n", 
                 i,
                 next_stack1[i][th],
                 next_stack[i][A_SCBM][th],
@@ -682,7 +682,7 @@ static inline void Sdisp_back_stack(th)
 {
     int i;
     for(i=0;i<10;i++){
-         printf("%d: %s %d %d %d\n", 
+         printf("%d: %s_%d_%d_%d\n", 
                 i,
                 back_stack1[i][th],
                 back_stack[i][A_SCBM][th],
@@ -695,7 +695,7 @@ static inline void Sdisp_back_stack(th)
 
 static inline void Strap(int th)
 {
-    /* set trap conddition in if */
+    /* set trap condition in if */
     if(1){
         printf("emergency stop by trap\n");
         printf("TRAP: th=%d rp=%d np=%d mode=%d\n",
