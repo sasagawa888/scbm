@@ -610,7 +610,9 @@ static void *next_goto[RECURSIZE][THREADSIZE];
 static void *back_goto[RECURSIZE][THREADSIZE];
 static void *back_goto1[RECURSIZE][THREADSIZE];
 static int next_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
+static char *next_stack1[RECURSIZE][THREADSIZE];
 static int back_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
+static char *back_stack1[RECURSIZE][THREADSIZE];
 static int np[THREADSIZE]; // next pointer
 static int rp[THREADSIZE]; // recur pointer
 static int mode[THREADSIZE]; //backtrack mode 1=allfail; 0=false/success_fail
@@ -624,6 +626,23 @@ static inline void Sset_back(void *cont, int th)
 static inline void Sreset_back(int th)
 {
     back_goto[rp[th]][th] = back_goto1[rp[th]][th];
+}
+
+static inline void Strace_back(char *pred, int arity, int clause, int nth, int th)
+{
+    back_stack1[rp[th]][th] = pred;
+    back_stack[rp[th]][A_SCBM][th] = arity;
+    back_stack[rp[th]][M_SCBM][th] = clause;
+    back_stack[rp[th]][N_SCBM][th] = nth;
+}
+
+
+static inline void Strace_next(char *pred, int arity, int clause, int nth, int th)
+{
+    next_stack1[np[th]][th] = pred;
+    next_stack[np[th]][A_SCBM][th] = arity;
+    next_stack[np[th]][M_SCBM][th] = clause;
+    next_stack[np[th]][N_SCBM][th] = nth;
 }
 
 
