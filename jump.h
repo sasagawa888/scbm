@@ -696,12 +696,15 @@ static inline void Sdisp_back_stack(th)
 static inline void Strap(int th)
 {
     /* set trap condition in if */
-    if(1){
+    if(rp[th]==2){
         printf("emergency stop by trap\n");
         printf("TRAP: th=%d rp=%d np=%d mode=%d\n",
        th, rp[th], np[th], mode[th]);
+        printf("back trace\n");
         Sdisp_queue();
+        printf("back_stack\n");
         Sdisp_back_stack(th);
+        printf("next_stack\n");
         Sdisp_next_stack(th);
         Jemergency_stop();
     }
