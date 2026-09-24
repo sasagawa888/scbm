@@ -608,11 +608,24 @@ static void mouse_callback()
 
 static void *next_goto[RECURSIZE][THREADSIZE];
 static void *back_goto[RECURSIZE][THREADSIZE];
+static void *back_goto1[RECURSIZE][THREADSIZE];
 static int next_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static int back_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static int np[THREADSIZE]; // next pointer
 static int rp[THREADSIZE]; // recur pointer
 static int mode[THREADSIZE]; //backtrack mode 1=allfail; 0=false/success_fail
+
+static inline void Sset_back(void *cont, int th)
+{
+    back_goto[rp[th]][th] = cont;
+}
+
+
+static inline void Sreset_back(void *cont, int th)
+{
+    back_goto[rp[th]][th] = back_goto1[rp[th]][th];
+}
+
 
 
 static inline void Sprint(char *str)
@@ -673,6 +686,7 @@ static inline void Spush_back(void *cont, int arglist, int th)
     back_stack[rp[th]][ARGLIST_SCBM][th] = arglist;
     back_stack[rp[th]][NP_SCBM][th] = np[th];
     back_goto[rp[th]][th] = cont;
+    back_goto1[rp[th]][th] = cont;
 }
 
 static inline void Ssnap_shot(int th)
