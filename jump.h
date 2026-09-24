@@ -632,7 +632,7 @@ static int trace_queue[QUEUE_SIZE][3];
 static char *trace_queue1[QUEUE_SIZE][2];
 
 
-static inline void Senqueu(char *pred, int arity, int clause, int nth, char *aux)
+static inline void Senqueue(char *pred, int arity, int clause, int nth, char *aux)
 {
     int i;
     for(i = QUEUE_SIZE-1;i>0;i--){
@@ -746,7 +746,7 @@ static inline void Sprint(char *str)
 
 static inline void Snewline()
 {
-    printf(" \n",str);
+    printf(" \n");
 }
 
 
