@@ -100,6 +100,12 @@ static inline int Jstepper(void) {
 }
 
 
+static inline int Jemergency_stop(void) {
+    return f0[EMERGENCY_STOP_IDX]();
+}
+
+
+
 
 static inline int Jcar(x){
     return f1[CAR_IDX](x);
@@ -616,6 +622,91 @@ static char *back_stack1[RECURSIZE][THREADSIZE];
 static int np[THREADSIZE]; // next pointer
 static int rp[THREADSIZE]; // recur pointer
 static int mode[THREADSIZE]; //backtrack mode 1=allfail; 0=false/success_fail
+
+/* debug tool */
+#define A_TR 0
+#define M_TR 1
+#define N_TR 2
+#define QUEUE_SIZE 10
+static int trace_queue[QUEUE_SIZE][3];
+static char *trace_queue1[QUEUE_SIZE][2];
+
+
+static inline void Senqueu(char *pred, int arity, int clause, int nth, char *aux)
+{
+    int i;
+    for(i = QUEUE_SIZE-1;i>0;i--){
+        trace_queue1[i][0] = trace_queue1[i-1][0];
+        trace_queue[i][0] = trace_queue[i-1][0];
+        trace_queue[i][1] = trace_queue[i-1][1];
+        trace_queue[i][2] = trace_queue[i-1][2];
+        trace_queue1[i][1] = trace_queue1[i-1][1];
+    }
+    trace_queue1[0][0] = pred;
+    trace_queue1[0][1] = aux;
+    trace_queue[0][0] = arity;
+    trace_queue[0][1] = clause;
+    trace_queue[0][2] = nth;
+}
+
+static inline void Sdisp_queue()
+{
+    int i;
+    for(i=0;i<QUEUE_SIZE;i++)
+        printf("%d: %s %d %d %d %s\n", 
+                i,
+                trace_queue1[i][0] ? trace_queue1[i][0] : "-",
+                trace_queue[i][0],
+                trace_queue[i][1],
+                trace_queue[i][2],
+                trace_queue1[i][1] ? trace_queue1[i][1] : "-"
+            );
+} 
+
+static inline void Sdisp_next_stack(th)
+{
+    int i;
+    for(i=0;i<10;i++){
+         printf("%d: %s %d %d %d\n", 
+                i,
+                next_stack1[i][th],
+                next_stack[i][A_SCBM][th],
+                next_stack[i][M_SCBM][th],
+                next_stack[i][N_SCBM][th]
+            );
+    }
+}
+
+
+static inline void Sdisp_back_stack(th)
+{
+    int i;
+    for(i=0;i<10;i++){
+         printf("%d: %s %d %d %d\n", 
+                i,
+                back_stack1[i][th],
+                back_stack[i][A_SCBM][th],
+                back_stack[i][M_SCBM][th],
+                back_stack[i][N_SCBM][th]
+            );
+    }
+}
+
+
+static inline void Strap(int th)
+{
+    /* set trap conddition in if */
+    if(1){
+        printf("emergency stop by trap\n");
+        printf("TRAP: th=%d rp=%d np=%d mode=%d\n",
+       th, rp[th], np[th], mode[th]);
+        Sdisp_queue();
+        Sdisp_back_stack(th);
+        Sdisp_next_stack(th);
+        Jemergency_stop();
+    }
+}
+
 
 static inline void Sset_back(void *cont, int th)
 {

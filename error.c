@@ -501,3 +501,9 @@ void exception(int errnum, int ind, int arg, int th)
     } else
 	longjmp(buf, 1);
 }
+
+
+int emergency_stop()
+{
+	longjmp(buf, 1);
+}

@@ -73,6 +73,7 @@ if (hmod == NULL) {
     init_f0(FRESHCELL_IDX, (tpred) freshcell);
     init_f0(DEBUG_IDX, (tpred) debug);
     init_f0(STEPPER_IDX, (tpred) stepper);
+    init_f0(EMERGENCY_STOP_IDX, (tpred) emergency_stop);
 
     //argument-1 type
     init_f1(CAR_IDX, (tpred) car);
