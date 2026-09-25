@@ -734,10 +734,10 @@ static inline void Strace_back(char *pred, int arity, int clause, int nth, int t
 
 static inline void Strace_next(char *pred, int arity, int clause, int nth, int th)
 {
-    next_stack1[np[th]][th] = pred;
-    next_stack[np[th]][A_SCBM][th] = arity;
-    next_stack[np[th]][M_SCBM][th] = clause;
-    next_stack[np[th]][N_SCBM][th] = nth;
+    next_stack1[mp[th]][th] = pred;
+    next_stack[mp[th]][A_SCBM][th] = arity;
+    next_stack[mp[th]][M_SCBM][th] = clause;
+    next_stack[mp[th]][N_SCBM][th] = nth;
 }
 
 
