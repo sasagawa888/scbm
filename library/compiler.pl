@@ -499,7 +499,7 @@ gen_SCBM_function :-
     write('void *next;'),nl,
     write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number,varX_,varY_,varZ_,varA_'),
     gen_all_variable,write(';'),nl,
-    write('np[th] = 0; rp[th] = 0; ep[th] = 0;'),nl,
+    write('np[th] = 0; rp[th] = 0; mp[th] = 0;'),nl,
     write('Spush_next(&&success,th);'),nl,
     gen_trace_next([init,0,0,0]),
     gen_pred_switch,
@@ -629,7 +629,6 @@ gen_SCBM_function4 :-
 gen_SCBM_function5 :-
     write('allfail:'),nl,
     write('Spop_back(th);'),nl,
-    write('Spop_next(th);'),nl,
     write('if(rp[th]==0) {return(NO);}'),nl,
     write('next = back_goto[rp[th]][th];'),nl,
     write('np[th] = Sget_np(th);'),nl,

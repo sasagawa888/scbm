@@ -621,7 +621,7 @@ static int back_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static char *back_stack1[RECURSIZE][THREADSIZE];
 static int np[THREADSIZE]; // next pointer
 static int rp[THREADSIZE]; // recur pointer
-static int ep[THREADSIZE]; // exec pointer
+static int mp[THREADSIZE]; // max next pointer
 static int mode[THREADSIZE]; //backtrack mode 1=allfail; 0=false/success_fail
 
 /* debug tool */
@@ -765,7 +765,7 @@ static inline void Spush_next(void *cont,int th)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("Spush_next SCBM stack size"), NIL);
 
     np[th]++;
-    ep[th]++;
+    mp[th]++;
     next_goto[np[th]][th] = cont;
 }
 
@@ -781,20 +781,6 @@ static inline void Spop_next(int th)
 
     np[th]--;
 }
-
-
-static inline void Spop_exec(int th)
-{
-    #ifdef DBG
-    printf(" Spop_exec (%d)\n",rp[th]);
-    #endif
-
-    if (ep[th] <= 0)
-	Jerrorcomp(RESOURCE_ERR, Jmakestr("Spop_exec SCBM stack size"), NIL);
-
-    ep[th]--;
-}
-
 
 
 static inline void Spush_back(void *cont, int arglist, int th)
