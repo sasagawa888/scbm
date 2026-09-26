@@ -628,8 +628,13 @@ static int mode[THREADSIZE]; //backtrack mode 1=allfail; 0=false/success_fail
 #define A_TR 0
 #define M_TR 1
 #define N_TR 2
-#define QUEUE_SIZE 10
-static int trace_queue[QUEUE_SIZE][3];
+#define RP_TR 3
+#define NP_TR 4
+#define MP_TR 5
+#define PRED_TR 0
+#define AUX_TR 1
+#define QUEUE_SIZE 30
+static int trace_queue[QUEUE_SIZE][6];
 static char *trace_queue1[QUEUE_SIZE][2];
 
 
@@ -637,30 +642,40 @@ static inline void Senqueue(char *pred, int arity, int clause, int nth, char *au
 {
     int i;
     for(i = QUEUE_SIZE-1;i>0;i--){
-        trace_queue1[i][0] = trace_queue1[i-1][0];
-        trace_queue[i][0] = trace_queue[i-1][0];
-        trace_queue[i][1] = trace_queue[i-1][1];
-        trace_queue[i][2] = trace_queue[i-1][2];
-        trace_queue1[i][1] = trace_queue1[i-1][1];
+        trace_queue1[i][PRED_TR] = trace_queue1[i-1][PRED_TR];
+        trace_queue[i][A_TR] = trace_queue[i-1][A_TR];
+        trace_queue[i][M_TR] = trace_queue[i-1][M_TR];
+        trace_queue[i][N_TR] = trace_queue[i-1][N_TR];
+        trace_queue1[i][AUX_TR] = trace_queue1[i-1][AUX_TR];
+        trace_queue[i][RP_TR] = trace_queue[i-1][RP_TR];
+        trace_queue[i][NP_TR] = trace_queue[i-1][NP_TR];
+        trace_queue[i][MP_TR] = trace_queue[i-1][MP_TR];
+
     }
-    trace_queue1[0][0] = pred;
-    trace_queue1[0][1] = aux;
-    trace_queue[0][0] = arity;
-    trace_queue[0][1] = clause;
-    trace_queue[0][2] = nth;
+    trace_queue1[0][PRED_TR] = pred;
+    trace_queue1[0][AUX_TR] = aux;
+    trace_queue[0][A_TR] = arity;
+    trace_queue[0][M_TR] = clause;
+    trace_queue[0][N_TR] = nth;
+    trace_queue[0][RP_TR] = rp[0];
+    trace_queue[0][NP_TR] = np[0];
+    trace_queue[0][MP_TR] = mp[0];
 }
 
 static inline void Sdisp_queue()
 {
     int i;
     for(i=0;i<QUEUE_SIZE;i++)
-        printf("%d: %s_%d_%d_%d_%s\n", 
+        printf("%d: %s_%d_%d_%d_%s rp=%d np=%d mp=%d\n", 
                 i,
-                trace_queue1[i][0] ? trace_queue1[i][0] : "-",
-                trace_queue[i][0],
-                trace_queue[i][1],
-                trace_queue[i][2],
-                trace_queue1[i][1] ? trace_queue1[i][1] : "-"
+                trace_queue1[i][PRED_TR] ? trace_queue1[i][PRED_TR] : "-",
+                trace_queue[i][A_TR],
+                trace_queue[i][M_TR],
+                trace_queue[i][N_TR],
+                trace_queue1[i][AUX_TR] ? trace_queue1[i][AUX_TR] : "-",
+                trace_queue[i][RP_TR],
+                trace_queue[i][NP_TR],
+                trace_queue[i][MP_TR]
             );
 } 
 

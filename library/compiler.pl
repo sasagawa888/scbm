@@ -766,7 +766,7 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D) :-
     gen_pack_pointer(V,1),
     gen_debug_trace([P,A,M,N],end),
     write('Spush_next(&&success,th);'),nl,
-    gen_trace_next([P,A,M,N]),
+    gen_trace_next([success,A,M,N]),
     write('clause = Sget_choice(th);'),nl,
     write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl.
 
