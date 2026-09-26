@@ -613,6 +613,7 @@ gen_SCBM_function4 :-
     write('success:'),nl,
     write('if(np[th] == 0){'),nl,
     write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
+    write('Strap(th);'),nl,
     write('next = back_goto[rp[th]][th];'),nl,
     write('clause = Sget_choice(th);'),nl,
     write('arglist = Sget_arg(th);'),nl,
@@ -765,6 +766,7 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D) :-
     gen_pack_pointer(V,1),
     gen_debug_trace([P,A,M,N],end),
     write('Spush_next(&&success,th);'),nl,
+    gen_trace_next([P,A,M,N]),
     write('clause = Sget_choice(th);'),nl,
     write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl.
 
