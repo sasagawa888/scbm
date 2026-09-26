@@ -716,8 +716,8 @@ static inline void Sspy(int th)
 {
     /* set trap condition in if */
     if(1){
-        printf("emergency stop by trap\n");
-        printf("TRAP: th=%d rp=%d np=%d mp=%d mode=%d\n",
+        printf("display by spy\n");
+        printf("SPY: th=%d rp=%d np=%d mp=%d mode=%d\n",
        th, rp[th], np[th], mp[th], mode[th]);
         printf("back trace\n");
         Sdisp_queue();
