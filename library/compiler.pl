@@ -872,6 +872,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_trace([P,A,M,N],path),
     gen_nondet_body_argument(Args,V,N),
+    gen_pack_back(V,1),
     gen_push_back([P,A,M,N],D),
     gen_trace_back([P,A,M,N]),
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
@@ -899,6 +900,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_debug_trace([P,A,M,N],path),
     gen_nondet_body_argument(Args,V,N),
+    gen_pack_back(V,1),
     gen_push_back([P,A,M,N],D),
     gen_trace_back([P,A,M,N]),
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
@@ -1112,7 +1114,7 @@ gen_debug_trace([P,A,M,N],Aux) :-
     write('Senqueue("'),write(P),write('",'),
     write(A),write(','),write(M),write(','),write(N),
     write(',"'),write(Aux),
-    write('");'),nl.
+    write('",Jget_ac(th));'),nl.
 
 
 
