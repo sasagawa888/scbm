@@ -711,17 +711,6 @@ static inline void Strap(int th)
 }
 
 
-static inline void Sset_back(void *cont, int th)
-{
-    back_goto[rp[th]][th] = cont;
-}
-
-
-static inline void Sreset_back(int th)
-{
-    back_goto[rp[th]][th] = back_goto1[rp[th]][th];
-}
-
 static inline void Strace_back(char *pred, int arity, int clause, int nth, int th)
 {
     back_stack1[rp[th]][th] = pred;
