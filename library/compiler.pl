@@ -610,7 +610,7 @@ gen_SCBM_function31(P,A,[C|Cs],N) :-
 gen_SCBM_function4 :-
     write('success:'),nl,
     write('if(np[th] == 0){'),nl,
-    write('Strap(th);'),
+    write('Strap(th); Jdebug(th);'),
     write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
     write('next = back_goto[rp[th]][th];'),nl,
     write('clause = Sget_choice(th);'),nl,

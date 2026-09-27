@@ -91,20 +91,11 @@ static inline int Jfreshcell(void)
     return f0[FRESHCELL_IDX]();
 }
 
-static inline int Jdebug(void) {
-    return f0[DEBUG_IDX]();
-}
-
-static inline int Jstepper(void) {
-    return f0[STEPPER_IDX]();
-}
 
 
 static inline int Jemergency_stop(void) {
     return f0[EMERGENCY_STOP_IDX]();
 }
-
-
 
 
 static inline int Jcar(x){
@@ -211,6 +202,10 @@ static inline int Jarity_count(int x) {
     return f1[ARITY_COUNT_IDX](x);
 }
 
+
+static inline int Jdebug(x) {
+    return f1[DEBUG_IDX](x);
+}
 
 static inline int Jcons(int x, int y) {
     return f2[CONS_IDX](x, y);
