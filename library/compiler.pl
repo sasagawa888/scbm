@@ -499,7 +499,7 @@ gen_SCBM_function :-
     write('void *next;'),nl,
     write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number,varX_,varY_,varZ_,varA_'),
     gen_all_variable,write(';'),nl,
-    write('np[th] = 0; rp[th] = 0; back_stack[0][AC_SCBM][th] = Jget_ac(th);'),nl,
+    write('np[th] = 0; bp[th] = 0; back_stack[0][AC_SCBM][th] = Jget_ac(th);'),nl,
     write('Spush_next(&&success,th);'),nl,
     gen_trace_next([init,0,0,0]),
     gen_pred_switch,
@@ -563,13 +563,13 @@ gen_arity_switch(P,[L|Ls]) :-
 
 gen_SCBM_function2 :-
     type(P,A,nondet),
-    write('int '),write(P),write('_'),write(A),write('rp;'),nl,
+    write('int '),write(P),write('_'),write(A),write('bp;'),nl,
     write(P),write('_'),write(A),write('entry:'),nl,
     write('Spush_back(&&'),write(P),write('_'),write(A),write(',arglist,th);'),nl,
     write(P),write('_'),write(A),write(':'),nl,
     gen_debug(P),
     write('Jinc_proof(th);'),nl,
-    write(P),write('_'),write(A),write('rp = rp[th];'),nl,
+    write(P),write('_'),write(A),write('bp = bp[th];'),nl,
     write('switch(clause){'),nl,
     n_clause_count_with_arity(P,A,M),
     M1 is M+1,
@@ -610,9 +610,8 @@ gen_SCBM_function31(P,A,[C|Cs],N) :-
 gen_SCBM_function4 :-
     write('success:'),nl,
     write('if(np[th] == 0){'),nl,
-    write('Strap(th); Jdebug(th);'),
     write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
-    write('next = back_goto[rp[th]][th];'),nl,
+    write('next = back_goto[bp[th]][th];'),nl,
     write('clause = Sget_choice(th);'),nl,
     write('arglist = Sget_arg(th);'),nl,
     write('np[th] = Sget_np(th);'),nl,
@@ -629,16 +628,16 @@ gen_SCBM_function5 :-
     write('allfail:'),nl,
     write('Spop_back(th);'),nl,
     write('Spop_next(th);'),nl,
-    write('if(rp[th]==0) {return(NO);}'),nl,
-    write('next = back_goto[rp[th]][th];'),nl,
+    write('if(bp[th]==0) {return(NO);}'),nl,
+    write('next = back_goto[bp[th]][th];'),nl,
     write('np[th] = Sget_np(th);'),nl,
     write('clause = Sget_choice(th);'),nl,
     write('arglist = Sget_arg(th);'),nl,
     write('mode[th] = 1;'),nl,
     write('goto *next;'),nl,
     write('false:'),nl,
-    write('if(rp[th]==0) {return(NO);}'),nl,
-    write('next = back_goto[rp[th]][th];'),nl,
+    write('if(bp[th]==0) {return(NO);}'),nl,
+    write('next = back_goto[bp[th]][th];'),nl,
     write('np[th] = Sget_np(th);'),nl,
     write('clause = Sget_choice(th);'),nl,
     write('arglist = Sget_arg(th);'),nl,
@@ -817,7 +816,7 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D) :-
 % last cut operator
 gen_nondet_body1((!,end_of_body),A,M,N,H,P,V,D) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
-    write('rp[th]= '),write(P),write('_'),write(A),write('rp;'),nl,
+    write('bp[th]= '),write(P),write('_'),write(A),write('bp;'),nl,
     write('goto success;'),nl.
 
 
@@ -921,7 +920,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
 
 % cut operator
 gen_nondet_body1((!,Y),A,M,N,H,P,V,D) :-
-    write('rp[th]= '),write(P),write('_'),write(A),write('rp;'),nl,
+    write('bp[th]= '),write(P),write('_'),write(A),write('bp;'),nl,
     gen_nondet_body1(Y,A,M,N,H,P,V,D).
 
 % builtin
@@ -996,7 +995,7 @@ gen_unpack_pointer([L|Ls],N) :-
 
 gen_pack_back([],_).
 gen_pack_back([L|Ls],N) :-
-    write('back_stack[rp[th]+1]['),write(N),write('][th] = '),write(L),write(';'),nl,
+    write('back_stack[bp[th]+1]['),write(N),write('][th] = '),write(L),write(';'),nl,
     N1 is N+1,
     gen_pack_back(Ls,N1).
    
@@ -1004,7 +1003,7 @@ gen_pack_back([L|Ls],N) :-
 gen_unpack_back([],_) :-
     write('Srelease(th);'),nl.
 gen_unpack_back([L|Ls],N) :-
-    write(L),write('= back_stack[rp[th]+mode[th]]['),write(N),write('][th];'),nl,
+    write(L),write('= back_stack[bp[th]+mode[th]]['),write(N),write('][th];'),nl,
     N1 is N+1,
     gen_unpack_back(Ls,N1).
 
@@ -1059,7 +1058,7 @@ gen_debug_print([P,A,M,N],Msg) :-
 
 gen_debug_pred(_) :- not(option(debug,on)).
 gen_debug_pred(P) :-
-    write('printf("'),write(P),write(' rp=%d np=%d", rp[th], np[th]);'),
+    write('printf("'),write(P),write(' bp=%d np=%d", bp[th], np[th]);'),
     write('Jprint(arglist); Jprint(Jderef(arglist,th));'),
     write('Snewline();').
 
@@ -1069,7 +1068,7 @@ gen_debug_path([P,A,M,N],Msg) :-
     write(P),write('_'),
     write(A),write('_'),
     write(M),write('_'),
-    write(N),write(' rp=%d np=%d", rp[th], np[th]); Snewline();').
+    write(N),write(' bp=%d np=%d", bp[th], np[th]); Snewline();').
 
 gen_debug(_) :- not(option(debug,on)).
 gen_debug(P) :-

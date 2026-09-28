@@ -615,7 +615,7 @@ static char *next_stack1[RECURSIZE][THREADSIZE];
 static int back_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static char *back_stack1[RECURSIZE][THREADSIZE];
 static int np[THREADSIZE]; // next pointer
-static int rp[THREADSIZE]; // recur pointer
+static int bp[THREADSIZE]; // recur pointer
 static int mode[THREADSIZE]; //backtrack mode 1=allfail; 0=false/success_fail
 
 /* debug tool */
@@ -697,7 +697,7 @@ static inline void Strap(int th)
     if(1){
         printf("emergency stop by trap\n");
         printf("TRAP: th=%d rp=%d np=%d mode=%d\n",
-       th, rp[th], np[th], mode[th]);
+       th, bp[th], np[th], mode[th]);
         printf("back trace\n");
         Sdisp_queue();
         printf("back_stack\n");
@@ -711,10 +711,10 @@ static inline void Strap(int th)
 
 static inline void Strace_back(char *pred, int arity, int clause, int nth, int th)
 {
-    back_stack1[rp[th]][th] = pred;
-    back_stack[rp[th]][A_SCBM][th] = arity;
-    back_stack[rp[th]][M_SCBM][th] = clause;
-    back_stack[rp[th]][N_SCBM][th] = nth;
+    back_stack1[bp[th]][th] = pred;
+    back_stack[bp[th]][A_SCBM][th] = arity;
+    back_stack[bp[th]][M_SCBM][th] = clause;
+    back_stack[bp[th]][N_SCBM][th] = nth;
 }
 
 
@@ -744,7 +744,7 @@ static inline void Snewline()
 static inline void Spush_next(void *cont,int th)
 {
     #ifdef DBG
-    printf(" Spush_next (%d) np=%d\n",rp[th], np[th]);
+    printf(" Spush_next (%d) np=%d\n",bp[th], np[th]);
     #endif
 
     if (np[th] + 1 >= RECURSIZE)
@@ -758,7 +758,7 @@ static inline void Spush_next(void *cont,int th)
 static inline void Spop_next(int th)
 {
     #ifdef DBG
-    printf(" Spop_next (%d)\n",rp[th]);
+    printf(" Spop_next (%d)\n",bp[th]);
     #endif
 
     if (np[th] <= 0)
@@ -771,30 +771,30 @@ static inline void Spop_next(int th)
 static inline void Spush_back(void *cont, int arglist, int th)
 {
     #ifdef DBG
-    printf(" Spush_back (%d) cont=%p\n", rp[th], (void *)cont);
+    printf(" Spush_back (%d) cont=%p\n", bp[th], (void *)cont);
     #endif
    
 
-    if (rp[th] + 1 >= RECURSIZE)
+    if (bp[th] + 1 >= RECURSIZE)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("Spush_back SCBM stack size"), arglist);
 
-    rp[th]++;
-    back_stack[rp[th]][SP_SCBM][th] = Jget_sp(th);
-    back_stack[rp[th]][CHOICE_SCBM][th] = 0;
-    back_stack[rp[th]][WP_SCBM][th] = Jget_wp(th);
-    back_stack[rp[th]][AC_SCBM][th] = Jget_ac(th);
-    back_stack[rp[th]][ARGLIST_SCBM][th] = arglist;
-    back_stack[rp[th]][NP_SCBM][th] = np[th];
-    back_goto[rp[th]][th] = cont;
-    back_goto1[rp[th]][th] = cont;
+    bp[th]++;
+    back_stack[bp[th]][SP_SCBM][th] = Jget_sp(th);
+    back_stack[bp[th]][CHOICE_SCBM][th] = 0;
+    back_stack[bp[th]][WP_SCBM][th] = Jget_wp(th);
+    back_stack[bp[th]][AC_SCBM][th] = Jget_ac(th);
+    back_stack[bp[th]][ARGLIST_SCBM][th] = arglist;
+    back_stack[bp[th]][NP_SCBM][th] = np[th];
+    back_goto[bp[th]][th] = cont;
+    back_goto1[bp[th]][th] = cont;
 }
 
 static inline void Ssnap_shot(int th)
 {
     printf("rp=%d np=%d sp=%d wp=%d ac=%d \n" ,
-    rp[th],np[th],Jget_sp(th),Jget_wp(th),Jget_ac(th)
+    bp[th],np[th],Jget_sp(th),Jget_wp(th),Jget_ac(th)
     );
-    Jprint(back_stack[rp[th]][ARGLIST_SCBM][th]);
+    Jprint(back_stack[bp[th]][ARGLIST_SCBM][th]);
     printf("\n");
 }
 
@@ -802,72 +802,72 @@ static inline void Ssnap_shot(int th)
 static inline void Sinc_choice(int th)
 {
     #ifdef DBG
-    printf(" Sinc_choice (%d)\n",rp[th]);
+    printf(" Sinc_choice (%d)\n",bp[th]);
     #endif
-    back_stack[rp[th]][CHOICE_SCBM][th]++;
+    back_stack[bp[th]][CHOICE_SCBM][th]++;
 }
 
 
 static inline void Srelease(int th)
 {
-    Junbind(back_stack[rp[th]][SP_SCBM][th], th);
-    Jset_ac(back_stack[rp[th]][AC_SCBM][th] ,th);
-    Jset_wp(back_stack[rp[th]][WP_SCBM][th] ,th);
+    Junbind(back_stack[bp[th]][SP_SCBM][th], th);
+    Jset_ac(back_stack[bp[th]][AC_SCBM][th] ,th);
+    Jset_wp(back_stack[bp[th]][WP_SCBM][th] ,th);
     
     #ifdef DBG
-    printf(" Srelease (%d) \n",rp[th]);
+    printf(" Srelease (%d) \n",bp[th]);
     #endif
 }
 
 static inline int Sget_choice(int th)
 {
     #ifdef DBG
-    printf(" Sget_choice (%d) ch=%d\n", rp[th], back_stack[rp[th]][CHOICE_SCBM][th]);
+    printf(" Sget_choice (%d) ch=%d\n", bp[th], back_stack[bp[th]][CHOICE_SCBM][th]);
     #endif
 
-	return(back_stack[rp[th]][CHOICE_SCBM][th]);
+	return(back_stack[bp[th]][CHOICE_SCBM][th]);
 }
 
 
 static inline int Sget_arg(int th)
 {
     #ifdef DBG
-    printf(" Sget_arg (%d) \n", rp[th]);
+    printf(" Sget_arg (%d) \n", bp[th]);
     #endif
 
-    return(back_stack[rp[th]][ARGLIST_SCBM][th]);
+    return(back_stack[bp[th]][ARGLIST_SCBM][th]);
 }
 
 
 static inline int Sget_np(int th)
 {
     #ifdef DBG
-    printf(" Sget_np (%d) \n", rp[th]);
+    printf(" Sget_np (%d) \n", bp[th]);
     #endif
 
-    return(back_stack[rp[th]][NP_SCBM][th]);
+    return(back_stack[bp[th]][NP_SCBM][th]);
 }
 
 
 static inline void Spop_back(int th)
 {
     #ifdef DBG
-    printf(" Spop_back (%d)\n", rp[th]);
+    printf(" Spop_back (%d)\n", bp[th]);
     #endif
 
-    if (rp[th] <= 0)
+    if (bp[th] <= 0)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("Spop_back SCBM stack size"), NIL);
-    rp[th] --;
+    bp[th] --;
 }
 
 
 static inline void Ssave_arg(int x, int th)
 {
     #ifdef DBG
-    printf(" Ssave_arg (%d)\n", rp[th]);
+    printf(" Ssave_arg (%d)\n", bp[th]);
     #endif
 
-    back_stack[rp[th]][ARGLIST_SCBM][th] = x;
+    back_stack[bp[th]][ARGLIST_SCBM][th] = x;
 }
 
 
