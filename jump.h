@@ -615,7 +615,7 @@ static char *next_stack1[RECURSIZE][THREADSIZE];
 static int back_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static char *back_stack1[RECURSIZE][THREADSIZE];
 static int np[THREADSIZE]; // next pointer
-static int bp[THREADSIZE]; // recur pointer
+static int bp[THREADSIZE]; // back pointer
 static int mode[THREADSIZE]; //backtrack mode 1=allfail; 0=false/success_fail
 
 /* debug tool */
