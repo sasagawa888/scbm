@@ -609,6 +609,7 @@ gen_SCBM_function31(P,A,[C|Cs],N) :-
 
 gen_SCBM_function4 :-
     write('success:'),nl,
+    gen_debug1(success),
     write('if(np[th] == 0){'),nl,
     write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
     write('next = back_goto[bp[th]][th];'),nl,
@@ -626,6 +627,7 @@ gen_SCBM_function4 :-
 
 gen_SCBM_function5 :-
     write('allfail:'),nl,
+    gen_debug1(allfail),
     write('Spop_back(th);'),nl,
     write('Spop_next(th);'),nl,
     write('if(bp[th]==0) {return(NO);}'),nl,
@@ -636,6 +638,7 @@ gen_SCBM_function5 :-
     write('mode[th] = 1;'),nl,
     write('goto *next;'),nl,
     write('false:'),nl,
+    gen_debug1(false),
     write('if(bp[th]==0) {return(NO);}'),nl,
     write('next = back_goto[bp[th]][th];'),nl,
     write('np[th] = Sget_np(th);'),nl,
@@ -1074,7 +1077,16 @@ gen_debug(_) :- not(option(debug,on)).
 gen_debug(P) :-
     write('printf("'),write(P),write('");'),
     write('Jprint(arglist); Jprint(Jderef(arglist,th));'),
+    write('printf("bp=%d np=%d", bp[th], np[th]);'),
     write('Sprint("");').
+
+
+gen_debug1(_) :- not(option(debug,on)).
+gen_debug1(Msg) :-
+    write('printf("'),write(Msg),write('");'),
+    write('printf(" bp=%d np=%d", bp[th], np[th]);'),
+    write('Sprint("");').
+
 
 
 
