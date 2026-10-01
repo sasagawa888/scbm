@@ -616,7 +616,7 @@ static int back_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static char *back_stack1[RECURSIZE][THREADSIZE];
 static int np[THREADSIZE]; // next pointer
 static int bp[THREADSIZE]; // back pointer
-static int mode[THREADSIZE]; //backtrack mode 1=allfail; 0=false/success_fail
+
 
 /* debug tool */
 #define A_TR 0
@@ -696,8 +696,8 @@ static inline void Strap(int th)
     /* set trap condition in if */
     if(1){
         printf("emergency stop by trap\n");
-        printf("TRAP: th=%d rp=%d np=%d mode=%d\n",
-       th, bp[th], np[th], mode[th]);
+        printf("TRAP: th=%d rp=%d np=%d \n",
+       th, bp[th], np[th]);
         printf("back trace\n");
         Sdisp_queue();
         printf("back_stack\n");
@@ -785,6 +785,7 @@ static inline void Spush_back(void *cont, int arglist, int th)
     back_stack[bp[th]][AC_SCBM][th] = Jget_ac(th);
     back_stack[bp[th]][ARGLIST_SCBM][th] = arglist;
     back_stack[bp[th]][NP_SCBM][th] = np[th];
+    back_stack[bp[th]][BP_SCBM][th] = bp[th];
     back_goto[bp[th]][th] = cont;
     back_goto1[bp[th]][th] = cont;
 }
@@ -846,6 +847,16 @@ static inline int Sget_np(int th)
     #endif
 
     return(back_stack[bp[th]][NP_SCBM][th]);
+}
+
+
+static inline int Sget_bp(int th)
+{
+    #ifdef DBG
+    printf(" Sget_bp (%d) \n", bp[th]);
+    #endif
+
+    return(back_stack[bp[th]][BP_SCBM][th]);
 }
 
 

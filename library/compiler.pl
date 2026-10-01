@@ -616,7 +616,6 @@ gen_SCBM_function4 :-
     write('clause = Sget_choice(th);'),nl,
     write('arglist = Sget_arg(th);'),nl,
     write('np[th] = Sget_np(th);'),nl,
-    write('mode[th] = 0;'),nl,
     write('goto *next;'),nl,
     write('}else{'),nl,
     write('next = next_goto[np[th]][th];'),nl,
@@ -628,14 +627,12 @@ gen_SCBM_function4 :-
 gen_SCBM_function5 :-
     write('allfail:'),nl,
     gen_debug1(allfail),
-    write('Spop_back(th);'),nl,
-    write('Spop_next(th);'),nl,
+    write('bp[th] = Sget_bp(th);'),nl,
     write('if(bp[th]==0) {return(NO);}'),nl,
     write('next = back_goto[bp[th]][th];'),nl,
     write('np[th] = Sget_np(th);'),nl,
     write('clause = Sget_choice(th);'),nl,
     write('arglist = Sget_arg(th);'),nl,
-    write('mode[th] = 1;'),nl,
     write('goto *next;'),nl,
     write('false:'),nl,
     gen_debug1(false),
@@ -644,7 +641,6 @@ gen_SCBM_function5 :-
     write('np[th] = Sget_np(th);'),nl,
     write('clause = Sget_choice(th);'),nl,
     write('arglist = Sget_arg(th);'),nl,
-    write('mode[th] = 0;'),nl,
     write('goto *next;'),nl.
    
 
@@ -1006,7 +1002,7 @@ gen_pack_back([L|Ls],N) :-
 gen_unpack_back([],_) :-
     write('Srelease(th);'),nl.
 gen_unpack_back([L|Ls],N) :-
-    write(L),write('= back_stack[bp[th]+mode[th]]['),write(N),write('][th];'),nl,
+    write(L),write('= back_stack[bp[th]]['),write(N),write('][th];'),nl,
     N1 is N+1,
     gen_unpack_back(Ls,N1).
 
