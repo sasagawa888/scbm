@@ -696,7 +696,7 @@ static inline void Strap(int th)
     /* set trap condition in if */
     if(1){
         printf("emergency stop by trap\n");
-        printf("TRAP: th=%d rp=%d np=%d \n",
+        printf("TRAP: th=%d bp=%d np=%d \n",
        th, bp[th], np[th]);
         printf("back trace\n");
         Sdisp_queue();

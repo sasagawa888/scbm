@@ -629,7 +629,7 @@ gen_SCBM_function5 :-
     write('allfail:'),nl,
     gen_debug1(allfail),
     write('bp[th] = Sget_bp(th);'),nl,
-    write('if(bp[th]==0) {return(NO);}'),nl,
+    write('if(bp[th]==0) {Strap(th);return(NO);}'),nl,
     write('next = back_goto[bp[th]][th];'),nl,
     write('np[th] = Sget_np(th);'),nl,
     write('clause = Sget_choice(th);'),nl,
