@@ -992,6 +992,14 @@ gen_unpack_pointer([L|Ls],N) :-
     N1 is N+1,
     gen_unpack_pointer(Ls,N1).
 
+  
+gen_pack_pointer_recur([],_).
+gen_pack_pointer([L|Ls],N) :-
+    write('next_stack[np[th]]['),write(N),write('][th] = '),write(L),write(';'),nl,
+    N1 is N+1,
+    gen_pack_pointer_recur(Ls,N1).
+    
+
 
 gen_pack_back([],_).
 gen_pack_back([L|Ls],N) :-
