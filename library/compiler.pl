@@ -976,6 +976,7 @@ gen_nondet_body1(X,A,M,N,H,P,V,D) :-
     gen_nondet_body_label([P,A,M,N],D),write('back:'),nl,
     gen_debug_trace([P,A,M,N],back),
     gen_unpack_back(V,1),
+    gen_pack_pointer_recur(V,1),
     gen_nondet_body_label([P,A,M,N],D),write('join:'),nl,
     gen_debug_trace([P,A,M,N],join),
     write('clause = Sget_choice(th);'),nl,
@@ -1017,7 +1018,7 @@ gen_unpack_pointer([L|Ls],N) :-
 
   
 gen_pack_pointer_recur([],_).
-gen_pack_pointer([L|Ls],N) :-
+gen_pack_pointer_recur([L|Ls],N) :-
     write('next_stack[np[th]]['),write(N),write('][th] = '),write(L),write(';'),nl,
     N1 is N+1,
     gen_pack_pointer_recur(Ls,N1).
