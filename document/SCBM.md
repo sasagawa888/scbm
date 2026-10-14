@@ -2319,3 +2319,217 @@ else goto allfail;
 
 
 ```
+
+# SCBM-Prolog: In Search of the Cosmo Cleaner
+
+*One Last Attempt to Solve the Continuation Problem*
+
+For a while, I had almost given up on SCBM-Prolog.
+
+Was the model simply too complicated?
+
+Or was there something fundamentally wrong with the computational model itself?
+
+I even began to wonder whether it could ever work.
+
+But the next day, an idea suddenly came to me.
+
+**Perhaps the solution was surprisingly simple after all.**
+
+## The Cosmo Cleaner
+
+In the classic Japanese anime *Space Battleship Yamato* (*Star Blazers*), there is a dramatic scene near the very end of the story.
+
+Dessler, the enemy commander, boards the Yamato and launches a desperate assault inside the ship.
+
+Is this finally the end of the Yamato?
+
+Just at that critical moment, the Cosmo Cleaner begins to operate.
+
+The ship is saved at the very last moment.
+
+Now I feel as though I am in a similar situation.
+
+I am placing my final hope in this new idea.
+
+If this doesn't work, I may have to admit that the problem is beyond my abilities.
+
+## The Familiar Example
+
+Once again, let's consider the familiar Prolog predicates:
+
+```prolog
+select1(X,[X|Xs],Xs).
+select1(X,[Y|Ys],[Y|Zs]) :-
+    select1(X,Ys,Zs).
+
+
+perm1([],[]).
+perm1(Xs,[X|Ys]) :-
+    select1(X,Xs,Zs),
+    perm1(Zs,Ys).
+```
+
+The problem occurs when `select1` is forced to backtrack.
+
+Under these circumstances, the recursive invocation of `perm1` fails to restore the correct variable pointers.
+
+This has been one of the most troublesome problems in my SCBM implementation.
+
+## A Simple Idea
+
+The idea that came to me is remarkably simple.
+
+**Generate a success continuation even for recursive calls, and use it to restore the variable pointers.**
+
+Consider this clause:
+
+```prolog
+select1(X,[Y|Ys],[Y|Zs]) :-
+    select1(X,Ys,Zs).
+    % Generate a success continuation
+    % for the recursive call.
+```
+
+The success continuation is created before entering the recursive call.
+
+But why is it necessary?
+
+For a long time, I had been puzzled by a fundamental question:
+
+**Where should execution go after a recursive call returns?**
+
+After considerable trial and error, I concluded that recursive calls might not need success continuations at all.
+
+From the viewpoint of control flow alone, that seemed perfectly reasonable.
+
+After all, the recursive call is the final operation in the clause.
+
+There is nothing left to execute afterward.
+
+But I had overlooked something important.
+
+**A success continuation is not merely a mechanism for transferring control. It can also restore the variable environment.**
+
+That was the missing piece.
+
+## Restoring Variable Pointers Through Success Continuations
+
+The new approach works as follows.
+
+Before starting a recursive call, generate a success continuation containing the variable pointers that must be restored when the call succeeds.
+
+Push this continuation onto the success stack.
+
+Then begin the recursive call.
+
+When the recursive call succeeds, execution returns through the saved success continuation.
+
+The variable pointers are restored, and execution proceeds to the next success continuation.
+
+In this way, the variable environment is restored step by step as execution returns through the recursive calls.
+
+No special mechanism for propagating variable pointers should be necessary.
+
+The success continuations themselves perform that task.
+
+## What Happens During Backtracking?
+
+Now consider the more difficult case.
+
+Suppose backtracking occurs somewhere inside the recursion.
+
+The failure continuation restores the variable pointers saved immediately before the alternative was attempted.
+
+Execution then searches for another solution.
+
+If that alternative succeeds, execution proceeds through the success continuations.
+
+As each success continuation is activated, the appropriate variable pointers are restored.
+
+Thus, even when backtracking occurs deep inside the recursion, the variable environment should be correctly reconstructed as execution returns.
+
+But what happens if the alternative also fails?
+
+In that case, the failure continuation is activated.
+
+It restores the success-stack pointer to the value saved at the corresponding choice point.
+
+As a result, the success continuations created by the abandoned recursive path are discarded.
+
+This gives us a surprisingly simple structure:
+
+- **Success continuations** restore variable environments along successful execution paths.
+- **Failure continuations** restore the previous state and discard success continuations belonging to abandoned paths.
+
+Success and failure work together.
+
+That is precisely what I wanted SCBM to express.
+
+## Perhaps I Was Thinking Too Much
+
+Looking back, I may have made the problem unnecessarily complicated.
+
+I tried various approaches to restoring variable pointers, managing recursive calls, and preserving the correct continuation state.
+
+Some of these approaches required increasingly complicated mechanisms.
+
+But perhaps the real mistake was much simpler.
+
+I had eliminated success continuations from recursive calls because they appeared unnecessary for control flow.
+
+In doing so, I may also have eliminated the mechanism needed to restore the variable environment.
+
+**The solution may not be to introduce another special mechanism, but simply to apply the original continuation model consistently.**
+
+That would be a much more satisfying result.
+
+## Will It Work?
+
+Of course, this is still only a hypothesis.
+
+I have not yet completed the experimental verification.
+
+The crucial test will be whether recursive backtracking correctly restores the variable pointers and produces all the expected solutions.
+
+For example:
+
+```prolog
+?- perm1([1,2,3],X).
+```
+
+The implementation must generate all six permutations correctly and terminate normally after exhausting the alternatives.
+
+If this works, it may become possible to translate Prolog execution into C code using a relatively simple computational model.
+
+That has been one of my original goals.
+
+I wanted to implement Prolog using explicit success and failure continuations, without depending heavily on ordinary C function calls for predicate execution.
+
+The resulting model could be quite different from the conventional WAM approach.
+
+But first, it has to work.
+
+## One Last Hope
+
+After struggling with this problem for so long, I am reluctant to declare victory before running the tests.
+
+I have already experienced too many moments when I thought I had finally found the answer, only to discover another problem.
+
+Nevertheless, this time the idea feels different.
+
+It is simple.
+
+It is consistent with the original SCBM model.
+
+And it gives success continuations and failure continuations clear, complementary responsibilities.
+
+Perhaps this was the missing piece all along.
+
+Or perhaps another unexpected problem is waiting for me.
+
+There is only one way to find out.
+
+**Will the Cosmo Cleaner finally work?**
+
+The final experiment is about to begin.
