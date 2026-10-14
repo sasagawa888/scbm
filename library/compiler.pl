@@ -755,8 +755,17 @@ gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D) :-
     gen_unpack_back(V,1),
     gen_nondet_body_label([P,A,M,N],D),write('join:'),nl,
     gen_debug_trace([P,A,M,N],join),
+    N1 is N+1,
+    gen_pack_pointer(V,1),
+    gen_debug_trace([P,A,M,N1],next),
+    gen_push_next([P,A,M,N1],D),
+    gen_trace_next([P,A,M,N1]),
     write('clause = Sget_choice(th);'),nl,
-    write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl.
+    write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl,
+    gen_nondet_body_label([P,A,M,N1],D),write(':'),nl,
+    gen_debug_trace([P,A,M,N1],end),
+    gen_unpack_pointer(V,1),
+    write('goto success;'),nl.
 
 %last body
 gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D) :-
