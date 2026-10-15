@@ -885,3 +885,14 @@ static inline void Ssave_arg(int x, int th)
 }
 
 
+static inline void Sadjust_np(int th)
+{
+    #ifdef DBG
+    printf(" Sadjust_np (%d)\n", bp[th]);
+    #endif
+
+    if(back_stack[bp[th]+1][REC_SCBM][th] == 1)
+        np[th]++;
+}
+
+
