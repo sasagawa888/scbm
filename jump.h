@@ -616,7 +616,6 @@ static int back_stack[RECURSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static char *back_stack1[RECURSIZE][THREADSIZE];
 static int np[THREADSIZE]; // next pointer
 static int bp[THREADSIZE]; // back pointer
-static int rec; // recursive flag;
 
 
 /* debug tool */
@@ -787,10 +786,9 @@ static inline void Spush_back(void *cont, int arglist, int th)
     back_stack[bp[th]][ARGLIST_SCBM][th] = arglist;
     back_stack[bp[th]][NP_SCBM][th] = np[th];
     back_stack[bp[th]][BP_SCBM][th] = bp[th]-1;
-    back_stack[bp[th]][REC_SCBM][th] = rec;
     back_goto[bp[th]][th] = cont;
     back_goto1[bp[th]][th] = cont;
-    rec = 0;
+
 }
 
 static inline void Ssnap_shot(int th)
@@ -883,16 +881,4 @@ static inline void Ssave_arg(int x, int th)
 
     back_stack[bp[th]][ARGLIST_SCBM][th] = x;
 }
-
-
-static inline void Sadjust_np(int th)
-{
-    #ifdef DBG
-    printf(" Sadjust_np (%d)\n", bp[th]);
-    #endif
-
-    if(back_stack[bp[th]+1][REC_SCBM][th] == 1)
-        np[th]++;
-}
-
 
