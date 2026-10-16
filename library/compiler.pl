@@ -612,7 +612,7 @@ gen_SCBM_function4 :-
     write('success:'),nl,
     gen_debug1(success),
     write('if(np[th] == 0){'),nl,
-    write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
+    write('if(Jprove_all(rest,Jget_sp(th),th) == YES) {Strap(th);return(YES);}'),nl,
     write('next = back_goto[bp[th]][th];'),nl,
     write('clause = Sget_choice(th);'),nl,
     write('arglist = Sget_arg(th);'),nl,
