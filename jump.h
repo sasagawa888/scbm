@@ -606,6 +606,55 @@ static void mouse_callback()
 
 //-------------SCBM--------------------------
 
+//-------------YAMATO-------------------------
+
+// for bidirectional list 
+typedef struct bidirectional {
+    int back;
+    int front;
+    int entity;
+} bidirectional;
+
+#define LISTSIZE 1000
+#define OBJSIZE 10000
+static bidirectional blist[LISTSIZE][THREADSIZE];
+static int proof_obj[OBJSIZE][SCBM_ELT_SIZE][THREADSIZE];
+int lp[THREADSIZE];  //list pointer
+
+static int concat(int x, int y, int th)
+{
+    blist[x][th].back = y;
+    blist[y][th].front = x;
+    return(y);
+}
+
+static int construct(int x,int th)
+{
+    int addr;
+    if (lp[th] >= LISTSIZE)
+	Jerrorcomp(RESOURCE_ERR, Jmakestr("overflow SCBM list size"), NIL);
+
+    addr = lp[th];
+    lp[th]++;
+    blist[addr][th].entity = x;
+    blist[addr][th].back = -1;
+    blist[addr][th].front = -1;
+    return(addr);
+}
+
+static int back(int x, int th)
+{
+    return(blist[x][th].back);
+}
+
+
+static int front(int x, int th)
+{
+    return(blist[x][th].front);
+}
+
+
+//-------------------------------------------
 
 static void *next_goto[RECURSIZE][THREADSIZE];
 static void *back_goto[RECURSIZE][THREADSIZE];
