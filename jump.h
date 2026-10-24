@@ -631,14 +631,14 @@ static int concat(int x, int y, int th)
 static int construct(int x,int th)
 {
     int addr;
-    if (lp[th] >= LISTSIZE)
+    if (lp[th] >= LISTSIZE - 1)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("overflow SCBM list size"), NIL);
 
-    addr = lp[th];
     lp[th]++;
+    addr = lp[th];
     blist[addr][th].entity = x;
-    blist[addr][th].back = -1;
-    blist[addr][th].front = -1;
+    blist[addr][th].back = NIL;
+    blist[addr][th].front = NIL;
     return(addr);
 }
 
