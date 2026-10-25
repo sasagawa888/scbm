@@ -621,14 +621,14 @@ static void* proof_goto[OBJSIZE][THREADSIZE];
 int lp[THREADSIZE];  //list pointer
 int op[THREADSIZE];  //object pointer
 
-static int concat(int x, int y, int th)
+static int Sconc(int x, int y, int th)
 {
     blist[x][th].back = y;
     blist[y][th].front = x;
     return(y);
 }
 
-static int construct(int x,int th)
+static int Scons(int x,int th)
 {
     int addr;
     if (lp[th] >= LISTSIZE - 1)
@@ -642,18 +642,18 @@ static int construct(int x,int th)
     return(addr);
 }
 
-static int back(int x, int th)
+static int Sback(int x, int th)
 {
     return(blist[x][th].back);
 }
 
 
-static int front(int x, int th)
+static int Sfront(int x, int th)
 {
     return(blist[x][th].front);
 }
 
-static int makeobj(void* x, int th)
+static int Smakeobj(void* x, int th)
 {
     if (lp[th] >= LISTSIZE - 1)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("overflow SCBM object size"), NIL);

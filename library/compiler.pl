@@ -557,11 +557,13 @@ gen_pred_switch1.
 
 gen_arity_switch(P,[]).
 gen_arity_switch(P,[L|Ls]) :-
-    write('case '),write(L),write(': goto '),write(P),write('_'),write(L),write(';'),nl,
+    write('case '),write(L),write(': goto '),write(P),write('_'),write(L),write('entry;'),nl,
     gen_arity_switch(P,Ls).
 
 gen_SCBM_function2 :-
     type(P,A,nondet),
+    write(P),write('_'),write(A),write('entry:'),nl,
+    %ここで初期の証明列を生成する。
     write(P),write('_'),write(A),write(':'),nl,
     write('Jinc_proof(th);'),nl,
     write('switch(clause){'),nl,
