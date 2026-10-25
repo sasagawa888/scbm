@@ -708,7 +708,6 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_nondet_body_argument(Args,V,N),
     write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
     gen_nondet_body_label([P,A,M,N],D),write('join:'),nl,
-    write('clause = Sget_choice(th);'),nl,
     write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
