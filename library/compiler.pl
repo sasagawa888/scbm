@@ -499,7 +499,6 @@ gen_SCBM_function :-
     write('void *next;'),nl,
     write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number,varX_,varY_,varZ_,varA_'),
     gen_all_variable,write(';'),nl,
-    write('np[th] = 0; bp[th] = 0; back_stack[0][AC_SCBM][th] = Jget_ac(th);'),nl,
     gen_pred_switch,
     gen_SCBM_function1,
     gen_SCBM_function2,
@@ -565,7 +564,7 @@ gen_SCBM_function2 :-
     write(P),write('_'),write(A),write('entry:'),nl,
     write(P),write('_'),write(A),write(':'),nl,
     write('Jinc_proof(th);'),nl,
-    write(P),write('_'),write(A),write('bp = bp[th];'),nl,
+    write(P),write('_'),write(A),write('bp = 0;'),nl,
     write('switch(clause){'),nl,
     n_clause_count_with_arity(P,A,M),
     M1 is M+1,
@@ -606,35 +605,19 @@ gen_SCBM_function31(P,A,[C|Cs],N) :-
 
 gen_SCBM_function4 :-
     write('success:'),nl,
-    write('if(np[th] == 0){'),nl,
+    write('if(1){'),nl,
     write('if(Jprove_all(rest,Jget_sp(th),th) == YES) {Strap(th);return(YES);}'),nl,
-    write('next = back_goto[bp[th]][th];'),nl,
-    write('clause = Sget_choice(th);'),nl,
-    write('arglist = Sget_arg(th);'),nl,
-    write('np[th] = Sget_np(th);'),nl,
     write('goto *next;'),nl,
     write('}else{'),nl,
-    write('next = next_goto[np[th]][th];'),nl,
-    write('Spop_next(th);'),nl,
-    write('clause = Sget_choice(th);'),nl,
     write('goto *next;}'),nl.
 
 
 gen_SCBM_function5 :-
     write('allfail:'),nl,
-    write('bp[th] = Sget_bp(th);'),nl,
-    write('if(bp[th]==0) {Strap(th);return(NO);}'),nl,
-    write('next = back_goto[bp[th]][th];'),nl,
-    write('np[th] = Sget_np(th);'),nl,
-    write('clause = Sget_choice(th);'),nl,
-    write('arglist = Sget_arg(th);'),nl,
+    write('if(1) {return(NO);}'),nl,
     write('goto *next;'),nl,
     write('false:'),nl,
-    write('if(bp[th]==0) {return(NO);}'),nl,
-    write('next = back_goto[bp[th]][th];'),nl,
-    write('np[th] = Sget_np(th);'),nl,
-    write('clause = Sget_choice(th);'),nl,
-    write('arglist = Sget_arg(th);'),nl,
+    write('if(1) {return(NO);}'),nl,
     write('goto *next;'),nl.
    
 
@@ -767,7 +750,6 @@ gen_nondet_body_argument(Args,Vars,0) :-
     write('arglist = '),gen_a_argument(Args),write(';'),nl.
 
 gen_nondet_body_argument(Args,Vars,_) :-
-    gen_unpack_pointer(Vars,1),
     write('arglist = '),gen_a_argument(Args),write(';'),nl.
 
 
@@ -778,25 +760,6 @@ gen_pack_pointer([L|Ls],N) :-
     N1 is N+1,
     gen_pack_pointer(Ls,N1).
    
-
-gen_unpack_pointer([],_).
-gen_unpack_pointer([L|Ls],N) :-
-    write(L),write('= next_stack[np[th]+1]['),write(N),write('][th];'),nl,
-    N1 is N+1,
-    gen_unpack_pointer(Ls,N1).
-
-
-gen_unpack_back([],_) :-
-    write('Srelease(th);'),nl.
-gen_unpack_back([L|Ls],N) :-
-    write(L),write('= back_stack[bp[th]]['),write(N),write('][th];'),nl,
-    N1 is N+1,
-    gen_unpack_back(Ls,N1).
-
-nth_var(X,[X|_],1).
-nth_var(X,[_|Xs],N) :-
-    N is N1+1.
-
 
 
 %---------------det determinant predicate-------------------
