@@ -663,5 +663,30 @@ static int makeobj(void* x, int th)
     return(op[th]);
 }
 
-//-------------------------------------------
+
+
+static inline void Srelease(int th)
+{
+    Junbind(proof_obj[blist[lp[th]][th].entity][SP_SCBM][th], th);
+    Jset_ac(proof_obj[blist[lp[th]][th].entity][AC_SCBM][th] ,th);
+    Jset_wp(proof_obj[blist[lp[th]][th].entity][WP_SCBM][th] ,th);
+    
+  
+}
+
+static inline int Sget_choice(int th)
+{
+   
+	return(proof_obj[blist[lp[th]][th].entity][CHOICE_SCBM][th]);
+}
+
+
+static inline void Sinc_choice(int th)
+{
+    proof_obj[blist[lp[th]][th].entity][CHOICE_SCBM][th]++;
+}
+
+
+
+
 

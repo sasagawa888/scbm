@@ -605,7 +605,7 @@ gen_SCBM_function31(P,A,[C|Cs],N) :-
 gen_SCBM_function4 :-
     write('success:'),nl,
     write('if(1){'),nl,
-    write('if(Jprove_all(rest,Jget_sp(th),th) == YES) {Strap(th);return(YES);}'),nl,
+    write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
     write('goto *next;'),nl,
     write('}else{'),nl,
     write('goto *next;}'),nl.
