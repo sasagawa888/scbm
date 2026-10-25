@@ -617,6 +617,7 @@ typedef struct bidirectional {
 #define OBJSIZE 10000
 static bidirectional blist[LISTSIZE][THREADSIZE];
 static int proof_obj[OBJSIZE][SCBM_ELT_SIZE][THREADSIZE];
+static void* proof_goto[OBJSIZE][THREADSIZE];
 int lp[THREADSIZE];  //list pointer
 int op[THREADSIZE];  //object pointer
 
