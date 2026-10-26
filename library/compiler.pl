@@ -97,7 +97,7 @@ invoke_gcc(X) :-
     atom_concat(F,'.c ',Cfile),
     atom_concat(F,'.o ',Ofile),
     atom_concat(Ofile,Cfile,Files),
-    atom_concat('gcc -O3 -w -flto -shared -fPIC -I$HOME/scbm -o ',Files,Gen1),
+    atom_concat('gcc -O0 -w -flto -shared -fPIC -I$HOME/scbm -o ',Files,Gen1),
     (option(library,Opt1),atom_string(Opt,Opt1),atom_concat(Gen1,Opt,Gen) ; Gen = Gen1),
     shell(Gen),
     atom_concat('rm ',Cfile,Del),
@@ -110,7 +110,7 @@ invoke_gcc_not_remove(X) :-
     atom_concat(F,'.c ',Cfile),
     atom_concat(F,'.o ',Ofile),
     atom_concat(Ofile,Cfile,Files),
-    atom_concat('gcc -O3 -w -flto -shared -fPIC -I$HOME/scbm -o ',Files,Gen),
+    atom_concat('gcc -O0-w -flto -shared -fPIC -I$HOME/scbm -o ',Files,Gen),
     shell(Gen).
 
 
@@ -563,7 +563,7 @@ gen_arity_switch(P,[L|Ls]) :-
 gen_SCBM_function2 :-
     type(P,A,nondet),
     write(P),write('_'),write(A),write('entry:'),nl,
-    %ここで初期の証明列を生成する。
+    gen_nondet_obj(P,A),
     write(P),write('_'),write(A),write(':'),nl,
     write('Jinc_proof(th);'),nl,
     write('switch(clause){'),nl,
@@ -755,14 +755,10 @@ gen_pack_pointer([L|Ls],N) :-
     N1 is N+1,
     gen_pack_pointer(Ls,N1).
    
-gen_object([P,A,M,N]) :-
-    write('makeobj('),
-    write(P),write('_'),write(A),write('_'),write(M),write('_'),wrtei(N),
-    write(');'),nl.
-gen_object(Label) :-
-    write('makeobj('),
-    write(Label),
-    write(');'),nl.
+gen_nondet_obj(P,A) :-
+    write('pc[th] = Scons(Smake_nondet(&&'),
+    write(P),write('_'),write(A),
+    write(',th),th);'),nl.
 
 %---------------det determinant predicate-------------------
 gen_det_pred(P) :-

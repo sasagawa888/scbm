@@ -620,6 +620,7 @@ static int proof_obj[OBJSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static void* proof_goto[OBJSIZE][THREADSIZE];
 int lp[THREADSIZE];  //list pointer
 int op[THREADSIZE];  //object pointer
+int pc[THREADSIZE];  //proof counter
 
 static int Sconc(int x, int y, int th)
 {
@@ -653,7 +654,7 @@ static int Sfront(int x, int th)
     return(blist[x][th].front);
 }
 
-static int Smakeobj(void* x, int th)
+static int Smake_nondet(void* x, int th)
 {
     if (lp[th] >= LISTSIZE - 1)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("overflow SCBM object size"), NIL);
@@ -662,6 +663,18 @@ static int Smakeobj(void* x, int th)
     proof_obj[op[th]][LABEL_SCBM][th] = x;
     return(op[th]);
 }
+
+
+static int Smake_det(void* x, int th)
+{
+    if (lp[th] >= LISTSIZE - 1)
+	Jerrorcomp(RESOURCE_ERR, Jmakestr("overflow SCBM object size"), NIL);
+
+    op[th]++;
+    proof_obj[op[th]][LABEL_SCBM][th] = x;
+    return(op[th]);
+}
+
 
 
 
