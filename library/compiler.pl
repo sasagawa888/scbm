@@ -497,7 +497,7 @@ gen_head1([X|Xs],N) :-
 gen_SCBM_function :-
     write('static int user_scbm(int pred, int arity, int clause, int arglist, int rest, int th){'),nl,
     write('void *next;'),nl,
-    write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number,varX_,varY_,varZ_,varA_'),
+    write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number'),
     gen_all_variable,write(';'),nl,
     gen_pred_switch,
     write('loop:'),nl,
@@ -719,7 +719,9 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_nondet_body_argument(Args,V),
     n_findatom(Pred,builtin,Num),
     write('subr_number = '),write(Num),write(';'),nl,
-    write('goto builtin_call;'),nl,
+    write('if(Jcallsubr(subr_number,Jderef(arglist,th),NIL,th) == YES)'),nl,
+    write('goto success;'),nl,
+    write('else goto failse;'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
 % det tail
@@ -730,7 +732,9 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     n_findatom(Pred,builtin,Num),
     write('subr_number = Jmakecomp("'),write(Pred),write('");'),nl,
-    write('goto builtin_call;'),nl,
+    write('if(Jcallsubr(subr_number,Jderef(arglist,th),NIL,th) == YES)'),nl,
+    write('goto success;'),nl,
+    write('else goto failse;'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
 

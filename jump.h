@@ -621,6 +621,7 @@ static void* proof_goto[OBJSIZE][THREADSIZE];
 int lp[THREADSIZE];  //list pointer
 int op[THREADSIZE];  //object pointer
 int pc[THREADSIZE];  //proof counter
+int body[10][THREADSIZE] //temporarly address of a body
 
 static int Sconc(int x, int y, int th)
 {
