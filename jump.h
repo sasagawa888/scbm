@@ -661,6 +661,9 @@ static int Smake_nondet(void* x, int th)
 
     op[th]++;
     proof_obj[op[th]][LABEL_SCBM][th] = x;
+    proof_obj[op[th]][SP_SCBM][th] = Jget_sp(th);
+    proof_obj[op[th]][AC_SCBM][th] = Jget_ac(th);
+    proof_obj[op[th]][WP_SCBM][th] = Jget_wp(th);
     return(op[th]);
 }
 
