@@ -621,7 +621,7 @@ static void* proof_goto[OBJSIZE][THREADSIZE];
 int lp[THREADSIZE];  //list pointer
 int op[THREADSIZE];  //object pointer
 int pc[THREADSIZE];  //proof counter
-int body[10][THREADSIZE] //temporarly address of a body
+int body[10][THREADSIZE]; //temporarly address of a body
 
 static int Sconc(int x, int y, int th)
 {
@@ -650,24 +650,38 @@ static int Scons(int x,int th)
     return(addr);
 }
 
-static int Sback(int x, int th)
+static inline int Sback(int x, int th)
 {
     return(blist[x][th].back);
 }
 
 
-static int Sfront(int x, int th)
+static inline int Sfront(int x, int th)
 {
     return(blist[x][th].front);
 }
 
 
-static inline int Snull(int x, int th)
+static inline int Snull_back(int x, int th)
 {
     if(Sback(x,th) == NIL)
         return(1);
     else 
         return(0);
+}
+
+
+static inline int Snull_front(int x, int th)
+{
+    if(Sfront(x,th) == NIL)
+        return(1);
+    else 
+        return(0);
+}
+
+static int Sbacktrack(int x, int th)
+{
+    // under constructing
 }
 
 

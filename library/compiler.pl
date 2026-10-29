@@ -507,7 +507,6 @@ gen_SCBM_function :-
     gen_SCBM_function3,
     gen_SCBM_function4,
     gen_SCBM_function5,
-    gen_SCBM_function6,
     write('}'),nl.
 
 gen_all_variable :-
@@ -606,29 +605,21 @@ gen_SCBM_function31(P,A,[C|Cs],N) :-
 
 gen_SCBM_function4 :-
     write('success:'),nl,
-    write('if(1){'),nl,
+    write('if(Snull_back(pc[th],th)){'),nl,
     write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
-    write('goto *next;'),nl,
-    write('}else{'),nl,
-    write('goto *next;}'),nl.
+    write('pc[th] = Sbacktrack(pc[th],th);'),
+    write('if (pc[th] == NIL) return(NO);'),nl,
+    write('else goto loop;}'),nl,
+    write('else{pc[th]=Sback(pc[th],th);goto loop;}').
 
 
 gen_SCBM_function5 :-
     write('allfail:'),nl,
-    write('if(1) {return(NO);}'),nl,
-    write('goto *next;'),nl,
-    write('false:'),nl,
-    write('if(1) {return(NO);}'),nl,
-    write('goto *next;'),nl.
+    write('if(Snull_front(pc[th],th)) return(NO);'),nl,
+    write('pc[th] = Sbacktrack(pc[th],th);'),nl,
+    write('if(pc[th] == NIL) return(NO);'),nl,
+    write('else goto loop;'),nl.
    
-
-gen_SCBM_function6 :-
-    write('builtin_call:'),nl,
-    write('if(Jcallsubr(subr_number,Jderef(arglist,th),NIL,th) == YES)'),nl,
-    write('goto success;'),nl,
-    write('else goto false;'),nl.
-   
-
 
 
 %---------- each predicate ----------------
