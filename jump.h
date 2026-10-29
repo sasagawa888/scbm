@@ -580,30 +580,6 @@ static inline double Jget_flt(int x)
 }
 
 
-//------------ opengl ---------------
-static int displayfunc;
-static int mousefunc; 
-static int keyboardfunc;
-
-static void display_callback(void);
-static void display_callback()
-{
-    Jexec_all(displayfunc,Jget_sp(0),0);
-}
-
-static void keyboard_callback(void);
-static void keyboard_callback()
-{
-    Jexec_all(keyboardfunc,Jget_sp(0),0);
-}
-
-static void mouse_callback(void);
-static void mouse_callback()
-{
-    Jexec_all(mousefunc,Jget_sp(0),0);
-}
-
-
 //-------------SCBM--------------------------
 
 // for bidirectional list 
