@@ -610,7 +610,7 @@ gen_SCBM_function4 :-
     write('pc[th] = Sbacktrack(pc[th],th);'),
     write('if (pc[th] == NIL) return(NO);'),nl,
     write('else goto loop;}'),nl,
-    write('else{pc[th]=Sback(pc[th],th);goto loop;}').
+    write('else{pc[th]=Sback(pc[th],th);goto loop;}'),nl,nl.
 
 
 gen_SCBM_function5 :-
