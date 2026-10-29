@@ -625,8 +625,14 @@ int body[10][THREADSIZE] //temporarly address of a body
 
 static int Sconc(int x, int y, int th)
 {
-    blist[x][th].back = y;
-    blist[y][th].front = x;
+    if(x==NIL)
+        blist[y][th].front = x;
+    else if(y==NIL)
+        blist[x][th].back = y;
+    else{
+        blist[x][th].back = y;
+        blist[y][th].front = x;
+    }
     return(y);
 }
 
@@ -654,6 +660,16 @@ static int Sfront(int x, int th)
 {
     return(blist[x][th].front);
 }
+
+
+static inline int Snull(int x, int th)
+{
+    if(Sback(x,th) == NIL)
+        return(1);
+    else 
+        return(0);
+}
+
 
 static int Smake_nondet(void* x, int th)
 {
@@ -702,8 +718,6 @@ static inline void Sinc_choice(int th)
 {
     proof_obj[blist[lp[th]][th].entity][CHOICE_SCBM][th]++;
 }
-
-
 
 
 
