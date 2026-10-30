@@ -675,9 +675,7 @@ static int Sbacktrack(int x, int th)
 {
     int front,first;
 
-    return(x);
     while(!Sfirst(x,th)){
-    printf("%d ",x);
     if(Snondet(x,th))
         return(pc[th]);
     else 

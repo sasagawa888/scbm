@@ -501,7 +501,8 @@ gen_SCBM_function :-
     gen_all_variable,write(';'),nl,
     gen_pred_switch,
     write('loop:'),nl,
-    write('next = proof_goto[blist[lp[th]][th].entity][th];'),nl,
+    write('next = proof_goto[blist[pc[th]][th].entity][th];'),nl,
+    write('goto *next;'),nl,
     gen_SCBM_function1,
     gen_SCBM_function2,
     gen_SCBM_function3,
@@ -609,7 +610,7 @@ gen_SCBM_function4 :-
     write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
     write('pc[th] = Sbacktrack(pc[th],th);'),nl,
     write('if (pc[th] == NIL) return(NO);'),nl,
-    write('else {clause = Sget_choice(pc[th]); goto loop;}}'),nl,
+    write('else {clause = Sget_choice(th); goto loop;}}'),nl,
     write('else{pc[th]=Sback(pc[th],th);goto loop;}'),nl,nl.
 
 
