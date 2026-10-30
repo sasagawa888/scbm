@@ -591,6 +591,8 @@ typedef struct bidirectional {
 
 #define LISTSIZE 1000
 #define OBJSIZE 10000
+#define NONDET  1
+#define DET 2
 static bidirectional blist[LISTSIZE][THREADSIZE];
 static int proof_obj[OBJSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static void* proof_goto[OBJSIZE][THREADSIZE];
@@ -638,18 +640,32 @@ static inline int Sfront(int x, int th)
 }
 
 
-static inline int Snull_back(int x, int th)
+static inline int Sentity(int x, int th)
 {
-    if(Sback(x,th) == NIL)
+    return(blist[x][th].entity);
+}
+
+
+
+static inline int Sfirst(int x, int th)
+{
+    if(proof_obj[Sentity(x,th)][FIRST_SCBM][th] != NIL)
         return(1);
     else 
         return(0);
 }
 
 
-static inline int Snull_front(int x, int th)
+static inline int Sget_first(int x, int th)
 {
-    if(Sfront(x,th) == NIL)
+    return(proof_obj[Sentity(x,th)][FIRST_SCBM][th]);
+}
+
+
+
+static inline int Snondet(int x, int th)
+{
+    if(proof_obj[Sentity(x,th)][PROP_SCBM][th] == NONDET)
         return(1);
     else 
         return(0);
@@ -657,7 +673,20 @@ static inline int Snull_front(int x, int th)
 
 static int Sbacktrack(int x, int th)
 {
-    // under constructing
+    int front,first;
+
+    while(!Sfirst(x,th)){
+    if(Snondet(x,th))
+        return(pc[th]);
+    else 
+        pc[th] = Sfront(x,th);
+    }
+
+    front = Sfront(x,th);
+    first = Sget_first(x,th);
+    if(first == NIL) return(NIL);
+    Sconc(front,first,th);
+    return(first);
 }
 
 
@@ -668,6 +697,7 @@ static int Smake_nondet(void* x, int th)
 
     op[th]++;
     proof_obj[op[th]][LABEL_SCBM][th] = x;
+    proof_obj[op[th]][PROP_SCBM][th] = NONDET;
     proof_obj[op[th]][SP_SCBM][th] = Jget_sp(th);
     proof_obj[op[th]][AC_SCBM][th] = Jget_ac(th);
     proof_obj[op[th]][WP_SCBM][th] = Jget_wp(th);
@@ -682,6 +712,7 @@ static int Smake_det(void* x, int th)
 
     op[th]++;
     proof_obj[op[th]][LABEL_SCBM][th] = x;
+    proof_obj[op[th]][PROP_SCBM][th] = DET;
     return(op[th]);
 }
 

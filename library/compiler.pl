@@ -605,18 +605,18 @@ gen_SCBM_function31(P,A,[C|Cs],N) :-
 
 gen_SCBM_function4 :-
     write('success:'),nl,
-    write('if(Snull_back(pc[th],th)){'),nl,
+    write('if(Sback(pc[th],th) == NIL){'),nl,
     write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
-    write('pc[th] = Sbacktrack(pc[th],th);'),
+    write('pc[th] = Sbacktrack(pc[th],th);'),nl,
     write('if (pc[th] == NIL) return(NO);'),nl,
-    write('else goto loop;}'),nl,
+    write('else {clause = Sget_choice(pc[th]); goto loop;}}'),nl,
     write('else{pc[th]=Sback(pc[th],th);goto loop;}'),nl,nl.
 
 
 gen_SCBM_function5 :-
     write('allfail:'),nl,
-    write('if(Snull_front(pc[th],th)) return(NO);'),nl,
-    write('pc[th] = Sbacktrack(pc[th],th);'),nl,
+    write('if(Sfront(pc[th],th) == NIL) return(NO);'),nl,
+    write('pc[th] = Sbacktrack(Sfront(pc[th],th),th);'),nl,
     write('if(pc[th] == NIL) return(NO);'),nl,
     write('else goto loop;'),nl.
    
