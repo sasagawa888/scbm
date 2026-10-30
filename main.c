@@ -5,9 +5,7 @@ written by kenichi sasagawa 2016/8~
 #include <string.h>
 #include <math.h>
 #include <signal.h>
-#ifndef __APPLE__
 #include <stdio_ext.h>
-#endif
 #include <stdlib.h>
 #include <getopt.h>
 #include <float.h>
