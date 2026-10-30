@@ -1,4 +1,4 @@
-/* M-Prolog
+/* SCBM-Prolog
 written by kenichi sasagawa 2016/8~
 */
 
