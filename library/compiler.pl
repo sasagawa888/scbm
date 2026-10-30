@@ -607,7 +607,7 @@ gen_SCBM_function4 :-
     write('success:'),nl,
     write('if(Sback(pc[th],th) == NIL){'),nl,
     write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
-    write('printf("%d ",pc[th]);'),nl,
+    write('pc[th] = Sbacktrack(pc[th],th);'),nl,
     write('if (pc[th] == NIL) return(NO);'),nl,
     write('else {clause = Sget_choice(pc[th]); goto loop;}}'),nl,
     write('else{pc[th]=Sback(pc[th],th);goto loop;}'),nl,nl.

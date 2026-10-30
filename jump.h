@@ -723,23 +723,20 @@ static int Smake_det(void* x, int th)
 
 static inline void Srelease(int th)
 {
-    Junbind(proof_obj[blist[lp[th]][th].entity][SP_SCBM][th], th);
-    Jset_ac(proof_obj[blist[lp[th]][th].entity][AC_SCBM][th] ,th);
-    Jset_wp(proof_obj[blist[lp[th]][th].entity][WP_SCBM][th] ,th);
+    Junbind(proof_obj[blist[pc[th]][th].entity][SP_SCBM][th], th);
+    Jset_ac(proof_obj[blist[pc[th]][th].entity][AC_SCBM][th] ,th);
+    Jset_wp(proof_obj[blist[pc[th]][th].entity][WP_SCBM][th] ,th);
     
-  
 }
 
 static inline int Sget_choice(int th)
 {
-     printf("get choice %d", pc[th]);
 	return(proof_obj[blist[pc[th]][th].entity][CHOICE_SCBM][th]);
 }
 
 
 static inline void Sinc_choice(int th)
 {
-    printf("inc choice %d", pc[th]);
     proof_obj[blist[pc[th]][th].entity][CHOICE_SCBM][th]++;
 }
 
