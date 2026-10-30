@@ -2,7 +2,7 @@
 #include <math.h>
 #include <float.h>
 #include <string.h>
-#include "mpl.h"
+#include "scbm.h"
 
 void
 defoperator(char *name, int (*func)(int, int, int), int weight, int spec,

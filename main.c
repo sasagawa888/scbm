@@ -17,7 +17,7 @@ written by kenichi sasagawa 2016/8~
 #include <netdb.h>
 #include <pthread.h>
 #include <unistd.h>
-#include "mpl.h"
+#include "scbm.h"
 
 //global vers
 int proof[THREADSIZE];
