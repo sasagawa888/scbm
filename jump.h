@@ -675,7 +675,9 @@ static int Sbacktrack(int x, int th)
 {
     int front,first;
 
+    return(x);
     while(!Sfirst(x,th)){
+    printf("%d ",x);
     if(Snondet(x,th))
         return(pc[th]);
     else 
@@ -730,14 +732,15 @@ static inline void Srelease(int th)
 
 static inline int Sget_choice(int th)
 {
-   
-	return(proof_obj[blist[lp[th]][th].entity][CHOICE_SCBM][th]);
+     printf("get choice %d", pc[th]);
+	return(proof_obj[blist[pc[th]][th].entity][CHOICE_SCBM][th]);
 }
 
 
 static inline void Sinc_choice(int th)
 {
-    proof_obj[blist[lp[th]][th].entity][CHOICE_SCBM][th]++;
+    printf("inc choice %d", pc[th]);
+    proof_obj[blist[pc[th]][th].entity][CHOICE_SCBM][th]++;
 }
 
 
