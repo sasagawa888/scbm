@@ -710,7 +710,7 @@ static int Smake_nondet(void* x, int n, int th)
 }
 
 
-static int Smake_det(void* x, int th)
+static int Smake_det(void* x, int n, int th)
 {
     if (lp[th] >= LISTSIZE - 1)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("overflow SCBM object size"), NIL);
@@ -718,6 +718,11 @@ static int Smake_det(void* x, int th)
     op[th]++;
     proof_obj[op[th]][LABEL_SCBM][th] = x;
     proof_obj[op[th]][PROP_SCBM][th] = DET;
+    if(x == 0)
+        proof_obj[op[th]][FIRST_SCBM][th] = pc[th];
+    else 
+        proof_obj[op[th]][FIRST_SCBM][th] = NIL;
+
     return(op[th]);
 }
 

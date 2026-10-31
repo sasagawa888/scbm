@@ -698,19 +698,19 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     X =.. [Pred|Args],
     functor(X,_,Arity),
     type(Pred,Arity,nondet),
-    gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_nondet_body_argument(Args,V),
-    write('goto '),gen_nondet_body_label([P,A,M,N],D),write('join;'),nl,
-    gen_nondet_body_label([P,A,M,N],D),write('join:'),nl,
-    write('goto '),write(Pred),write('_'),write(Arity),write(';'),nl,
+    gen_det_obj(P,A,M,N),
+    write('goto '),gen_nondet_body_label([P,A,M,N]),write('join;'),nl,
+    gen_nondet_body_label([P,A,M,N]),write(':'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
 % builtin
 gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     n_property(X,builtin),
     X =.. [Pred|Args],
-    gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
     gen_nondet_body_argument(Args,V),
+    gen_det_obj(P,A,M,N),
+    gen_nondet_body_label([P,A,M,N]),write(':'),nl,
     n_findatom(Pred,builtin,Num),
     write('subr_number = '),write(Num),write(';'),nl,
     write('if(Jcallsubr(subr_number,Jderef(arglist,th),NIL,th) == YES)'),nl,
@@ -723,7 +723,9 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     functor(X,Pred,Arity),
     (type(Pred,Arity,det);type(Pred,Arity,tail)),
     X =.. [Pred|Args],
-    gen_nondet_body_label([P,A,M,N],D),write(':'),nl,
+    gen_nondet_body_argument(Args,V),
+    gen_det_obj(P,A,M,N),
+    gen_nondet_body_label([P,A,M,N]),write(':'),nl,
     n_findatom(Pred,builtin,Num),
     write('subr_number = Jmakecomp("'),write(Pred),write('");'),nl,
     write('if(Jcallsubr(subr_number,Jderef(arglist,th),NIL,th) == YES)'),nl,
@@ -738,10 +740,13 @@ gen_nondet_body1(X,A,M,N,H,P,V,D) :-
 gen_nondet_clause_label([P,A,M]) :-
     write(P),write('_'),write(A),write('_'),write(M).
 
-gen_nondet_body_label([P,A,M,N],0) :-
+gen_nondet_body_label([P,A,M,N]) :-
     write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N).
-gen_nondet_body_label([P,A,M,N],D) :-
-    write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N),write('_'),write(D).
+
+gen_label([X]) :- write(X).
+gen_label([X|Xs]) :-
+    write(X),write('_'),
+    gen_label(Xs).
 
 gen_nondet_body_argument(Args,Vars) :-
     write('arglist = '),gen_a_argument(Args),write(';'),nl.
@@ -761,6 +766,13 @@ gen_nondet_init(P,A) :-
 
 gen_nondet_obj(P,A,M,N) :-
     write('body['),write(N),write('] = Smake_nondet(&&'),
+    write(P),write('_'),write(A),write('_'),write(M),
+    write(','),write(N),write('th);'),nl,
+    write('Ssave_arg(arglist,th);'),nl.
+
+
+gen_det_obj(P,A,M,N) :-
+    write('body['),write(N),write('] = Smake_det(&&'),
     write(P),write('_'),write(A),write('_'),write(M),
     write(','),write(N),write('th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
