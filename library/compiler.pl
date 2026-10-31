@@ -610,16 +610,18 @@ gen_SCBM_function4 :-
     write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
     write('pc[th] = Sbacktrack(pc[th],th);'),nl,
     write('if (pc[th] == NIL) return(NO);'),nl,
-    write('else {clause = Sget_choice(th); goto loop;}}'),nl,
+    write('else {clause = Sget_choice(th); arglist = Sget_arg(th); goto loop;}}'),nl,
     write('else{pc[th]=Sback(pc[th],th);goto loop;}'),nl,nl.
 
 
 gen_SCBM_function5 :-
     write('allfail:'),nl,
+    write('Sreset_choice(th);'),nl,
+    write('failse:'),nl,
     write('if(Sfront(pc[th],th) == NIL) return(NO);'),nl,
     write('pc[th] = Sbacktrack(Sfront(pc[th],th),th);'),nl,
     write('if(pc[th] == NIL) return(NO);'),nl,
-    write('else {clause = Sget_choice(th);goto loop;}'),nl.
+    write('else {clause = Sget_choice(th); arglist = Sget_arg(th); goto loop;}'),nl.
    
 
 
@@ -754,7 +756,8 @@ gen_pack_pointer([L|Ls],N) :-
 gen_nondet_obj(P,A) :-
     write('pc[th] = Scons(Smake_nondet(&&'),
     write(P),write('_'),write(A),
-    write(',th),th);'),nl.
+    write(',th),th);'),nl,
+    write('Ssave_arg(arglist,th);'),nl.
 
 %---------------det determinant predicate-------------------
 gen_det_pred(P) :-

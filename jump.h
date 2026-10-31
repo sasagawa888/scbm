@@ -739,6 +739,12 @@ static inline void Sinc_choice(int th)
 }
 
 
+static inline void Sreset_choice(int th)
+{
+    proof_obj[blist[pc[th]][th].entity][CHOICE_SCBM][th] = 0;
+}
+
+
 static inline void Ssave_arg(int x, int th)
 {
     proof_obj[op[th]][ARGLIST_SCBM][th] = x;
