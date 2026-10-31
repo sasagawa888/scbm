@@ -739,4 +739,18 @@ static inline void Sinc_choice(int th)
 }
 
 
+static inline void Ssave_arg(int x, int th)
+{
+    proof_obj[op[th]][ARGLIST_SCBM][th] = x;
+}
+
+
+static inline int Sget_arg(int th)
+{
+	return(proof_obj[blist[pc[th]][th].entity][ARGLIST_SCBM][th]);
+}
+
+
+
+
 

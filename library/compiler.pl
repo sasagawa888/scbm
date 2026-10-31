@@ -619,7 +619,7 @@ gen_SCBM_function5 :-
     write('if(Sfront(pc[th],th) == NIL) return(NO);'),nl,
     write('pc[th] = Sbacktrack(Sfront(pc[th],th),th);'),nl,
     write('if(pc[th] == NIL) return(NO);'),nl,
-    write('else goto loop;'),nl.
+    write('else {clause = Sget_choice(th);goto loop;}'),nl.
    
 
 
