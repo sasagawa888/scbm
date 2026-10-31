@@ -563,7 +563,7 @@ gen_arity_switch(P,[L|Ls]) :-
 gen_SCBM_function2 :-
     type(P,A,nondet),
     write(P),write('_'),write(A),write('entry:'),nl,
-    gen_nondet_obj(P,A),
+    gen_nondet_init(P,A),
     write(P),write('_'),write(A),write(':'),nl,
     write('Jinc_proof(th);'),nl,
     write('switch(clause){'),nl,
@@ -753,11 +753,20 @@ gen_pack_pointer([L|Ls],N) :-
     N1 is N+1,
     gen_pack_pointer(Ls,N1).
    
-gen_nondet_obj(P,A) :-
+gen_nondet_init(P,A) :-
     write('pc[th] = Scons(Smake_nondet(&&'),
     write(P),write('_'),write(A),
-    write(',th),th);'),nl,
+    write(',-1,th),th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
+
+gen_nondet_obj(P,A,M,N) :-
+    write('body['),write(N),write('] = Smake_nondet(&&'),
+    write(P),write('_'),write(A),write('_'),write(M),
+    write(','),write(N),write('th);'),nl,
+    write('Ssave_arg(arglist,th);'),nl.
+
+
+
 
 %---------------det determinant predicate-------------------
 gen_det_pred(P) :-

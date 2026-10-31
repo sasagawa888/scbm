@@ -690,7 +690,7 @@ static int Sbacktrack(int x, int th)
 }
 
 
-static int Smake_nondet(void* x, int th)
+static int Smake_nondet(void* x, int n, int th)
 {
     if (lp[th] >= LISTSIZE - 1)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("overflow SCBM object size"), NIL);
@@ -701,6 +701,11 @@ static int Smake_nondet(void* x, int th)
     proof_obj[op[th]][SP_SCBM][th] = Jget_sp(th);
     proof_obj[op[th]][AC_SCBM][th] = Jget_ac(th);
     proof_obj[op[th]][WP_SCBM][th] = Jget_wp(th);
+    if(x == 0)
+        proof_obj[op[th]][FIRST_SCBM][th] = pc[th];
+    else 
+        proof_obj[op[th]][FIRST_SCBM][th] = NIL;
+
     return(op[th]);
 }
 
