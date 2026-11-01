@@ -719,6 +719,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_label([P,A,M,N]),
     gen_unpack_pointer(V,0),
     write('clause = Sget_choice(th);'),nl,
+    write('arglist = Sget_arg(th);'),nl,
     write('goto '),gen_goto([P,A]),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
