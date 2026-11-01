@@ -589,7 +589,7 @@ typedef struct bidirectional {
     int entity;
 } bidirectional;
 
-#define LISTSIZE 1000
+#define LISTSIZE 10000
 #define OBJSIZE 10000
 #define NONDET  1
 #define DET 2
@@ -599,7 +599,7 @@ static void* proof_goto[OBJSIZE][THREADSIZE];
 int lp[THREADSIZE];  //list pointer
 int op[THREADSIZE];  //object pointer
 int pc[THREADSIZE];  //proof counter
-int body[10][THREADSIZE]; //temporarly address of a body
+
 
 static int Sconc(int x, int y, int th)
 {

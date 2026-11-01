@@ -499,6 +499,7 @@ gen_SCBM_function :-
     write('void *next;'),nl,
     write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number,front,back,i'),
     gen_all_variable,write(';'),nl,
+    write('int body[10][THREADSIZE];'),nl,
     gen_pred_switch,
     write('loop:'),nl,
     write('next = proof_goto[blist[pc[th]][th].entity][th];'),nl,
@@ -715,7 +716,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_label([P,A,M,N]),
     gen_unpack_pointer(V,0),
     write('clause = Sget_choice(th);'),nl,
-    write('goto '),gen_goto([P,A,M]),nl,
+    write('goto '),gen_goto([P,A]),nl,
     N1 is N+1,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
@@ -781,7 +782,7 @@ gen_pack_pointer([L|Ls],N) :-
 
 gen_unpack_pointer([],_).
 gen_unpack_pointer([L|Ls],N) :-
-    write(L),write('= proof_obj[pc[th]]['),write(N),write('][th];'),nl,
+    write(L),write('= proof_obj[Sentity(pc[th],th)]['),write(N),write('][th];'),nl,
     N1 is N+1,
     gen_unpack_pointer(Ls,N1).
 

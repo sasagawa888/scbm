@@ -46,6 +46,7 @@ int body,th; th=0;
 static int user_scbm(int pred, int arity, int clause, int arglist, int rest, int th){
 void *next;
 int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number,front,back,i,varX;
+int body[10][THREADSIZE];
 switch(pred){
 case 0: goto color;
 case 1: goto likes;
@@ -171,9 +172,9 @@ Ssave_arg(arglist,th);
 proof_obj[op[th]][0][th] = varX;
 goto likes_2_4_join;
 likes_2_4_0:
-varX= proof_obj[pc[th]][0][th];
+varX= proof_obj[Sentity(pc[th],th)][0][th];
 clause = Sget_choice(th);
-goto likes_2_4;
+goto likes_2;
 
 likes_2_4_join:
 front = Sfront(pc[th],th);
@@ -196,9 +197,9 @@ Ssave_arg(arglist,th);
 proof_obj[op[th]][0][th] = varX;
 goto likes_2_5_join;
 likes_2_5_0:
-varX= proof_obj[pc[th]][0][th];
+varX= proof_obj[Sentity(pc[th],th)][0][th];
 clause = Sget_choice(th);
-goto likes_2_5;
+goto likes_2;
 
 arglist = Jwlistcons(varX,Jwlistcons(Jmakeconst("kim"),NIL,th),th);
 body[1][th] = Smake_nondet(&&likes_2_5,1,th);
@@ -206,9 +207,9 @@ Ssave_arg(arglist,th);
 proof_obj[op[th]][0][th] = varX;
 goto likes_2_5_join;
 likes_2_5_1:
-varX= proof_obj[pc[th]][0][th];
+varX= proof_obj[Sentity(pc[th],th)][0][th];
 clause = Sget_choice(th);
-goto likes_2_5;
+goto likes_2;
 
 likes_2_5_join:
 front = Sfront(pc[th],th);
