@@ -773,6 +773,30 @@ static inline int Sget_arg(int th)
 }
 
 
+static void Sdump(int th)
+{
+    int pt,entity;
 
+    printf("pc = %d\n", pc[th]);
+
+    pt = 1;
+    while(pt != NIL){
+        entity = blist[pt][th].entity;
+        printf("label = %p \n", proof_goto[entity]);
+        printf("choice = %d \n", proof_obj[entity][CHOICE_SCBM][th]);
+        printf("sp = %d \n", proof_obj[entity][SP_SCBM][th]);
+        printf("ac = %d \n", proof_obj[entity][AC_SCBM][th]);
+        printf("wp = %d \n", proof_obj[entity][WP_SCBM][th]);
+        printf("first = %d \n", proof_obj[entity][FIRST_SCBM][th]);
+        printf("arglist = ");
+        Jprint(proof_obj[entity][ARGLIST_SCBM][th]);
+        printf("pt = %d entity = %d\n", pt, entity);
+        printf("back = %d front = %d\n",Sback(pt,th), Sfront(pt,th));
+        printf("current = %s\n", pt == pc[th] ? "YES" : "NO");
+        printf("\n-----------------\n");
+
+        pt = Sback(pt,th);
+    }
+}
 
 
