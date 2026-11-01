@@ -737,8 +737,6 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
 gen_nondet_body1(X,A,M,N,H,P,V,D) :-
     gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D).
 
-gen_nondet_clause_label([P,A,M]) :-
-    write(P),write('_'),write(A),write('_'),write(M).
 
 gen_nondet_body_label([P,A,M,N]) :-
     write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N).
@@ -747,6 +745,11 @@ gen_label([X]) :- write(X).
 gen_label([X|Xs]) :-
     write(X),write('_'),
     gen_label(Xs).
+
+gen_goto([X]) :- write(X),write(';'),nl.
+gen_goto([X|Xs]) :-
+    write(X),write('_'),
+    gen_goto(Xs).
 
 gen_nondet_body_argument(Args,Vars) :-
     write('arglist = '),gen_a_argument(Args),write(';'),nl.
