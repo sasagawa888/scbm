@@ -627,6 +627,9 @@ static int Scons(int x,int y,int th)
     blist[addr][th].entity = x;
     blist[addr][th].back = y;
     blist[addr][th].front = NIL;
+    if(y != NIL)
+        blist[y][th].front = addr;
+
     return(addr);
 }
 
