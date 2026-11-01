@@ -699,7 +699,7 @@ gen_nondet_body1(end_of_body,A,M,N,H,P,V,D) :-
     write('back = Sback(pc[th],th);'),nl,
     N1 is N-1,
     write('for(i='),write(N1),write(';i>=0;i--)'),
-    write('back = Scons(body[i][th],th);'),nl,
+    write('back = Scons(body[i][th],back,th);'),nl,
     write('Sconc(front,back,th);'),nl,
     write('goto loop;'),nl.
 
@@ -790,19 +790,19 @@ gen_unpack_pointer([L|Ls],N) :-
 gen_nondet_init(P,A) :-
     write('pc[th] = Scons(Smake_nondet(&&'),
     write(P),write('_'),write(A),
-    write(',-1,th),th);'),nl,
+    write(',-1,th),NIL,th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
 
 gen_nondet_obj(P,A,M,N) :-
     write('body['),write(N),write('][th] = Smake_nondet(&&'),
-    write(P),write('_'),write(A),write('_'),write(M),
+    write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N),
     write(','),write(N),write(',th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
 
 
 gen_det_obj(P,A,M,N) :-
     write('body['),write(N),write('][th] = Smake_det(&&'),
-    write(P),write('_'),write(A),write('_'),write(M),
+    write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N),
     write(','),write(N),write('th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
 

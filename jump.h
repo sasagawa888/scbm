@@ -603,7 +603,9 @@ int pc[THREADSIZE];  //proof counter
 
 static int Sconc(int x, int y, int th)
 {
-    if(x==NIL)
+    if(x == NIL && y == NIL)
+        return(NIL);
+    else if(x==NIL)
         blist[y][th].front = x;
     else if(y==NIL)
         blist[x][th].back = y;
@@ -614,7 +616,7 @@ static int Sconc(int x, int y, int th)
     return(y);
 }
 
-static int Scons(int x,int th)
+static int Scons(int x,int y,int th)
 {
     int addr;
     if (lp[th] >= LISTSIZE - 1)
@@ -623,7 +625,7 @@ static int Scons(int x,int th)
     lp[th]++;
     addr = lp[th];
     blist[addr][th].entity = x;
-    blist[addr][th].back = NIL;
+    blist[addr][th].back = y;
     blist[addr][th].front = NIL;
     return(addr);
 }
@@ -675,16 +677,16 @@ static int Sbacktrack(int x, int th)
 {
     int front,first;
 
-    while(!Sfirst(x,th)){
+    while(x != NIL && !Sfirst(x,th)){
     if(Snondet(x,th))
-        return(pc[th]);
+        return(x);
     else 
-        pc[th] = Sfront(x,th);
+        x = Sfront(x,th);
     }
+    if(x == NIL) return(NIL);
 
     front = Sfront(x,th);
     first = Sget_first(x,th);
-    if(first == NIL) return(NIL);
     Sconc(front,first,th);
     return(first);
 }
@@ -692,16 +694,17 @@ static int Sbacktrack(int x, int th)
 
 static int Smake_nondet(void* x, int n, int th)
 {
-    if (lp[th] >= LISTSIZE - 1)
+    if (op[th] >= OBJSIZE - 1)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("overflow SCBM object size"), NIL);
 
     op[th]++;
-    proof_obj[op[th]][LABEL_SCBM][th] = x;
+    proof_goto[op[th]][th] = x;
+    proof_obj[op[th]][CHOICE_SCBM][th] = 0;
     proof_obj[op[th]][PROP_SCBM][th] = NONDET;
     proof_obj[op[th]][SP_SCBM][th] = Jget_sp(th);
     proof_obj[op[th]][AC_SCBM][th] = Jget_ac(th);
     proof_obj[op[th]][WP_SCBM][th] = Jget_wp(th);
-    if(x == 0)
+    if(n == 0)
         proof_obj[op[th]][FIRST_SCBM][th] = pc[th];
     else 
         proof_obj[op[th]][FIRST_SCBM][th] = NIL;
@@ -712,13 +715,13 @@ static int Smake_nondet(void* x, int n, int th)
 
 static int Smake_det(void* x, int n, int th)
 {
-    if (lp[th] >= LISTSIZE - 1)
+    if (op[th] >= OBJSIZE - 1)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("overflow SCBM object size"), NIL);
 
     op[th]++;
-    proof_obj[op[th]][LABEL_SCBM][th] = x;
+    proof_goto[op[th]][th] = x;
     proof_obj[op[th]][PROP_SCBM][th] = DET;
-    if(x == 0)
+    if(n == 0)
         proof_obj[op[th]][FIRST_SCBM][th] = pc[th];
     else 
         proof_obj[op[th]][FIRST_SCBM][th] = NIL;
