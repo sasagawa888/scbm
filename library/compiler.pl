@@ -609,10 +609,11 @@ gen_SCBM_function31(P,A,[C|Cs],N) :-
 
 gen_SCBM_function4 :-
     write('success:'),nl,
-    write('printf("success ");Sdump(th);'),
+    %write('printf("success ");Sdump(th);'),
     write('if(Sback(pc[th],th) == NIL){'),nl,
     write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
-    write('pc[th] = Sbacktrack(pc[th],th);'),nl,
+    write('pc[th] = Sbacktrack1(pc[th],th);'),nl,
+    write('printf("backtrack ");Sdump(th);'),
     write('if (pc[th] == NIL) return(NO);'),nl,
     write('else goto loop;}'),nl,
     write('else{pc[th]=Sback(pc[th],th);goto loop;}'),nl,nl.
@@ -620,11 +621,11 @@ gen_SCBM_function4 :-
 
 gen_SCBM_function5 :-
     write('allfail:'),nl,
-    write('printf("allfail ");Sdump(th);'),
+    %write('printf("allfail ");Sdump(th);'),
     write('Sreset_choice(th);'),nl,
     write('failse:'),nl,
     write('if(Sfront(pc[th],th) == NIL) return(NO);'),nl,
-    write('pc[th] = Sbacktrack(Sfront(pc[th],th),th);'),nl,
+    write('pc[th] = Sbacktrack2(Sfront(pc[th],th),th);'),nl,
     write('if(pc[th] == NIL) return(NO);'),nl,
     write('else goto loop;'),nl.
    
@@ -704,6 +705,7 @@ gen_nondet_body1(end_of_body,A,M,N,H,P,V,D) :-
     write('back = Scons(body[i][th],back,th);'),nl,
     write('Sconc(front,back,th);'),nl,
     write('pc[th] = back;'),nl,
+    %write('printf("generate ");Sdump(th);'),
     write('goto loop;'),nl.
 
 % nondet predicate

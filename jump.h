@@ -676,7 +676,24 @@ static inline int Snondet(int x, int th)
         return(0);
 }
 
-static int Sbacktrack(int x, int th)
+//for force backtrack when success
+static int Sbacktrack1(int x, int th)
+{
+    int front,first;
+
+    while(x != NIL){
+    if(Snondet(x,th))
+        return(x);
+    else 
+        x = Sfront(x,th);
+    }
+
+    return(x);
+}
+
+
+//for allfail
+static int Sbacktrack2(int x, int th)
 {
     int front,first;
 
