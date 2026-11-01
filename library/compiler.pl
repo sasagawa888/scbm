@@ -694,13 +694,14 @@ gen_nondet_body(X,A,M,H,P,V) :-
     gen_nondet_body1(X,A,M,0,H,P,V,0).
 
 gen_nondet_body1(end_of_body,A,M,N,H,P,V,D) :-
-    gen_label([P,A,M,join]),
+    gen_label([P,A,M,N,join]),
     write('front = Sfront(pc[th],th);'),nl,
     write('back = Sback(pc[th],th);'),nl,
     N1 is N-1,
     write('for(i='),write(N1),write(';i>=0;i--)'),
     write('back = Scons(body[i][th],back,th);'),nl,
     write('Sconc(front,back,th);'),nl,
+    write('pc[th] = back;'),nl,
     write('goto loop;'),nl.
 
 % nondet predicate
@@ -709,15 +710,16 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     X =.. [Pred|Args],
     functor(X,_,Arity),
     type(Pred,Arity,nondet),
+    gen_label([P,A,M,N,join]),
     gen_nondet_body_argument(Args,V),
     gen_nondet_obj(P,A,M,N),
     gen_pack_pointer(V,0),
-    write('goto '),gen_goto([P,A,M,join]),
+    N1 is N+1,
+    write('goto '),gen_goto([P,A,M,N1,join]),
     gen_label([P,A,M,N]),
     gen_unpack_pointer(V,0),
     write('clause = Sget_choice(th);'),nl,
     write('goto '),gen_goto([P,A]),nl,
-    N1 is N+1,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
 % builtin
