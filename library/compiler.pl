@@ -690,7 +690,13 @@ recursive_body(X,H) :-
 gen_nondet_body(X,A,M,H,P,V) :-
     gen_nondet_body1(X,A,M,0,H,P,V,0).
 
-gen_nondet_body1(end_of_body,A,M,N,H,P,V,D).
+gen_nondet_body1(end_of_body,A,M,N,H,P,V,D) :-
+    write('front = Sfront(pc[th]);'),nl,
+    write('back = Sback(pc[th])'),nl,
+    N1 is N-1,
+    write('for(i='),write(N1),write(';i>=0;i--)'),
+    write('back = Scons(body[i][th],back,th);'),nl,
+    write('Sconc(front,back,th);'),nl.
 
 % nondet predicate
 gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
@@ -699,9 +705,13 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     functor(X,_,Arity),
     type(Pred,Arity,nondet),
     gen_nondet_body_argument(Args,V),
-    gen_det_obj(P,A,M,N),
-    write('goto '),gen_nondet_body_label([P,A,M,N]),write('join;'),nl,
-    gen_nondet_body_label([P,A,M,N]),write(':'),nl,
+    gen_nondet_obj(P,A,M,N),
+    gen_pack_pointer(V,0),
+    write('goto '),gen_goto([P,A,M,join]),
+    gen_label([P,A,M,N]),
+    gen_unpack_pointer(V,0),
+    write('clause = Sget_choice(th);'),nl,
+    write('goto '),gen_label([P,A,M]),
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
 % builtin
@@ -710,7 +720,9 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     X =.. [Pred|Args],
     gen_nondet_body_argument(Args,V),
     gen_det_obj(P,A,M,N),
-    gen_nondet_body_label([P,A,M,N]),write(':'),nl,
+    gen_pack_pointer(V,0),
+    gen_label([P,A,M,N]),
+    gen_unpack_pointer(V,0),
     n_findatom(Pred,builtin,Num),
     write('subr_number = '),write(Num),write(';'),nl,
     write('if(Jcallsubr(subr_number,Jderef(arglist,th),NIL,th) == YES)'),nl,
@@ -725,7 +737,9 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     X =.. [Pred|Args],
     gen_nondet_body_argument(Args,V),
     gen_det_obj(P,A,M,N),
-    gen_nondet_body_label([P,A,M,N]),write(':'),nl,
+    gen_pack_pointer(V,0),
+    gen_label([P,A,M,N]),
+    gen_unpack_pointer(V,0),
     n_findatom(Pred,builtin,Num),
     write('subr_number = Jmakecomp("'),write(Pred),write('");'),nl,
     write('if(Jcallsubr(subr_number,Jderef(arglist,th),NIL,th) == YES)'),nl,
@@ -737,11 +751,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
 gen_nondet_body1(X,A,M,N,H,P,V,D) :-
     gen_nondet_body1((X,end_of_body),A,M,N,H,P,V,D).
 
-
-gen_nondet_body_label([P,A,M,N]) :-
-    write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N).
-
-gen_label([X]) :- write(X).
+gen_label([X]) :- write(X),write(':'),nl.
 gen_label([X|Xs]) :-
     write(X),write('_'),
     gen_label(Xs).
@@ -760,6 +770,14 @@ gen_pack_pointer([L|Ls],N) :-
     write('proof_obj[op[th]]['),write(N),write('][th] = '),write(L),write(';'),nl,
     N1 is N+1,
     gen_pack_pointer(Ls,N1).
+
+
+gen_unpack_pointer([],_).
+gen_unpack_pointer([L|Ls],N) :-
+    write(L),write('= proof_obj[pc[th]]['),write(N),write('][th];'),nl,
+    N1 is N+1,
+    gen_unpack_pointer(Ls,N1).
+
    
 gen_nondet_init(P,A) :-
     write('pc[th] = Scons(Smake_nondet(&&'),
@@ -768,14 +786,14 @@ gen_nondet_init(P,A) :-
     write('Ssave_arg(arglist,th);'),nl.
 
 gen_nondet_obj(P,A,M,N) :-
-    write('body['),write(N),write('] = Smake_nondet(&&'),
+    write('body['),write(N),write('][th] = Smake_nondet(&&'),
     write(P),write('_'),write(A),write('_'),write(M),
     write(','),write(N),write('th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
 
 
 gen_det_obj(P,A,M,N) :-
-    write('body['),write(N),write('] = Smake_det(&&'),
+    write('body['),write(N),write('][th] = Smake_det(&&'),
     write(P),write('_'),write(A),write('_'),write(M),
     write(','),write(N),write('th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
