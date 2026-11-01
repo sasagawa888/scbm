@@ -497,7 +497,7 @@ gen_head1([X|Xs],N) :-
 gen_SCBM_function :-
     write('static int user_scbm(int pred, int arity, int clause, int arglist, int rest, int th){'),nl,
     write('void *next;'),nl,
-    write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number,front,back'),
+    write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number,front,back,i'),
     gen_all_variable,write(';'),nl,
     gen_pred_switch,
     write('loop:'),nl,
@@ -694,11 +694,11 @@ gen_nondet_body(X,A,M,H,P,V) :-
 
 gen_nondet_body1(end_of_body,A,M,N,H,P,V,D) :-
     gen_label([P,A,M,join]),
-    write('front = Sfront(pc[th]);'),nl,
-    write('back = Sback(pc[th])'),nl,
+    write('front = Sfront(pc[th],th);'),nl,
+    write('back = Sback(pc[th],th);'),nl,
     N1 is N-1,
     write('for(i='),write(N1),write(';i>=0;i--)'),
-    write('back = Scons(body[i][th],back,th);'),nl,
+    write('back = Scons(body[i][th],th);'),nl,
     write('Sconc(front,back,th);'),nl,
     write('goto loop;'),nl.
 
@@ -715,7 +715,8 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_label([P,A,M,N]),
     gen_unpack_pointer(V,0),
     write('clause = Sget_choice(th);'),nl,
-    write('goto '),gen_goto([P,A,M,join]),
+    write('goto '),gen_goto([P,A,M]),nl,
+    N1 is N+1,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
 % builtin
@@ -732,6 +733,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     write('if(Jcallsubr(subr_number,Jderef(arglist,th),NIL,th) == YES)'),nl,
     write('goto success;'),nl,
     write('else goto failse;'),nl,
+    N1 is N+1,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
 % det tail
@@ -749,6 +751,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     write('if(Jcallsubr(subr_number,Jderef(arglist,th),NIL,th) == YES)'),nl,
     write('goto success;'),nl,
     write('else goto failse;'),nl,
+    N1 is N+1,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
 
@@ -792,7 +795,7 @@ gen_nondet_init(P,A) :-
 gen_nondet_obj(P,A,M,N) :-
     write('body['),write(N),write('][th] = Smake_nondet(&&'),
     write(P),write('_'),write(A),write('_'),write(M),
-    write(','),write(N),write('th);'),nl,
+    write(','),write(N),write(',th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
 
 
