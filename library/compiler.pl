@@ -497,11 +497,13 @@ gen_head1([X|Xs],N) :-
 gen_SCBM_function :-
     write('static int user_scbm(int pred, int arity, int clause, int arglist, int rest, int th){'),nl,
     write('void *next;'),nl,
-    write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number'),
+    write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number,front,back'),
     gen_all_variable,write(';'),nl,
     gen_pred_switch,
     write('loop:'),nl,
     write('next = proof_goto[blist[pc[th]][th].entity][th];'),nl,
+    write('clause = Sget_choice(th);'),nl,
+    write("arglist = Sget_arg(th);"),nl,
     write('goto *next;'),nl,
     gen_SCBM_function1,
     gen_SCBM_function2,
@@ -610,7 +612,7 @@ gen_SCBM_function4 :-
     write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
     write('pc[th] = Sbacktrack(pc[th],th);'),nl,
     write('if (pc[th] == NIL) return(NO);'),nl,
-    write('else {clause = Sget_choice(th); arglist = Sget_arg(th); goto loop;}}'),nl,
+    write('else goto loop;}'),nl,
     write('else{pc[th]=Sback(pc[th],th);goto loop;}'),nl,nl.
 
 
@@ -621,7 +623,7 @@ gen_SCBM_function5 :-
     write('if(Sfront(pc[th],th) == NIL) return(NO);'),nl,
     write('pc[th] = Sbacktrack(Sfront(pc[th],th),th);'),nl,
     write('if(pc[th] == NIL) return(NO);'),nl,
-    write('else {clause = Sget_choice(th); arglist = Sget_arg(th); goto loop;}'),nl.
+    write('else goto loop;'),nl.
    
 
 
@@ -691,12 +693,14 @@ gen_nondet_body(X,A,M,H,P,V) :-
     gen_nondet_body1(X,A,M,0,H,P,V,0).
 
 gen_nondet_body1(end_of_body,A,M,N,H,P,V,D) :-
+    gen_label([P,A,M,join]),
     write('front = Sfront(pc[th]);'),nl,
     write('back = Sback(pc[th])'),nl,
     N1 is N-1,
     write('for(i='),write(N1),write(';i>=0;i--)'),
     write('back = Scons(body[i][th],back,th);'),nl,
-    write('Sconc(front,back,th);'),nl.
+    write('Sconc(front,back,th);'),nl,
+    write('goto loop;'),nl.
 
 % nondet predicate
 gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
@@ -711,7 +715,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_label([P,A,M,N]),
     gen_unpack_pointer(V,0),
     write('clause = Sget_choice(th);'),nl,
-    write('goto '),gen_label([P,A,M]),
+    write('goto '),gen_goto([P,A,M,join]),
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
 % builtin
