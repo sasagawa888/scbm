@@ -779,7 +779,11 @@ static void Sdump(int th)
 
     printf("pc = %d\n", pc[th]);
 
-    pt = 1;
+    pt = pc[th];
+    /* 証明列の先頭を探す */
+    while(Sfront(pt,th) != NIL)
+        pt = Sfront(pt,th);
+
     while(pt != NIL){
         entity = blist[pt][th].entity;
         printf("label = %p \n", proof_goto[entity]);

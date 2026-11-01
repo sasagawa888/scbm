@@ -609,7 +609,7 @@ gen_SCBM_function31(P,A,[C|Cs],N) :-
 
 gen_SCBM_function4 :-
     write('success:'),nl,
-    write('Sdump(th);'),
+    write('printf("success ");Sdump(th);'),
     write('if(Sback(pc[th],th) == NIL){'),nl,
     write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
     write('pc[th] = Sbacktrack(pc[th],th);'),nl,
@@ -620,6 +620,7 @@ gen_SCBM_function4 :-
 
 gen_SCBM_function5 :-
     write('allfail:'),nl,
+    write('printf("allfail ");Sdump(th);'),
     write('Sreset_choice(th);'),nl,
     write('failse:'),nl,
     write('if(Sfront(pc[th],th) == NIL) return(NO);'),nl,
