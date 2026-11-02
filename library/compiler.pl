@@ -629,12 +629,12 @@ gen_SCBM_function5 :-
     write('pc[th] = Sbacktrack2(Sfront(pc[th],th),th);'),nl,
     write('if(pc[th] == NIL) return(NO);'),nl,
     write('else goto loop;'),nl,
-    write('allfail:'),nl,
+    write('failse:'),nl,
     write('printf("failse ");Sdump(th);'),
     write('pc[th] = Sbacktrack1(pc[th],th);'),nl,
     %write('printf("failse ");Sdump(th);'),
     write('if (pc[th] == NIL) return(NO);'),nl,
-    write('else goto loop;}'),nl.
+    write('else goto loop;'),nl.
    
 
 
