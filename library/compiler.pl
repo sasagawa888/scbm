@@ -737,9 +737,12 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
 gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     n_property(X,builtin),
     X =.. [Pred|Args],
+    gen_label([P,A,M,N,join]),
     gen_nondet_body_argument(Args,V),
     gen_det_obj(P,A,M,N),
     gen_pack_pointer(V,0),
+    N1 is N+1,
+    write('goto '),gen_goto([P,A,M,N1,join]),
     gen_label([P,A,M,N]),
     gen_unpack_pointer(V,0),
     n_findatom(Pred,builtin,Num),
@@ -747,7 +750,6 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     write('if(Jcallsubr(subr_number,Jderef(arglist,th),NIL,th) == YES)'),nl,
     write('goto success;'),nl,
     write('else goto failse;'),nl,
-    N1 is N+1,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
 % det tail
@@ -755,9 +757,12 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     functor(X,Pred,Arity),
     (type(Pred,Arity,det);type(Pred,Arity,tail)),
     X =.. [Pred|Args],
+    gen_label([P,A,M,N,join]),
     gen_nondet_body_argument(Args,V),
     gen_det_obj(P,A,M,N),
     gen_pack_pointer(V,0),
+    N1 is N+1,
+    write('goto '),gen_goto([P,A,M,N1,join]),
     gen_label([P,A,M,N]),
     gen_unpack_pointer(V,0),
     n_findatom(Pred,builtin,Num),
@@ -765,7 +770,6 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     write('if(Jcallsubr(subr_number,Jderef(arglist,th),NIL,th) == YES)'),nl,
     write('goto success;'),nl,
     write('else goto failse;'),nl,
-    N1 is N+1,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
 
@@ -816,7 +820,7 @@ gen_nondet_obj(P,A,M,N) :-
 gen_det_obj(P,A,M,N) :-
     write('body['),write(N),write('][th] = Smake_det(&&'),
     write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N),
-    write(','),write(N),write('th);'),nl,
+    write(','),write(N),write(',th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
 
 
