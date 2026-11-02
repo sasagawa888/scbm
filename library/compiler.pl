@@ -568,8 +568,8 @@ gen_SCBM_function2 :-
     write(P),write('_'),write(A),write('entry:'),nl,
     gen_nondet_init(P,A),
     write(P),write('_'),write(A),write(':'),nl,
-    write('printf("'),write(P),write(A),write('");'),
-    write('Jprint(Jderef(arglist,th));printf("  ");'),
+    %write('printf("'),write(P),write(A),write('");'),
+    %write('Jprint(Jderef(arglist,th));printf("  ");'),
     write('Jinc_proof(th);'),nl,
     write('switch(clause){'),nl,
     n_clause_count_with_arity(P,A,M),
@@ -623,7 +623,7 @@ gen_SCBM_function4 :-
 
 gen_SCBM_function5 :-
     write('allfail:'),nl,
-    write('printf("allfail ");Sdump(th);'),
+    %write('printf("allfail ");Sdump(th);'),
     write('Sreset_choice(th);'),nl,
     write('pc[th] = Sbacktrack2(pc[th],th);'),nl,
     write('if(pc[th] == NIL) return(NO);'),nl,
