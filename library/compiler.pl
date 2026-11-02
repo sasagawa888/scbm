@@ -625,7 +625,7 @@ gen_SCBM_function5 :-
     write('allfail:'),nl,
     write('printf("allfail ");Sdump(th);'),
     write('Sreset_choice(th);'),nl,
-    write('pc[th] = Sbacktrack2(Sfront(pc[th],th),th);'),nl,
+    write('pc[th] = Sbacktrack2(pc[th],th);'),nl,
     write('if(pc[th] == NIL) return(NO);'),nl,
     write('else goto loop;'),nl,
     write('failse:'),nl,
