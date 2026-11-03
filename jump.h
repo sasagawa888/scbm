@@ -715,9 +715,6 @@ static int Smake_nondet(void* x, int n, int th)
     proof_goto[op[th]][th] = x;
     proof_obj[op[th]][CHOICE_SCBM][th] = 0;
     proof_obj[op[th]][PROP_SCBM][th] = NONDET;
-    proof_obj[op[th]][SP_SCBM][th] = Jget_sp(th);
-    proof_obj[op[th]][AC_SCBM][th] = Jget_ac(th);
-    proof_obj[op[th]][WP_SCBM][th] = Jget_wp(th);
     if(n == 0)
         proof_obj[op[th]][FIRST_SCBM][th] = pc[th];
     else 
@@ -781,6 +778,13 @@ static inline void Ssave_arg(int x, int th)
 static inline int Sget_arg(int th)
 {
 	return(proof_obj[blist[pc[th]][th].entity][ARGLIST_SCBM][th]);
+}
+
+static inline void Sset_state(int th)
+{
+    proof_obj[blist[pc[th]][th].entity][SP_SCBM][th] = Jget_sp(th);
+    proof_obj[blist[pc[th]][th].entity][AC_SCBM][th] = Jget_ac(th);
+    proof_obj[blist[pc[th]][th].entity][WP_SCBM][th] = Jget_wp(th);
 }
 
 

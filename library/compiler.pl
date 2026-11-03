@@ -583,8 +583,9 @@ gen_SCBM_function2.
 
 gen_clause_switch(P,A,M,M) :- !.
 gen_clause_switch(P,A,N,M) :-
-    write('case '),write(N),write(': goto '),
-    write(P),write('_'),write(A),write('_'),write(N),write(';'),nl,
+    write('case '),write(N),write(':'),
+    ifthenelse(N==0,write('Sset_state(th);'),true),
+    write('goto '),write(P),write('_'),write(A),write('_'),write(N),write(';'),nl,
     N1 is N+1,
     gen_clause_switch(P,A,N1,M).
 
