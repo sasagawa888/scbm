@@ -111,18 +111,44 @@ This function **does not** modify `pc[th]` itself. Under the intended control fl
 
 ## 7. Proof-Object Creation
 
-### `Smake_nondet(void *x, int n, int th) -> int`
+## `Smake_nondet`
 
-Allocates a proof object and stores `x` as its continuation label in `proof_goto`. Initializes:
+```c
+static int Smake_nondet(void* x, int n, int th);
+```
 
-- `CHOICE_SCBM = 0`
-- `PROP_SCBM = NONDET`
-- `SP_SCBM = Jget_sp(th)`
-- `AC_SCBM = Jget_ac(th)`
-- `WP_SCBM = Jget_wp(th)`
-- `FIRST_SCBM = pc[th]` if `n == 0`, otherwise `NIL`
+**Purpose**
 
-Returns the new **proof-object index**. Raises a resource error if object storage is exhausted. The meaning of `n == 0` is defined by the caller/compiler protocol; here its immediate effect is to preserve the current proof-sequence node in `FIRST`.
+Creates a new nondeterministic proof object and initializes its execution properties.
+
+**Parameters**
+
+- `x`: Address of the execution label associated with the proof object.
+- `n`: Initial choice-point value used to determine whether this object is the first element of a proof sequence.
+- `th`: Thread identifier.
+
+**Behavior**
+
+1. Checks whether the object counter `op[th]` has reached the capacity limit (`OBJSIZE - 1`). Raises `RESOURCE_ERR` if the limit is exceeded.
+2. Increments `op[th]` to allocate a new proof object.
+3. Stores `x` in `proof_goto[op[th]][th]`.
+4. Initializes `CHOICE_SCBM` to `0`.
+5. Sets `PROP_SCBM` to `NONDET`.
+6. Initializes `FIRST_SCBM` according to `n`:
+   - If `n == 0`, stores the current proof counter `pc[th]`.
+   - Otherwise, stores `NIL`.
+
+**Return Value**
+
+Returns the index of the newly allocated proof object (`op[th]`).
+
+**Design Notes**
+
+The `FIRST_SCBM` field identifies the first element of a proof sequence for restoration during complete-failure backtracking.
+
+When `n == 0`, the object records the current proof counter as its restoration reference.
+
+This initialization is performed when the proof object is created, independently of the subsequent execution-state snapshot.
 
 ### `Smake_det(void *x, int n, int th) -> int`
 
@@ -159,7 +185,45 @@ Stores argument-list representation `x` in `ARGLIST_SCBM` of the **most recently
 ### `Sget_arg(int th) -> int`
 Returns the `ARGLIST_SCBM` value of the object referenced by the **current list node**, `pc[th]`.
 
-## 9. Diagnostics
+
+## 9. `Sset_state`
+
+```c
+static inline void Sset_state(int th);
+```
+
+**Purpose**
+
+Captures the current execution state and stores it in the proof object associated with the current proof-list element.
+
+**Parameters**
+
+- `th`: Thread identifier.
+
+**Behavior**
+
+1. Obtains the proof object index from `blist[pc[th]][th].entity`.
+2. Saves the current stack pointer using `Jget_sp(th)` into `SP_SCBM`.
+3. Saves the current accumulator pointer using `Jget_ac(th)` into `AC_SCBM`.
+4. Saves the current working pointer using `Jget_wp(th)` into `WP_SCBM`.
+
+**Return Value**
+
+None (`void`).
+
+**Design Notes**
+
+`Sset_state` separates execution-state capture from proof-object creation.
+
+Unlike the previous approach, execution-state values are not necessarily recorded when the proof object is allocated. Instead, they are captured explicitly when the execution reaches the appropriate initialization point.
+
+This is particularly important for recursive predicate execution, where saving the state too early may cause incorrect variable-binding restoration.
+
+The saved values are subsequently used by `Srelease()` during backtracking to restore the execution environment.
+
+**Important:** `Sset_state` does not modify the choice point, argument list, proof-list structure, or execution label.
+
+## 10. Diagnostics
 
 ### `Sdump(int th) -> void`
 
