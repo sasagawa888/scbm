@@ -722,7 +722,7 @@ static int Smake_nondet(void* x, int n, int th)
         proof_obj[op[th]][FIRST_SCBM][th] = pc[th];
     else 
         proof_obj[op[th]][FIRST_SCBM][th] = NIL;
-
+    
     return(op[th]);
 }
 
@@ -739,7 +739,7 @@ static int Smake_det(void* x, int n, int th)
         proof_obj[op[th]][FIRST_SCBM][th] = pc[th];
     else 
         proof_obj[op[th]][FIRST_SCBM][th] = NIL;
-
+    
     return(op[th]);
 }
 

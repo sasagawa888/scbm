@@ -500,6 +500,7 @@ gen_SCBM_function :-
     write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number,front,back,i'),
     gen_all_variable,write(';'),nl,
     write('int body[10][THREADSIZE];'),nl,
+    write('op[th] = 0; lp[th] = 0;'),nl,
     gen_pred_switch,
     write('loop:'),nl,
     write('next = proof_goto[blist[pc[th]][th].entity][th];'),nl,
