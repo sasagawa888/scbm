@@ -732,6 +732,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_unpack_pointer(V,0),
     write('clause = Sget_choice(th);'),nl,
     write('arglist = Sget_arg(th);'),nl,
+    %write('Jdebug(th);'),
     write('goto '),gen_goto([P,A]),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
@@ -749,8 +750,9 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     gen_unpack_pointer(V,0),
     n_findatom(Pred,builtin,Num),
     write('subr_number = '),write(Num),write(';'),nl,
-    write('if(Jcallsubr(subr_number,Jderef(arglist,th),NIL,th) == YES)'),nl,
-    write('goto success;'),nl,
+    write('if(Jcallsubr(subr_number,Jderef(arglist,th),NIL,th) == YES){'),nl,
+    %write('Jdebug(th);'),
+    write('goto success;}'),nl,
     write('else goto failse;'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
