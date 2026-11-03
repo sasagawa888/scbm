@@ -808,7 +808,7 @@ static void Sdump(int th)
         printf("wp = %d \n", proof_obj[entity][WP_SCBM][th]);
         printf("first = %d \n", proof_obj[entity][FIRST_SCBM][th]);
         printf("arglist = ");
-        Jprint(proof_obj[entity][ARGLIST_SCBM][th]);printf("\n");
+        Jprint(Jderef(proof_obj[entity][ARGLIST_SCBM][th],th));printf("\n");
         printf("pt = %d entity = %d\n", pt, entity);
         printf("back = %d front = %d\n",Sback(pt,th), Sfront(pt,th));
         printf("current = %s\n", pt == pc[th] ? "YES" : "NO");

@@ -710,10 +710,10 @@ gen_nondet_body1(end_of_body,A,M,N,H,P,V,D) :-
     N1 is N-1,
     write('for(i='),write(N1),write(';i>=0;i--)'),
     write('back = Scons(body[i][th],back,th);'),nl,
-    write('Sdump(th);'),
+    %write('Sdump(th);'),
     write('Sconc(front,back,th);'),nl,
     write('pc[th] = back;'),nl,
-    write('printf("generate ");Sdump(th);'),
+    %write('printf("generate ");Sdump(th);'),
     write('goto loop;'),nl.
 
 % nondet predicate
