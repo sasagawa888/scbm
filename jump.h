@@ -800,9 +800,9 @@ static void Sdump(int th)
         printf("label = %p \n", proof_goto[entity]);
         printf("choice = %d \n", proof_obj[entity][CHOICE_SCBM][th]);
         if(proof_obj[entity][PROP_SCBM][th] == NONDET)
-            printf("prop = nondet");
+            printf("prop = nondet\n");
         else 
-            printf("prop = det");
+            printf("prop = det\n");
         printf("sp = %d \n", proof_obj[entity][SP_SCBM][th]);
         printf("ac = %d \n", proof_obj[entity][AC_SCBM][th]);
         printf("wp = %d \n", proof_obj[entity][WP_SCBM][th]);
