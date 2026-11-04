@@ -569,8 +569,8 @@ gen_SCBM_function2 :-
     write(P),write('_'),write(A),write('entry:'),nl,
     gen_nondet_init(P,A),
     write(P),write('_'),write(A),write(':'),nl,
-    %write('printf("'),write(P),write(A),write('");'),
-    %write('Jprint(Jderef(arglist,th));printf("  ");'),
+    write('printf("'),write(P),write(A),write('");'),
+    write('Jprint(Jderef(arglist,th));printf("  ");'),
     write('Jinc_proof(th);'),nl,
     write('switch(clause){'),nl,
     n_clause_count_with_arity(P,A,M),
@@ -734,7 +734,7 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     write('clause = Sget_choice(th);'),nl,
     write('arglist = Sget_arg(th);'),nl,
     %write('Jdebug(th);'),
-    write('goto '),gen_goto([P,A]),nl,
+    write('goto '),gen_goto([Pred,Arity]),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
 % builtin
