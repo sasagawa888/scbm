@@ -21,3 +21,15 @@ fact(N,X) :-
         N1 is N-1,
         fact(N1,X1),
         X is N*X1.
+
+
+select1(X,[X|Xs],Xs).
+select1(X,[Y|Ys],[Y|Zs]) :-
+    select1(X,Ys,Zs).
+
+
+perm1([],[]).
+perm1(Xs,[X|Ys]) :-
+    select1(X,Xs,Zs),
+    perm1(Zs,Ys).
+

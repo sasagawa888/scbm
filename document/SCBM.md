@@ -2,7 +2,7 @@
 
 **Status:** Experimental implementation documentation  
 **Scope:** SCBM proof-sequence representation and operations in the supplied C source  
-**Version:** 1.11
+**Version:** 1.20
 
 ## 1. Overview
 
@@ -240,7 +240,7 @@ Prints the current `pc`, traverses `front` links to the head of the current proo
 
 `Sdump()` assumes `pc[th]` is a valid list node; calling it with `pc[th] == NIL` would be unsafe as written.
 
-## 10. Operational Outline
+## 11. Operational Outline
 
 A typical compiled execution path follows this conceptual sequence:
 
@@ -252,7 +252,7 @@ A typical compiled execution path follows this conceptual sequence:
 
 This is an explanatory outline, **not a complete standalone driver**; scheduling, computed-goto dispatch, and compiler-generated code are outside the supplied excerpt.
 
-## 11. Constraints and Implementation Caveats
+## 12. Constraints and Implementation Caveats
 
 - **Experimental API:** Correct execution of PAIP's `likes/2` demonstrates useful behavior, but does not establish correctness for arbitrary programs.
 - **Fixed capacity:** List and object storage each have a nominal capacity of 10,000 entries per thread. Actual usable indices depend on initial cursor values and reserved sentinels.
@@ -263,7 +263,7 @@ This is an explanatory outline, **not a complete standalone driver**; scheduling
 - **Thread state:** Arrays are indexed by `th`, but the excerpt alone does not establish thread-safety for the external `J*` routines or coordinated access to shared resources.
 - **Continuation labels:** `proof_goto` holds compiler-specific code addresses; validity depends on the generated-code and dispatch environment.
 
-## 12. API Summary
+## 13. API Summary
 
 | Function | Return | Primary responsibility |
 |---|---|---|
@@ -289,5 +289,5 @@ This is an explanatory outline, **not a complete standalone driver**; scheduling
 
 ---
 
-*Based on the SCBM-Prolog v1.11 source excerpt supplied by the project author. This document describes the code as written and explicitly marks assumptions and potential implementation issues.*
+*Based on the SCBM-Prolog v1.20 source excerpt supplied by the project author. This document describes the code as written and explicitly marks assumptions and potential implementation issues.*
 
