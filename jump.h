@@ -697,7 +697,7 @@ static int Sbacktrack2(int x, int th)
 {
     int front,first;
 
-    if(!Sfirst(x,th)) return(NIL);
+    if(!Sfirst(x,th)) return(Sbacktrack1(Sfront(x,th),th));
 
     front = Sfront(x,th);
     first = Sget_first(x,th);
