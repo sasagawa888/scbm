@@ -38,7 +38,7 @@ If you wish to run this project on an unsupported OS, please feel free to adapt 
 If your modifications are successful, we encourage you to publish a branch so that others can benefit from your work.
 
 
-## File Path Resolution in N-Prolog
+## File Path Resolution in SCBM-Prolog
 
 When loading files, SCBM-Prolog automatically resolves file paths based on the following rules:
 
