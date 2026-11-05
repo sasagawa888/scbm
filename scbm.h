@@ -19,7 +19,7 @@ address
  5,000,001 - 30,000,000  working area 
 30,000,001 - 32,000,000  variant area
 */
-#define VERSION     1.26
+#define VERSION     1.27
 //#define CELLSIZE    30000000  // if raspberry PI set smaller size.
 #define HEAPSIZE     5000000
 #define FREESIZE         500
@@ -221,7 +221,7 @@ enum {
 };
 
 enum {
-    DATA_SIZE = 256, 
+    DATA_SIZE = 64, 
     SP_SCBM, CHOICE_SCBM, WP_SCBM, AC_SCBM,
     ARGLIST_SCBM, LABEL_SCBM, PROP_SCBM, FIRST_SCBM,
     SCBM_ELT_SIZE,

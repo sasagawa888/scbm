@@ -589,8 +589,8 @@ typedef struct bidirectional {
     int entity;
 } bidirectional;
 
-#define LISTSIZE 10000
-#define OBJSIZE 10000
+#define LISTSIZE 50000
+#define OBJSIZE 50000
 #define NONDET  1
 #define DET 2
 static bidirectional blist[LISTSIZE][THREADSIZE];
