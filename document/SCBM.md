@@ -96,18 +96,59 @@ Returns `1` if the referenced object's `PROP_SCBM` field equals `NONDET`, otherw
 
 Walks from list node `x` along `front` links until it finds a node whose proof object is `NONDET`. Returns that node index, or `NIL` when none is found. It **does not** update `pc[th]`, restore variable state, or advance the clause choice. The caller performs the subsequent control flow.
 
-### `Sbacktrack2(int x, int th) -> int` — Reconstruction on `allfail`
+### `Sbacktrack2(int x, int th)`
 
-If `Sfirst(x, th)` is false, returns `NIL`. Otherwise:
+**Purpose:** Handles backtracking when a predicate has completely failed (`allfail`).
 
-1. Reads `front = Sfront(x, th)`.
-2. Reads `first = Sget_first(x, th)`.
-3. Calls `Sconc(front, first, th)` to reconnect the saved proof sequence.
-4. Returns `first` as the node from which execution can resume.
+**Prototype:**
 
-This function **does not** modify `pc[th]` itself. Under the intended control flow, a `NIL` result is handled by the caller as `NO` (search exhausted). The supplied design uses a `NIL` initial `FIRST` value for the initial nondeterministic object, while nested/restorable objects record a previous `pc`.
+```c
+static int Sbacktrack2(int x, int th);
+```
 
-**Precondition:** `allfail` dispatch must pass the appropriate nondeterministic object/node, and the saved `FIRST` node must still be valid. The function does not independently search for such an object or validate the detached segment.
+**Parameters:**
+
+- `x`: The current proof-list element.
+- `th`: Thread identifier.
+
+**Return Value:**
+
+- The first element of the restored predicate when `x` is marked as `FIRST`.
+- Otherwise, the result of `Sbacktrack1()` applied to the preceding element.
+
+**Behavior:**
+
+1. Check whether `x` is the first element of a predicate using `Sfirst(x, th)`.
+2. If `x` is not marked as `FIRST`, continue searching backward by invoking `Sbacktrack1(Sfront(x, th), th)`. Do not terminate the entire search merely because the current predicate has failed.
+3. If `x` is marked as `FIRST`, retrieve its preceding element using `Sfront(x, th)` and the original predicate element using `Sget_first(x, th)`.
+4. Restore the original proof-list connection using `Sconc(front, first, th)`.
+5. Return `first` to resume execution from the restored predicate.
+
+**Important Notes:**
+
+- Complete failure of a predicate does not necessarily mean failure of the entire query.
+- A failed predicate may be nested inside another nondeterministic predicate that still has unexplored alternatives.
+- Backtracking must therefore be allowed to continue beyond the current predicate.
+- This behavior is essential for recursive predicates such as `perm1/2`, which require deep backtracking to enumerate all solutions.
+
+**Implementation:**
+
+```c
+// For complete failure (allfail)
+static int Sbacktrack2(int x, int th)
+{
+    int front, first;
+
+    if (!Sfirst(x, th))
+        return Sbacktrack1(Sfront(x, th), th);
+
+    front = Sfront(x, th);
+    first = Sget_first(x, th);
+    Sconc(front, first, th);
+
+    return first;
+}
+```
 
 ## 7. Proof-Object Creation
 
