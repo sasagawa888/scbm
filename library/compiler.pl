@@ -737,6 +737,16 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     write('goto '),gen_goto([Pred,Arity]),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
+% fail
+gen_nondet_body1((fail,Y),A,M,N,H,P,V,D) :-
+    gen_label([P,A,M,N,join]),
+    gen_det_obj(P,A,M,N),
+    N1 is N+1,
+    write('goto '),gen_goto([P,A,M,N1,join]),
+    gen_label([P,A,M,N]),
+    write('goto failse;'),nl,
+    gen_nondet_body1(Y,A,M,N1,H,P,V,D).
+
 % builtin
 gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     n_property(X,builtin),
