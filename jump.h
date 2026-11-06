@@ -601,7 +601,7 @@ int op[THREADSIZE];  //object pointer
 int pc[THREADSIZE];  //proof counter
 
 
-static int Sconc(int x, int y, int th)
+static inline int Sconc(int x, int y, int th)
 {
     if(x == NIL && y == NIL)
         return(NIL);
@@ -616,7 +616,7 @@ static int Sconc(int x, int y, int th)
     return(y);
 }
 
-static int Scons(int x,int y,int th)
+static inline int Scons(int x,int y,int th)
 {
     int addr;
     if (lp[th] >= LISTSIZE - 1)
@@ -677,7 +677,7 @@ static inline int Snondet(int x, int th)
 }
 
 //for force backtrack when success
-static int Sbacktrack1(int x, int th)
+static inline int Sbacktrack1(int x, int th)
 {
     int front,first;
 
@@ -693,7 +693,7 @@ static int Sbacktrack1(int x, int th)
 
 
 //for allfail
-static int Sbacktrack2(int x, int th)
+static inline int Sbacktrack2(int x, int th)
 {
     int front,first;
 
@@ -706,7 +706,7 @@ static int Sbacktrack2(int x, int th)
 }
 
 
-static int Smake_nondet(void* x, int n, int th)
+static inline int Smake_nondet(void* x, int n, int th)
 {
     if (op[th] >= OBJSIZE - 1)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("overflow SCBM object size"), NIL);
@@ -724,7 +724,7 @@ static int Smake_nondet(void* x, int n, int th)
 }
 
 
-static int Smake_det(void* x, int n, int th)
+static inline int Smake_det(void* x, int n, int th)
 {
     if (op[th] >= OBJSIZE - 1)
 	Jerrorcomp(RESOURCE_ERR, Jmakestr("overflow SCBM object size"), NIL);
