@@ -106,33 +106,33 @@ address
 typedef enum tag {EMP,INTN,FLTN,LONGN,BIGX,STRUCT,SINGLE,STREAM,SOCKET,STR} tag;
 typedef enum flag {FRE,USE} flag;
 
-typedef struct {
-    int     aux;
-    int     var;
-    int     arity;
-    char    tag;
-    flag    flag;
-    char    *name;
-    unsigned char option;
-    char    trace;
-    union{
-        struct{
-            union{
+typedef struct __attribute__((packed)){
+    char *name;
+    union {
+        struct {
+            union {
                 int intnum;
-                int     ( *subr) (int, int, int);
-                FILE    *port;
+                int (*subr)(int, int, int);
+                FILE *port;
                 int record;
                 int socket;
             } car;
-            union{
+            union {
                 int intnum;
             } cdr;
         };
         double fltnum;
         long long int lngnum;
     } val;
-} cell;
+    int aux;
+    int var;
+    int arity;
+    flag flag;
+    char tag;
+    unsigned char option;
+    char trace;
 
+} cell;
 
 typedef enum toktype {LPAREN,RPAREN,LBRACKET,RBRACKET,VERTICAL,LCURL,RCURL,
                       STRING,INTEGER,FLOATN,CHARCODE,ATOMOBJ,BUILTIN,FUNCTION,
