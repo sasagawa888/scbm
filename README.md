@@ -1,7 +1,6 @@
 # SCBM-Prolog　A small Prolog implementation
 
 license is modified BSD.
-Note: We later became aware that another system with the same name, N-Prolog, already existed. This project is unrelated.
 
 ![scbm](scbm.png)
 
