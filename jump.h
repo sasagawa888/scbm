@@ -681,6 +681,13 @@ static inline int Sbacktrack1(int x, int th)
 {
     int front,first;
 
+    if(Sfirst(x,th) && !Snondet(x,th)){
+        front = Sfront(x,th);
+        first = Sget_first(x,th);
+        Sconc(front,first,th);
+        return(first);
+    }
+
     while(x != NIL){
     if(Snondet(x,th))
         return(x);
@@ -697,7 +704,16 @@ static inline int Sbacktrack2(int x, int th)
 {
     int front,first;
 
-    if(!Sfirst(x,th)) return(Sbacktrack1(Sfront(x,th),th));
+    if(!Sfirst(x,th)){
+        x = Sfront(x,th);
+        while(x != NIL){
+            if(Snondet(x,th))
+                return(x);
+            else 
+                x = Sfront(x,th);
+        }
+    return(x);
+    } 
 
     front = Sfront(x,th);
     first = Sget_first(x,th);

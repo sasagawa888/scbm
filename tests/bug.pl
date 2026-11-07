@@ -65,6 +65,7 @@ append1([], Ys, Ys).
 append1([X|Xs], Ys, [X|Zs]) :-
     append1(Xs, Ys, Zs).
 
+
 between1(L, H, L) :-
     L =< H.
 
@@ -72,3 +73,4 @@ between1(L, H, X) :-
     L < H,
     L1 is L + 1,
     between1(L1, H, X).
+
