@@ -2256,30 +2256,35 @@ int unify_nil(int x, int th)
 
 
 
-//unbind to local-stack x
+/* Undo variable bindings down to local stack position x. */
 void unbind(int x, int th)
 {
     int i;
+    int end = sp[th];
 
-    for (i = x; i < sp[th]; i++) {
-	int stack_index = localstack[i][th];
-	if (alpha_variable_p(stack_index)) {
-	    int variant_index = stack_index - cell_size;
-	    variant[variant_index][th] = UNBIND;
-	} else if (atom_variable_p(stack_index)) {
-	    if (alpha_variable_p(GET_CAR(stack_index))) {
-		int variant_index = GET_CAR(stack_index) - cell_size;
-		variant[variant_index][th] = UNBIND;
-	    }
-	    SET_CAR(stack_index, UNBIND);
-	    SET_CDR(stack_index, UNBIND);
-	}			//else
-	//  exception(SYSTEM_ERR, makestr("unbind"), x, th);
+    for (i = x; i < end; i++) {
+        int v = localstack[i][th];
+
+        /* Ordinary variable */
+        if (alpha_variable_p(v)) {
+            variant[v - cell_size][th] = UNBIND;
+            continue;
+        }
+
+        /* Atom-variable */
+        if (atom_variable_p(v)) {
+            int car = GET_CAR(v);
+
+            if (alpha_variable_p(car))
+                variant[car - cell_size][th] = UNBIND;
+
+            SET_CAR(v, UNBIND);
+            SET_CDR(v, UNBIND);
+        }
     }
+
     sp[th] = x;
 }
-
-
 
 // link variable and variant
 void assign_variant(int x, int th)
