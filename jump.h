@@ -676,6 +676,24 @@ static inline int Snondet(int x, int th)
         return(0);
 }
 
+// for cut operator
+static inline int Scut(int x, int th)
+{
+    int back,front;
+    
+    back = Sback(x,th);
+    while(x != NIL){
+        if(Sfirst(x,th)){
+            front = Sfront(x,th);
+            break;
+        }
+        else 
+            x = Sfront(x,th);
+    }
+    Sconc(front,back,th);
+    return(back);
+}
+
 //for force backtrack when success
 static inline int Sbacktrack1(int x, int th)
 {
@@ -689,10 +707,10 @@ static inline int Sbacktrack1(int x, int th)
     }
 
     while(x != NIL){
-    if(Snondet(x,th))
-        return(x);
-    else 
-        x = Sfront(x,th);
+        if(Snondet(x,th))
+            return(x);
+        else 
+            x = Sfront(x,th);
     }
 
     return(x);
