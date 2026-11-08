@@ -1868,6 +1868,111 @@ int unify(int x, int y, int th)
     return (NO);
 }
 
+// for compiled code unify_general
+int unify_gen(int x, int y, int th)
+{
+    int x1, y1;
+    int xv, yv;
+
+    for (;;) {
+        if (nullp(x) && nullp(y))
+            return YES;
+
+        if (anonymousp(x) || anonymousp(y))
+            return YES;
+
+        xv = variablep(x);
+        yv = variablep(y);
+
+        /* variable - nonvariable */
+        if (xv && !yv) {
+            x1 = deref1(x, th);
+
+            if (x1 == x) {
+                bindsym(x, y, th);
+                return YES;
+            }
+
+            x = x1;
+            continue;
+        }
+
+        /* nonvariable - variable */
+        if (!xv && yv) {
+            y1 = deref1(y, th);
+
+            if (y1 == y) {
+                bindsym(y, x, th);
+                return YES;
+            }
+
+            y = y1;
+            continue;
+        }
+
+        /* variable - variable */
+        if (xv && yv) {
+            x1 = deref1(x, th);
+            y1 = deref1(y, th);
+
+            xv = variablep(x1);
+            yv = variablep(y1);
+
+            if (xv && yv) {
+                if (x1 == y1 || x == y1 ||
+                    x1 == y || x == y)
+                    return YES;
+
+                if (x != y)
+                    bindsym(x1, y1, th);
+                else
+                    bindsym(x1, makevariant(th), th);
+
+                return YES;
+            }
+
+            if (xv) {
+                bindsym(x1, y1, th);
+                return YES;
+            }
+
+            if (yv) {
+                bindsym(y1, x1, th);
+                return YES;
+            }
+
+            x = x1;
+            y = y1;
+            continue;
+        }
+
+        /* constants */
+        if (constantp(x) && constantp(y))
+            return eqlp(x, y) ? YES : NO;
+
+        /* strings */
+        if (stringp(x) && stringp(y))
+            return streqp(x, y) ? YES : NO;
+
+        /* incompatible types */
+        if (nullp(x) != nullp(y))
+            return NO;
+
+        if (structurep(x) != structurep(y))
+            return NO;
+
+        if (listp(x) != listp(y))
+            return NO;
+
+        /* compound terms */
+        if (unify_gen(car(x), car(y), th) != YES)
+            return NO;
+
+        x = cdr(x);
+        y = cdr(y);
+    }
+}
+
 
 
 //typed unify. y is a pair list e.g. [L|Ls]
@@ -1887,7 +1992,7 @@ int unify_pair(int x, int y, int th)
          * 束縛済みの場合、その束縛先が pair とは限らない。
          * 汎用 unify に任せる。
          */
-        return unify(variant[x - cell_size][th], y, th);
+        return unify_gen(variant[x - cell_size][th], y, th);
     }
 
     /*
@@ -1910,8 +2015,8 @@ int unify_pair(int x, int y, int th)
     if (listp(x) && x != NIL) {
         int save = sp[th];
 
-        if (unify(car(x), car(y), th) == YES &&
-            unify(cdr(x), cdr(y), th) == YES)
+        if (unify_gen(car(x), car(y), th) == YES &&
+            unify_gen(cdr(x), cdr(y), th) == YES)
             return YES;
 
         unbind(save, th);
