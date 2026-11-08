@@ -596,9 +596,9 @@ typedef struct bidirectional {
 static bidirectional blist[LISTSIZE][THREADSIZE];
 static int proof_obj[OBJSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static void* proof_goto[OBJSIZE][THREADSIZE];
-int lp[THREADSIZE];  //list pointer
-int op[THREADSIZE];  //object pointer
-int pc[THREADSIZE];  //proof counter
+static int lp[THREADSIZE];  //list pointer
+static int op[THREADSIZE];  //object pointer
+static int pc[THREADSIZE];  //proof counter
 
 
 static inline int Sconc(int x, int y, int th)
@@ -802,6 +802,15 @@ static inline void Sset_state(int th)
     proof_obj[blist[pc[th]][th].entity][AC_SCBM][th] = Jget_ac(th);
     proof_obj[blist[pc[th]][th].entity][WP_SCBM][th] = Jget_wp(th);
 }
+
+
+static inline void Sinit_pt(int th)
+{
+    pc[th] = 0;
+    op[th] = 0;
+    lp[th] = 0;
+}
+
 
 
 static void Sdump(int th)
