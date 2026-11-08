@@ -1792,7 +1792,7 @@ int revderef1(int x, int th)
     return (NIL);
 }
 
-
+// for interpreter
 int unify(int x, int y, int th)
 {
     int x1, y1;
@@ -1975,12 +1975,10 @@ int unify_gen(int x, int y, int th)
 
 
 
-//typed unify. y is a pair list e.g. [L|Ls]
+/* Typed unification: y is a pair list, e.g. [L|Ls]. */
 int unify_pair(int x, int y, int th)
 {
-    /*
-     * x が通常の変数
-     */
+    /* Handle an ordinary variable. */
     if (IS_ALPHA(x)) {
         if (variant[x - cell_size][th] == UNBIND) {
             variant[x - cell_size][th] = y;
@@ -1988,30 +1986,22 @@ int unify_pair(int x, int y, int th)
             return YES;
         }
 
-        /*
-         * 束縛済みの場合、その束縛先が pair とは限らない。
-         * 汎用 unify に任せる。
-         */
+        /* If x is already bound, its value may not be a pair.
+           Fall back to generic unification. */
         return unify_gen(variant[x - cell_size][th], y, th);
     }
 
-    /*
-     * anonymous variable
-     */
+    /* An anonymous variable matches any term. */
     if (anonymousp(x))
         return YES;
 
-    /*
-     * atom-variable
-     */
+    /* Handle an atom-variable. */
     if (atom_variable_p(x)) {
         bindsym(x, y, th);
         return YES;
     }
 
-    /*
-     * x 自身が pair
-     */
+    /* Handle a pair list. */
     if (listp(x) && x != NIL) {
         int save = sp[th];
 
@@ -2019,12 +2009,15 @@ int unify_pair(int x, int y, int th)
             unify_gen(cdr(x), cdr(y), th) == YES)
             return YES;
 
+        /* Restore variable bindings on unification failure. */
         unbind(save, th);
         return NO;
     }
 
     return NO;
 }
+
+
 
 //typed unify. y is a small integer
 int unify_int(int x, int y, int th)
@@ -2176,7 +2169,8 @@ int unify_str(int x, int y, int th)
     return (NO);
 }
 
-// typed unify. y is a variable
+
+/* Typed unification: y is a variable. */
 int unify_var(int x, int y, int th)
 {
     int x1;
@@ -2184,26 +2178,24 @@ int unify_var(int x, int y, int th)
     if (anonymousp(x) || anonymousp(y))
         return YES;
 
-    /* x が既に束縛されていたら、束縛先の型は不明なので
-       汎用 unify に戻す */
+    /* If x is already bound, its value may be of any type.
+       Fall back to generic unification. */
     if (IS_ALPHA(x) && variant[x - cell_size][th] != UNBIND)
-        return unify(variant[x - cell_size][th], y, th);
+        return unify_gen(variant[x - cell_size][th], y, th);
 
-    /* y が既に束縛されていた場合も同様 */
+    /* Likewise, use generic unification if y is already bound. */
     if (IS_ALPHA(y) && variant[y - cell_size][th] != UNBIND)
-        return unify(x, variant[y - cell_size][th], th);
+        return unify_gen(x, variant[y - cell_size][th], th);
 
-    /* x が未束縛変数 */
+    /* Bind an unbound variable x to y. */
     if (IS_ALPHA(x)) {
         variant[x - cell_size][th] = y;
         push_stack(x, th);
         return YES;
     }
 
-    /*
-     * atom-variable の場合。
-     * 元の処理をそのまま残す。
-     */
+    /* Handle the atom-variable case.
+       Preserve the original unification behavior. */
     if (atom_variable_p(x)) {
         x1 = deref1(x, th);
 
@@ -2217,43 +2209,49 @@ int unify_var(int x, int y, int th)
         }
     }
 
-    /* この時点では y が未束縛変数 */
+    /* At this point, y is an unbound variable.
+       Bind y to x. */
     variant[y - cell_size][th] = x;
     push_stack(y, th);
 
     return YES;
 }
 
-// typed unify. x is [] ?  (empty list)
+
+/* Typed unification: unify x with NIL (empty list). */
 int unify_nil(int x, int th)
 {
     int x1;
-    if (IS_ALPHA(x)) {
-	if (variant[x - cell_size][th] == UNBIND) {
-	    variant[x - cell_size][th] = NIL;
-	    push_stack(x, th);
-	    return (YES);
-	} else {
-	    if (deref1(x, th) == NIL)
-		return (YES);
-	    else
-		return (NO);
-	}
-    } else if (anonymousp(x)) {
-	return (YES);
-    } else if (atom_variable_p(x)) {
-	x1 = deref(x, th);
-	if (atom_variable_p(x1)) {
-	    SET_CAR(x, NIL);
-	    return (YES);
-	} else if (x1 == NIL)
-	    return (YES);
-    } else if (x == NIL)
-	return (YES);
-    else
-	return (NO);
 
-    return (NO);
+    /* Handle an ordinary variable. */
+    if (IS_ALPHA(x)) {
+        if (variant[x - cell_size][th] == UNBIND) {
+            variant[x - cell_size][th] = NIL;
+            push_stack(x, th);
+            return YES;
+        }
+
+        return deref1(x, th) == NIL ? YES : NO;
+    }
+
+    /* An anonymous variable matches any term. */
+    if (anonymousp(x))
+        return YES;
+
+    /* Handle an atom-variable. */
+    if (atom_variable_p(x)) {
+        x1 = deref(x, th);
+
+        if (atom_variable_p(x1)) {
+            SET_CAR(x, NIL);
+            return YES;
+        }
+
+        return x1 == NIL ? YES : NO;
+    }
+
+    /* Direct comparison with NIL. */
+    return x == NIL ? YES : NO;
 }
 
 

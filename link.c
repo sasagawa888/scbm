@@ -145,7 +145,7 @@ if (hmod == NULL) {
     init_f3(LIST3_IDX, (tpred) list3);
     init_f3(ERRORCOMP_IDX, (tpred) errorcomp);
     init_f3(WLISTCONS_IDX, (tpred) wlistcons);
-    init_f3(UNIFY_IDX, (tpred) unify);
+    init_f3(UNIFY_IDX, (tpred) unify_gen);
     init_f3(UNIFY_PAIR_IDX, (tpred) unify_pair);
     init_f3(UNIFY_VAR_IDX, (tpred) unify_var);
     init_f3(UNIFY_INT_IDX, (tpred) unify_int);
