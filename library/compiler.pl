@@ -754,6 +754,7 @@ gen_nondet_body1((!,Y),A,M,N,H,P,V,D) :-
     N1 is N+1,
     write('goto '),gen_goto([P,A,M,N1,join]),
     gen_label([P,A,M,N]),
+    gen_unpack_pointer(V,0),
     write('pc[th] = Scut(pc[th],th); goto success;'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
