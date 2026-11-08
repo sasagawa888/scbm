@@ -500,6 +500,7 @@ gen_SCBM_function :-
     write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number,front,back,i'),
     gen_all_variable,write(';'),nl,
     write('int body[10][THREADSIZE];'),nl,
+    write('pc[th] = 0; lp[th] = 0; op[th] = 0;'),nl,
     gen_pred_switch,
     write('loop:'),nl,
     write('next = proof_goto[blist[pc[th]][th].entity][th];'),nl,
@@ -614,7 +615,7 @@ gen_SCBM_function4 :-
     write('success:'),nl,
     %write('printf("success ");Sdump(th);'),
     write('if(Sback(pc[th],th) == NIL){'),nl,
-    write('if(Jprove_all(rest,Jget_sp(th),th) == YES) {Sinit_pt(th); return(YES);}'),nl,
+    write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
     write('pc[th] = Sbacktrack1(pc[th],th);'),nl,
     %write('printf("backtrack ");Sdump(th);'),
     write('if (pc[th] == NIL) return(NO);'),nl,
@@ -627,13 +628,13 @@ gen_SCBM_function5 :-
     %write('printf("allfail ");Sdump(th);'),
     write('Sreset_choice(th);'),nl,
     write('pc[th] = Sbacktrack2(pc[th],th);'),nl,
-    write('if(pc[th] == NIL) {Sinit_pt(th); return(NO);}'),nl,
+    write('if(pc[th] == NIL) return(NO);'),nl,
     write('else goto loop;'),nl,
     write('failse:'),nl,
     %write('printf("failse ");Sdump(th);'),
     write('pc[th] = Sbacktrack1(pc[th],th);'),nl,
     %write('printf("failse ");Sdump(th);'),
-    write('if (pc[th] == NIL) {Sinit_pt(th); return(NO);}'),nl,
+    write('if (pc[th] == NIL) return(NO);'),nl,
     write('else goto loop;'),nl.
    
 

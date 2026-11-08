@@ -804,14 +804,6 @@ static inline void Sset_state(int th)
 }
 
 
-static inline void Sinit_pt(int th)
-{
-    pc[th] = 0;
-    op[th] = 0;
-    lp[th] = 0;
-}
-
-
 
 static void Sdump(int th)
 {
