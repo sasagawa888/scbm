@@ -1720,33 +1720,31 @@ int deref(int x, int th)
 }
 
 
-
 int deref1(int x, int th)
 {
-
     int res;
 
-    res = NIL;
-    if (variablep(x)) {
-      loop:
-	// findvar(x);
-	if (alpha_variable_p(x))
-	    res = variant[x - cell_size][th];
-	else if (atom_variable_p(x))
-	    res = GET_CAR(x);
-	if (res == UNBIND)
-	    return (x);
-	else if (variablep(res)) {
-	    x = res;
-	    goto loop;
-	} else if (structurep(res))
-	    return (deref(res, th));
-	else
-	    return (res);
-    } else
-	return (x);
+    while (variablep(x)) {
+        if (alpha_variable_p(x))
+            res = variant[x - cell_size][th];
+        else if (atom_variable_p(x))
+            res = GET_CAR(x);
+        else
+            return x;
 
-    return (NIL);
+        if (res == UNBIND)
+            return x;
+
+        if (!variablep(res)) {
+            if (structurep(res))
+                return deref(res, th);
+            return res;
+        }
+
+        x = res;
+    }
+
+    return x;
 }
 
 /* reverse deref for CLPFD */
