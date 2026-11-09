@@ -613,9 +613,9 @@ gen_SCBM_function31(P,A,[C|Cs],N) :-
 
 gen_SCBM_function4 :-
     write('success:'),nl,
-    %write('printf("success ");Sdump(th);'),
     write('if(Sback(pc[th],th) == NIL){'),nl,
     write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
+    %write('printf("success ");Sdump(th);'),
     write('pc[th] = Sbacktrack1(pc[th],th);'),nl,
     %write('printf("backtrack ");Sdump(th);'),
     write('if (pc[th] == NIL) return(NO);'),nl,
@@ -755,7 +755,7 @@ gen_nondet_body1((!,Y),A,M,N,H,P,V,D) :-
     write('goto '),gen_goto([P,A,M,N1,join]),
     gen_label([P,A,M,N]),
     gen_unpack_pointer(V,0),
-    write('pc[th] = Scut(pc[th],th); goto success;'),nl,
+    write('pc[th] = Scut(pc[th],th); goto loop;'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
 % builtin
