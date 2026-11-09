@@ -2074,29 +2074,32 @@ int unify_flt(int x, int y, int th)
     return (NO);
 }
 
-
-//typed unify. y is a long integer
+// typed unify. y is a long integer
 int unify_long(int x, int y, int th)
 {
     int x1;
-    if (anonymousp(x)) {
-	return (YES);
-    } else if (variablep(x)) {
-	x1 = deref(x, th);
-	if (variablep(x1)) {
-	    bindsym(x, y, th);
-	    return (YES);
-	} else
-	    return (unify_long(x1, y, th));
 
-    } else if (!longnump(x))
-	return (NO);
-    else if (numeqp(x, y))
-	return (YES);
-    else
-	return (NO);
+    if (anonymousp(x))
+        return YES;
 
-    return (NO);
+    if (variablep(x)) {
+        x1 = deref(x, th);
+
+        if (variablep(x1)) {
+            bindsym(x, y, th);
+            return YES;
+        }
+
+        x = x1;
+
+        if (anonymousp(x))
+            return YES;
+    }
+
+    if (!longnump(x))
+        return NO;
+
+    return numeqp(x, y) ? YES : NO;
 }
 
 
