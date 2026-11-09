@@ -2099,51 +2099,61 @@ int unify_long(int x, int y, int th)
     return (NO);
 }
 
-//typed unify. y is a long integer
+
+// typed unify. y is a long integer
 int unify_big(int x, int y, int th)
 {
     int x1;
-    if (anonymousp(x)) {
-	return (YES);
-    } else if (variablep(x)) {
-	x1 = deref(x, th);
-	if (variablep(x1)) {
-	    bindsym(x, y, th);
-	    return (YES);
-	} else
-	    return (unify_big(x1, y, th));
 
-    } else if (!bignump(x))
-	return (NO);
-    else if (bigx_eqp(x, y))
-	return (YES);
-    else
-	return (NO);
+    if (anonymousp(x))
+        return YES;
 
-    return (NO);
+    if (variablep(x)) {
+        x1 = deref(x, th);
+
+        if (variablep(x1)) {
+            bindsym(x, y, th);
+            return YES;
+        }
+
+        x = x1;
+
+        if (anonymousp(x))
+            return YES;
+    }
+
+    if (!bignump(x))
+        return NO;
+
+    return bigx_eqp(x, y) ? YES : NO;
 }
 
-//typed unify. y is an atom
+// typed unify. y is an atom
 int unify_atom(int x, int y, int th)
 {
     int x1;
-    if (anonymousp(x)) {
-	return (YES);
-    } else if (variablep(x)) {
-	x1 = deref(x, th);
-	if (variablep(x1)) {
-	    bindsym(x, y, th);
-	    return (YES);
-	} else
-	    return (unify_atom(x1, y, th));
-    } else if (!atomp(x))
-	return (NO);
-    else if (eqlp(x, y))
-	return (YES);
-    else
-	return (NO);
 
-    return (NO);
+    if (anonymousp(x))
+        return YES;
+
+    if (variablep(x)) {
+        x1 = deref(x, th);
+
+        if (variablep(x1)) {
+            bindsym(x, y, th);
+            return YES;
+        }
+
+        x = x1;
+
+        if (anonymousp(x))
+            return YES;
+    }
+
+    if (!atomp(x))
+        return NO;
+
+    return eqlp(x, y) ? YES : NO;
 }
 
 //typed unify. y is a string
