@@ -2018,60 +2018,73 @@ int unify_pair(int x, int y, int th)
 }
 
 
-
-//typed unify. y is a small integer
+// typed unify. y is a small integer
 int unify_int(int x, int y, int th)
 {
     int x1;
-    if (IS_ALPHA(x)) {
-	if (variant[x - cell_size][th] == UNBIND) {
-	    variant[x - cell_size][th] = y;
-	    push_stack(x, th);
-	    return (YES);
-	} else {
-	    return unify(deref1(x, th), y, th);
-	}
-    } else if (anonymousp(x)) {
-	return (YES);
-    } else if (atom_variable_p(x)) {
-	x1 = deref(x, th);
-	if (atom_variable_p(x1)) {
-	    SET_CAR(x, y);
-	    push_stack(x, th);
-	    return (YES);
-	} else
-	    return (eqp(x1, y));
-    } else if (!integerp(x))
-	return (NO);
-    else if (eqp(x, y))
-	return (YES);
-    else
-	return (NO);
 
-    return (NO);
+    // Normal variable
+    if (IS_ALPHA(x)) {
+        if (variant[x - cell_size][th] == UNBIND) {
+            variant[x - cell_size][th] = y;
+            push_stack(x, th);
+            return YES;
+        }
+
+        return unify_gen(deref1(x, th), y, th);
+    }
+
+    // Anonymous variable
+    if (anonymousp(x))
+        return YES;
+
+    // Atom variable
+    if (atom_variable_p(x)) {
+        x1 = deref(x, th);
+
+        if (atom_variable_p(x1)) {
+            SET_CAR(x, y);
+            push_stack(x, th);
+            return YES;
+        }
+
+        return eqp(x1, y);
+    }
+
+    // Small integer
+    if (!integerp(x))
+        return NO;
+
+    return eqp(x, y) ? YES : NO;
 }
 
-//typed unify. y is a float
+
+// typed unify. y is a float
 int unify_flt(int x, int y, int th)
 {
     int x1;
-    if (anonymousp(x)) {
-	return (YES);
-    } else if (variablep(x)) {
-	x1 = deref(x, th);
-	if (variablep(x1)) {
-	    bindsym(x, y, th);
-	    return (YES);
-	} else
-	    return (unify_flt(x1, y, th));
-    } else if (!floatp(x))
-	return (NO);
-    else if (numeqp(x, y))
-	return (YES);
-    else
-	return (NO);
 
-    return (NO);
+    if (anonymousp(x))
+        return YES;
+
+    if (variablep(x)) {
+        x1 = deref(x, th);
+
+        if (variablep(x1)) {
+            bindsym(x, y, th);
+            return YES;
+        }
+
+        x = x1;
+
+        if (anonymousp(x))
+            return YES;
+    }
+
+    if (!floatp(x))
+        return NO;
+
+    return numeqp(x, y) ? YES : NO;
 }
 
 // typed unify. y is a long integer
@@ -2159,29 +2172,33 @@ int unify_atom(int x, int y, int th)
     return eqlp(x, y) ? YES : NO;
 }
 
-//typed unify. y is a string
+// typed unify. y is a string
 int unify_str(int x, int y, int th)
 {
     int x1;
-    if (anonymousp(x)) {
-	return (YES);
-    } else if (variablep(x)) {
-	x1 = deref(x, th);
-	if (variablep(x1)) {
-	    bindsym(x, y, th);
-	    return (YES);
-	} else
-	    return (unify_str(x1, y, th));
-    } else if (!stringp(x))
-	return (NO);
-    else if (streqp(x, y))
-	return (YES);
-    else
-	return (NO);
 
-    return (NO);
+    if (anonymousp(x))
+        return YES;
+
+    if (variablep(x)) {
+        x1 = deref(x, th);
+
+        if (variablep(x1)) {
+            bindsym(x, y, th);
+            return YES;
+        }
+
+        x = x1;
+
+        if (anonymousp(x))
+            return YES;
+    }
+
+    if (!stringp(x))
+        return NO;
+
+    return streqp(x, y) ? YES : NO;
 }
-
 
 /* Typed unification: y is a variable. */
 int unify_var(int x, int y, int th)
