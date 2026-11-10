@@ -1007,7 +1007,6 @@ int b_recordh(int arglist, int rest, int th);
 int b_reconsult(int arglist, int rest, int th);
 int b_ref(int arglist, int rest, int th);
 int b_rename(int arglist, int rest, int th);
-int b_repeat(int arglist, int rest, int th);
 int b_reset_op(int arglist, int rest, int th);
 int b_retract(int arglist, int rest, int th);
 int b_retractall(int arglist, int rest, int th);

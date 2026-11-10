@@ -181,7 +181,6 @@ void init_builtin(void)
     defbuiltin("write", b_write, list2(1, 2));
     defbuiltin("writeq", b_writeq, list2(1, 2));
 
-    defbuiltin("repeat", b_repeat, 0);
     defbuiltin("succ", b_succ, 2);
     defbuiltin("maplist", b_maplist, list2(2, 3));
     defbuiltin("compound", b_compound, 1);
@@ -416,32 +415,6 @@ int b_length(int arglist, int rest, int th)
 	unbind(save2, th);
 	return (NO);
     }
-    exception(ARITY_ERR, ind, arglist, th);
-    return (NO);
-}
-
-
-//compiled predicate
-int b_repeat(int arglist, int rest, int th)
-{
-    int n, ind, save1, save2, save3;
-
-    save1 = wp[th];
-    save2 = sp[th];
-    save3 = ac[th];
-    n = length(arglist);
-    ind = makeind("repeat", n, th);
-    if (n == 0) {
-      loop:
-	if (prove_all(rest, sp[th], th) == YES) {
-	    return (YES);
-	}
-	wp[th] = save1;
-	unbind(save2, th);
-	ac[th] = save3;
-	goto loop;
-    }
-
     exception(ARITY_ERR, ind, arglist, th);
     return (NO);
 }
