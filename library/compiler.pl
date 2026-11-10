@@ -1,6 +1,18 @@
 
 :- module(jump,[compile_file/1,compile_file/2,type/2,mode/3]).
 
+
+append([], Ys, Ys).
+append([X|Xs], Ys, [X|Zs]) :-
+    append(Xs, Ys, Zs).
+
+
+reverse([],[]).
+reverse([X|Xs],Y) :-
+    reverse(Xs,Y1),
+    append(Y1,[X],Y).
+
+
 %type(f,a,t).  (functor,arity,type) nondet det tail dyn mut
 %mode(f,1,[+]).  (functor,arity,modelist)
 
@@ -526,7 +538,7 @@ gen_all_variable1([],[]).
 gen_all_variable1([P|Ps],Vars) :-
     n_generate_all_variable(P,V),
     gen_all_variable1(Ps,Vs),
-    n_append(V,Vs,Vars).
+    append(V,Vs,Vars).
 
 gen_all_variable2([]).
 gen_all_variable2([V|Vs]) :-
@@ -691,11 +703,6 @@ gen_var([L|Ls]) :-
     write(L1),
     write(' = Jmakevariant(th);'),nl,
     gen_var(Ls).
-
-reverse([],[]).
-reverse([X|Xs],Y) :-
-    reverse(Xs,Y1),
-    n_append(Y1,[X],Y).
 
 recursive_body(X,H) :-
     functor(X,P,A),
@@ -2289,13 +2296,13 @@ extract_variable1([L|Ls],Z) :-
     list(L), !,
     extract_variable1(L,Y1),
     extract_variable1(Ls,Y2),
-    n_append(Y1,Y2,Z).
+    append(Y1,Y2,Z).
 extract_variable1([L|Ls],Z) :-
     n_property(L,predicate), !,
     L =.. [_|Args],
     extract_variable1(Args,Y1),
     extract_variable1(Ls,Y2),
-    n_append(Y1,Y2,Z).
+    append(Y1,Y2,Z).
 extract_variable1(L,[L]) :-
     n_compiler_variable(L), !.
 extract_variable1(L,[]) :-
@@ -2308,7 +2315,7 @@ generated_variable((X;Y),L) :-
 generated_variable((X,Y),L) :-
     generated_variable(X,L1),
     generated_variable(Y,L2),
-    n_append(L1,L2,L),!.
+    append(L1,L2,L),!.
 generated_variable(M is _,[M]) :-
     n_compiler_variable(M), !.
 generated_variable(Term,V) :-
@@ -2325,13 +2332,13 @@ generated_variable1([V|Vs],L) :-
     list(V),
     generated_variable1(V,L1),
     generated_variable1(Vs,L2),
-    n_append(L1,L2,L).
+    append(L1,L2,L).
 generated_variable1([V|Vs],L) :-
     n_property(V,predicate),
     V =.. [_|V1],
     generated_variable1(V1,L1),
     generated_variable1(Vs,L2),
-    n_append(L1,L2,L).    
+    append(L1,L2,L).    
 generated_variable1([_|Vs],L) :-
     generated_variable1(Vs,L).
 

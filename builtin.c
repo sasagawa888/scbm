@@ -182,7 +182,6 @@ void init_builtin(void)
     defbuiltin("writeq", b_writeq, list2(1, 2));
 
     defbuiltin("repeat", b_repeat, 0);
-    defbuiltin("n_append", b_append, 3);
     defbuiltin("member", b_member, 2);
     defbuiltin("between", b_between, 3);
     defbuiltin("select", b_select, 3);

@@ -794,7 +794,6 @@ int b_ansi_scp(int arglist, int rest, int th);
 int b_ansi_rcp(int arglist, int rest, int th);
 int b_ansi_ed(int arglist, int rest, int th);
 int b_ansi_el(int arglist, int rest, int th);
-int b_append(int arglist, int rest, int th);
 int b_arg(int arglist, int rest, int th);
 int b_arg0(int arglist, int rest, int th);
 int b_n_arity_count(int arglist, int rest, int th);

@@ -349,67 +349,6 @@ int properp(int x)
 }
 
 
-
-int b_append(int arglist, int rest, int th)
-{
-    int n, ind, arg1, arg2, arg3, x, ls, ys, zs, save1, save2, body;
-
-    save2 = sp[th];
-    body = NIL;
-
-    n = length(arglist);
-    ind = makeind("append", n, th);
-    if (n == 3) {
-	arg1 = car(arglist);
-	arg2 = cadr(arglist);
-	arg3 = caddr(arglist);
-
-	if (!listp(arg1) && !nullp(arg1) && !wide_variable_p(arg1))
-	    exception(NOT_LIST, ind, arg1, th);
-	if (!listp(arg2) && !nullp(arg2) && !wide_variable_p(arg2))
-	    exception(NOT_LIST, ind, arg2, th);
-	if (!listp(arg3) && !nullp(arg3) && !wide_variable_p(arg3))
-	    exception(NOT_LIST, ind, arg3, th);
-
-
-	if (properp(arg1) && !wide_variable_p(arg2)
-	    && wide_variable_p(arg3)) {
-	    unify(arg3, wappend1(arg1, arg2, th), th);
-	    if (prove_all(rest, sp[th], th) == YES)
-		return (YES);
-	    else
-		return (NO);
-	}
-
-
-	save1 = wp[th];
-	if (unify_nil(arg1, th) == YES && unify(arg2, arg3, th) == YES) {
-	    if (prove_all(rest, sp[th], th) == YES)
-		return (YES);
-	}
-	wp[th] = save1;
-	unbind(save2, th);
-
-	save1 = wp[th];
-	x = makevariant(th);
-	ls = makevariant(th);
-	ys = makevariant(th);
-	zs = makevariant(th);
-	if (unify_pair(arg1, wlistcons(x, ls, th), th) == YES &&
-	    unify_var(arg2, ys, th) == YES
-	    && unify(arg3, wlistcons(x, zs, th), th) == YES) {
-	    body = wlist4(makeatom("n_append", SYS), ls, ys, zs, th);
-	    return (prove_all(addtail_body(rest, body, th), sp[th], th));
-	}
-	wp[th] = save1;
-	unbind(save2, th);
-	return (NO);
-    }
-    exception(ARITY_ERR, ind, arglist, th);
-    return (NO);
-}
-
-
 int b_between(int arglist, int rest, int th)
 {
     int n, ind, arg1, arg2, arg3, save1, save2, save3, low, high,
