@@ -56,6 +56,13 @@ reverse([X|Xs],Y) :-
     reverse(Xs,Y1),
     append(Y1,[X],Y).
 
+
+
+append([], Ys, Ys).
+append([X|Xs], Ys, [X|Zs]) :-
+    append(Xs, Ys, Zs).
+
+
 remove_at(0,[X|Xs],Xs).
 remove_at(N,[X|Xs],[X|Y]) :-
     N1 is N-1,
