@@ -55,3 +55,9 @@ term_variables_list([], Vars, Vars).
 term_variables_list([H|T], Acc, Vars) :-
     term_variables_(H, Acc, Acc1),
     term_variables_list(T, Acc1, Vars).
+
+
+append([], Ys, Ys).
+append([X|Xs], Ys, [X|Zs]) :-
+    append(Xs, Ys, Zs).
+
