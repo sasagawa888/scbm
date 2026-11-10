@@ -1888,39 +1888,6 @@ det_pass1(X) :-
     type(P,A,tail).
 
 
-% generaly builtin is deterministic. but some cases is non deterministic.
-det_builtin(length(X,Y),G) :-
-    n_compiler_variable(X),
-    not(member(X,G)),
-    n_compiler_variable(Y),
-    not(member(Y,G)),!,fail.
-
-det_builtin(append(X,Y,_),G) :-
-    n_compiler_variable(X),
-    not(member(X,G)),
-    n_compiler_variable(Y),
-    not(member(Y,G)),!,fail.
-
-det_builtin(member(X,_),G) :-
-    n_compiler_variable(X),
-    not(member(X,G)),!,fail.
-
-det_builtin(between(_,_,X),G) :-
-    n_compiler_variable(X),
-    not(member(X,G)),!,fail.
-
-det_builtin(repeat,G) :-
-    !,fail.
-
-det_builtin(select(_,_,_),G) :-
-    !,fail.
-
-det_builtin(length(X,Y),G) :-
-    n_compiler_variable(X),
-    n_compiler_variable(Y),
-    not(member(X,G)),
-    not(member(Y,G)),!,fail.
-
 det_builtin(X,_) :-
     n_property(X,builtin).
 

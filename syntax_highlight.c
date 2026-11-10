@@ -66,7 +66,7 @@ char builtin[BUILTIN_NUMBER][30] = {
     { "retract" }, { "clause" }, { "call" }, { "directory" }, { "select" },
     { "maplist" }, { "ground" }, { "compound" }, { "once" },
     { "atom_codes" }, { "char_code" }, { "retractall" },
-    { "between" }, { "bagof" }, { "setof" }, { "findall" }, { "succ" },
+    { "bagof" }, { "setof" }, { "findall" }, { "succ" },
     { "atom_chars" }, { "atom_concat" },
     { "current_predicate" }, { "current_op" }, { "retrieveh" },
     { "removeh" }, { "unify_with_occurs_check" },

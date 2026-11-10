@@ -349,63 +349,6 @@ int properp(int x)
 }
 
 
-int b_between(int arglist, int rest, int th)
-{
-    int n, ind, arg1, arg2, arg3, save1, save2, save3, low, high,
-	betweenval;
-
-    n = length(arglist);
-    ind = makeind("between", n, th);
-    if (n == 3) {
-	arg1 = car(arglist);	//low
-	arg2 = cadr(arglist);	//high
-	arg3 = caddr(arglist);	//variable
-	if (wide_variable_p(arg1))
-	    exception(INSTANTIATION_ERR, ind, arg1, th);
-	if (wide_variable_p(arg2))
-	    exception(INSTANTIATION_ERR, ind, arg2, th);
-	if (!wide_variable_p(arg1) && !integerp(arg1))
-	    exception(NOT_INT, ind, arg1, th);
-	if (!wide_variable_p(arg2) && !integerp(arg2))
-	    exception(NOT_INT, ind, arg2, th);
-	if (!wide_variable_p(arg3) && !integerp(arg3))
-	    exception(NOT_INT, ind, arg3, th);
-
-	save1 = wp[th];
-	save2 = sp[th];
-	save3 = ac[th];
-	low = get_int(arg1);
-	high = get_int(arg2);
-
-	if (groundp(arg3)) {
-	    betweenval = get_int(arg3);
-	    if (betweenval >= low && betweenval <= high) {
-		if (prove_all(rest, sp[th], th) == YES)
-		    return (YES);
-	    }
-	    return (NO);
-	}
-
-	while (low <= high) {
-	    //printf("%d",low);
-	    unify(arg3, makeint(low), th);
-	    if (prove_all(rest, sp[th], th) == YES)
-		return (YES);
-
-	    low++;
-	    wp[th] = save1;
-	    unbind(save2, th);
-	    ac[th] = save3;
-	}
-	wp[th] = save1;
-	unify(arg3, arg2, th);
-	ac[th] = save3;
-	return (NO);
-    }
-    exception(ARITY_ERR, ind, arglist, th);
-    return (NO);
-}
-
 
 int b_bagof(int arglist, int rest, int th)
 {

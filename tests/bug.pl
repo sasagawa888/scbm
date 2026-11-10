@@ -66,10 +66,10 @@ append([X|Xs], Ys, [X|Zs]) :-
     append(Xs, Ys, Zs).
 
 
-between1(L, H, L) :-
+between(L, H, L) :-
     L =< H.
 
-between1(L, H, X) :-
+between(L, H, X) :-
     L < H,
     L1 is L + 1,
-    between1(L1, H, X).
+    between(L1, H, X).
