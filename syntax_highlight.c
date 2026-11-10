@@ -62,7 +62,7 @@ char builtin[BUILTIN_NUMBER][30] = {
     { "eraseall" }, { "stdin" }, { "stdout" }, { "stdinout" },
     { "ctr_set" }, { "ctr_dec" }, { "ctr_inc" }, { "ctr_is" },
     { "heapd" }, { "list_text" }, { "nref" }, { "pref" }, { "nth_ref" },
-    { "replace" }, { "member" }, { "repeat" }, { "system" },
+    { "replace" }, { "repeat" }, { "system" },
     { "retract" }, { "clause" }, { "call" }, { "directory" }, { "select" },
     { "maplist" }, { "ground" }, { "compound" }, { "once" },
     { "atom_codes" }, { "char_code" }, { "retractall" },

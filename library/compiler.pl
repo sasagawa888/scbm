@@ -13,6 +13,12 @@ reverse([X|Xs],Y) :-
     append(Y1,[X],Y).
 
 
+member(X,[X|_]).
+member(X,[_|Xs]) :-
+    member(X,Xs).
+
+
+
 %type(f,a,t).  (functor,arity,type) nondet det tail dyn mut
 %mode(f,1,[+]).  (functor,arity,modelist)
 

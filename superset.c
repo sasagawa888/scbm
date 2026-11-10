@@ -263,57 +263,6 @@ int b_ground(int arglist, int rest, int th)
 }
 
 
-
-int b_member(int arglist, int rest, int th)
-{
-    int n, ind, arg1, arg2, x, y, l, save1, save2, body, res;
-
-    save2 = sp[th];
-    res = NIL;
-
-    n = length(arglist);
-    ind = makeind("member", n, th);
-    if (n == 2) {
-	arg1 = car(arglist);
-	arg2 = cadr(arglist);
-
-
-	if (nullp(arg2))
-	    return (NO);
-
-
-	save1 = wp[th];
-	x = makevariant(th);
-	l = makevariant(th);
-	if (unify(arg1, x, th) == YES
-	    && unify(arg2, wlistcons(x, l, th), th) == YES) {
-	    if ((res = prove(NIL, sp[th], rest, th)) == YES)
-		return (YES);
-	}
-
-	wp[th] = save1;
-	unbind(save2, th);
-	if (res == NFALSE)
-	    return (res);
-
-	save1 = wp[th];
-	x = makevariant(th);
-	y = makevariant(th);
-	l = makevariant(th);
-	if (unify(arg1, x, th) == YES
-	    && unify(arg2, wlistcons(y, l, th), th) == YES) {
-	    body = wlist3(makeatom("member", SYS), x, l, th);
-	    if ((res = prove(body, sp[th], rest, th)) == YES)
-		return (YES);
-	}
-	wp[th] = save1;
-	unbind(save2, th);
-	return (res);
-    }
-    exception(ARITY_ERR, ind, arglist, th);
-    return (NO);
-}
-
 //---------extention--------
 
 /*
