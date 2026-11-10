@@ -1,5 +1,5 @@
 % standard library 
-:- module(stdlib,[append/3,between/3,member/2]).
+:- module(stdlib,[append/3,between/3,member/2,select/3]).
 
 
 append([], Ys, Ys).
@@ -18,4 +18,9 @@ between(L, H, X) :-
 member(X,[X|_]).
 member(X,[_|Xs]) :-
     member(X,Xs).
+
+
+select(X,[X|Xs],Xs).
+select(X,[Y|Ys],[Y|Zs]) :-
+    select(X,Ys,Zs).
 

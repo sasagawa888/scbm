@@ -1023,7 +1023,6 @@ int b_save(int arglist, int rest, int th);
 int b_see(int arglist, int rest, int th);
 int b_seeing(int arglist, int rest, int th);
 int b_seen(int arglist, int rest, int th);
-int b_select(int arglist, int rest, int th);
 int b_send_socket(int arglist, int rest, int th);
 int b_setof(int arglist, int rest, int th);
 int b_set_input(int arglist, int rest, int th);

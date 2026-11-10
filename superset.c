@@ -48,54 +48,6 @@ int b_atom_concat(int arglist, int rest, int th)
     return (NO);
 }
 
-
-int b_select(int arglist, int rest, int th)
-{
-    int arg1, arg2, arg3, varYs, varY, varZs, varX, varXs, n, ind, body,
-	save1, save2;
-    save2 = sp[th];
-
-    n = length(arglist);
-    ind = makeind("select", n, th);
-    if (n == 3) {
-	arg1 = car(arglist);
-	arg2 = cadr(arglist);
-	arg3 = caddr(arglist);
-
-	varX = makevariant(th);
-	varXs = makevariant(th);
-	save1 = get_wp(th);
-	if (unify_var(arg1, varX, th) == YES
-	    && unify(wlistcons(varX, varXs, th), arg2, th) == YES
-	    && unify_var(arg3, varXs, th) == YES)
-	    if (prove_all(rest, sp[th], th) == YES)
-		return (YES);
-	unbind(save2, th);
-	wp[th] = save1;
-	varX = makevariant(th);
-	varYs = makevariant(th);
-	varY = makevariant(th);
-	varZs = makevariant(th);
-	save1 = wp[th];
-	if (unify_var(arg1, varX, th) == YES
-	    && unify(wlistcons(varY, varYs, th), arg2, th) == YES
-	    && unify(wlistcons(varY, varZs, th), arg3, th) == YES) {
-	    body =
-		wcons(makesys("select"),
-		      wcons(varX, wcons(varYs, wcons(varZs, NIL, th), th),
-			    th), th);
-	    if (prove_all(addtail_body(rest, body, th), sp[th], th) == YES)
-		return (YES);
-	    unbind(save2, th);
-	    set_wp(save1, th);
-	}
-	return (NO);
-    }
-    exception(ARITY_ERR, ind, arglist, th);
-    return (NO);
-}
-
-
 int b_succ(int arglist, int rest, int th)
 {
     int n, ind, arg1, arg2;
