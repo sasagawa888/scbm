@@ -398,7 +398,7 @@ int b_append(int arglist, int rest, int th)
 	if (unify_pair(arg1, wlistcons(x, ls, th), th) == YES &&
 	    unify_var(arg2, ys, th) == YES
 	    && unify(arg3, wlistcons(x, zs, th), th) == YES) {
-	    body = wlist4(makeatom("append", SYS), ls, ys, zs, th);
+	    body = wlist4(makeatom("n_append", SYS), ls, ys, zs, th);
 	    return (prove_all(addtail_body(rest, body, th), sp[th], th));
 	}
 	wp[th] = save1;

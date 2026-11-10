@@ -526,7 +526,7 @@ gen_all_variable1([],[]).
 gen_all_variable1([P|Ps],Vars) :-
     n_generate_all_variable(P,V),
     gen_all_variable1(Ps,Vs),
-    append(V,Vs,Vars).
+    n_append(V,Vs,Vars).
 
 gen_all_variable2([]).
 gen_all_variable2([V|Vs]) :-
@@ -695,7 +695,7 @@ gen_var([L|Ls]) :-
 reverse([],[]).
 reverse([X|Xs],Y) :-
     reverse(Xs,Y1),
-    append(Y1,[X],Y).
+    n_append(Y1,[X],Y).
 
 recursive_body(X,H) :-
     functor(X,P,A),
@@ -2289,13 +2289,13 @@ extract_variable1([L|Ls],Z) :-
     list(L), !,
     extract_variable1(L,Y1),
     extract_variable1(Ls,Y2),
-    append(Y1,Y2,Z).
+    n_append(Y1,Y2,Z).
 extract_variable1([L|Ls],Z) :-
     n_property(L,predicate), !,
     L =.. [_|Args],
     extract_variable1(Args,Y1),
     extract_variable1(Ls,Y2),
-    append(Y1,Y2,Z).
+    n_append(Y1,Y2,Z).
 extract_variable1(L,[L]) :-
     n_compiler_variable(L), !.
 extract_variable1(L,[]) :-
@@ -2304,11 +2304,11 @@ extract_variable1(L,[]) :-
 generated_variable((X;Y),L) :-
     generated_variable(X,L1),
     generated_variable(Y,L2),
-    append(L1,L2,L),!.
+    n_(L1,L2,L),!.
 generated_variable((X,Y),L) :-
     generated_variable(X,L1),
     generated_variable(Y,L2),
-    append(L1,L2,L),!.
+    n_append(L1,L2,L),!.
 generated_variable(M is _,[M]) :-
     n_compiler_variable(M), !.
 generated_variable(Term,V) :-
@@ -2325,13 +2325,13 @@ generated_variable1([V|Vs],L) :-
     list(V),
     generated_variable1(V,L1),
     generated_variable1(Vs,L2),
-    append(L1,L2,L).
+    n_append(L1,L2,L).
 generated_variable1([V|Vs],L) :-
     n_property(V,predicate),
     V =.. [_|V1],
     generated_variable1(V1,L1),
     generated_variable1(Vs,L2),
-    append(L1,L2,L).    
+    n_append(L1,L2,L).    
 generated_variable1([_|Vs],L) :-
     generated_variable1(Vs,L).
 
