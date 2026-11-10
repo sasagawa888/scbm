@@ -1,4 +1,4 @@
-
+:- use_module(list).
 
 color(red).
 color(green).

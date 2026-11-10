@@ -1764,7 +1764,7 @@ int b_reconsult(int arglist, int rest, int th)
 		if (compoundp(atom))
 		    atom = car(atom);
 
-		if (!memberp(atom, reconsult_list) && !module_flag) {
+		if (!memberp(atom, reconsult_list)) {
 		    reconsult_list = cons(atom, reconsult_list);
 		    SET_CAR(atom, NIL);
 		    SET_ARITY(atom, NIL);
@@ -1794,7 +1794,7 @@ int b_reconsult(int arglist, int rest, int th)
 		else
 		    atom = car(head);
 	    }
-	    if (!memberp(atom, reconsult_list) && !module_flag) {
+	    if (!memberp(atom, reconsult_list)) {
 		reconsult_list = cons(atom, reconsult_list);
 		SET_CAR(atom, NIL);
 		SET_ARITY(atom, NIL);
