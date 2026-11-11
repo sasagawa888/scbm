@@ -18,6 +18,10 @@ member(X,[_|Xs]) :-
     member(X,Xs).
 
 
+length([], 0).
+length([_|Xs], N) :-
+    length(Xs, M),
+    N is M + 1.
 
 %type(f,a,t).  (functor,arity,type) nondet det tail dyn mut
 %mode(f,1,[+]).  (functor,arity,modelist)

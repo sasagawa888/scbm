@@ -1,5 +1,5 @@
 % standard library 
-:- module(stdlib,[append/3,between/3,member/2,select/3,repeat/0]).
+:- module(stdlib,[append/3,between/3,member/2,select/3,repeat/0,length/2]).
 
 
 append([], Ys, Ys).
@@ -26,3 +26,8 @@ select(X,[Y|Ys],[Y|Zs]) :-
 
 repeat.
 repeat :- repeat.
+
+length([], 0).
+length([_|Xs], N) :-
+    length(Xs, M),
+    N is M + 1.

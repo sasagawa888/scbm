@@ -111,7 +111,6 @@ void init_builtin(void)
     defbuiltin("key", b_key, list2(1, 2));
     defbuiltin("keysort", b_keysort, 2);
     defbuiltin("leash", b_leash, 1);
-    defbuiltin("length", b_length, 2);
     defbuiltin("listing", b_listing, list3(0, 1, 2));
     defbuiltin("list", b_list, 1);
     defbuiltin("list_text", b_list_text, 2);
@@ -340,83 +339,6 @@ void init_builtin(void)
     builtins = reverse(builtins);
 
     return;
-}
-
-int b_length(int arglist, int rest, int th)
-{
-    int n, ind, arg1, arg2, i, ls, res, save1, save2;
-    int list_length, properp, improper_last_not_var, improper_last_var;
-    save2 = sp[th];
-
-    n = length(arglist);
-    ind = makeind("length", n, th);
-    if (n == 2) {
-	arg1 = car(arglist);
-	arg2 = cadr(arglist);
-
-	// pre check
-	properp = 0;
-	improper_last_not_var = 0;
-	improper_last_var = 0;
-	if (listp(arg1)) {
-	    list_length = length(arg1);
-	    if (list_length != -1 && list_length != -2)
-		properp = 1;
-	    else if (list_length == -1)
-		improper_last_not_var = 1;
-	    else if (list_length == -2)
-		improper_last_var = 1;
-	}
-
-	if (!listp(arg1) && !wide_variable_p(arg1))
-	    exception(NOT_LIST, ind, arg1, th);
-	if (listp(arg1) && improper_last_not_var)
-	    exception(NOT_LIST, ind, arg1, th);
-	if (integerp(arg2) && GET_INT(arg2) < 0)
-	    exception(LESS_THAN_ZERO, ind, arg2, th);
-	if (!wide_variable_p(arg2) && !integerp(arg2))
-	    exception(NOT_INT, ind, arg2, th);
-	if (variablep(arg1) && variablep(arg2) && eqp(arg1, arg2))
-	    exception(INSTANTIATION_ERR, ind, arglist, th);
-
-	save1 = wp[th];
-	if (listp(arg1) && properp) {
-	    if (unify(arg2, makeint(length(arg1)), th) == YES)
-		return (prove_all(rest, sp[th], th));
-	} else if (listp(arg1) && improper_last_var) {
-	    if (unify(improper_last(arg1), NIL, th) == YES
-		&& unify(arg2, makeint(length(improper_butlast(arg1))),
-			 th) == YES)
-		return (prove_all(rest, sp[th], th));
-	} else if (integerp(arg2)) {
-	    i = GET_INT(arg2);
-	    res = NIL;
-	    while (i > 0) {
-		res = wlistcons(makevariant(th), res, th);
-		i--;
-	    }
-	    if (unify(arg1, res, th) == YES)
-		return (prove_all(rest, sp[th], th));
-	} else if (wide_variable_p(arg1) && wide_variable_p(arg2)) {
-	    ls = NIL;
-	    i = 0;
-	    while (1) {
-		unify(arg1, ls, th);
-		unify(arg2, makeint(i), th);
-		if (prove_all(rest, sp[th], th) == YES)
-		    return (YES);
-
-		unbind(save2, th);
-		i++;
-		ls = wlistcons(makevariant(th), ls, th);
-	    }
-	}
-	wp[th] = save1;
-	unbind(save2, th);
-	return (NO);
-    }
-    exception(ARITY_ERR, ind, arglist, th);
-    return (NO);
 }
 
 

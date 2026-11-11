@@ -51,7 +51,7 @@ char builtin[BUILTIN_NUMBER][30] = {
     { "inc" }, { "dec" }, { "compare" },
     { "mkdir" }, { "rmdir" }, { "chdir" }, { "string_length" },
     { "atom_length" },
-    { "sort" }, { "keysort" }, { "length" }, { "shell" }, { "measure" },
+    { "sort" }, { "keysort" }, { "shell" }, { "measure" },
     { "syntaxerrors" }, { "fileerrors" }, { "statistics" }, { "eq" },
     { "ansi_cuu" }, { "ansi_cud" }, { "ansi_cuf" }, { "ansi_cub" },
     { "ansi_cup" }, { "ansi_cpr" }, { "ansi_scp" }, { "ansi_rcp" },

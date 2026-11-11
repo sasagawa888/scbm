@@ -2,6 +2,8 @@
 % https://coursys.sfu.ca/2018fa-cmpt-384-d1/pages/ZebraPuzzle
 % Thanks to SFU
 %h(Nationality, Pet, Cigarette, Drink, Color)
+:- use_module(stdlib).
+
 zebra_owner(Owner) :-
     houses(Hs),
     member(h(Owner,zebra,_,_,_), Hs).
