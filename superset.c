@@ -1589,7 +1589,7 @@ int b_use_module(int arglist, int rest, int th)
 	fp = fopen(prolog_file_name(str), "r");
 	if (fp != NULL) {
 	    fclose(fp);
-	    b_reconsult(list1(makeconst(str)), NIL, 0);
+	    b_reconsult(list2(makeconst(str),makeconst("module")), NIL, 0);
 	    line = 1;
 	    column = 0;
 	    return (prove_all(rest, sp[th], th));

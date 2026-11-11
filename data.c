@@ -2464,10 +2464,10 @@ void add_data(int pred, int data)
 	}
 	SET_CDR(clauses, cons(data, NIL));
     }
-    if (!memq(pred, predicates))
-	if (!module_flag && !dynamic_flag)
+    if (!memq(pred, predicates) && 
+        !(!compiler_flag && module_flag) && !dynamic_flag){
 	    predicates = cons(pred, predicates);
-
+    }
 }
 
 
@@ -2477,9 +2477,9 @@ void insert_data(int pred, int data)
     //set arity. e.g. GET_ARITY(pred) == #[2,3]
     memoize_arity(data, pred);
     SET_CAR(pred, cons(data, GET_CAR(pred)));
-    if (!memq(pred, predicates))
-	if (!module_flag)
-	    predicates = cons(pred, predicates);
+    if (!memq(pred, predicates) && !(!compiler_flag && module_flag)){
+        predicates = cons(pred, predicates);
+    }
 
 }
 

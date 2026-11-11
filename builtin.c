@@ -1703,15 +1703,16 @@ int b_consult(int arglist, int rest, int th)
 */
 int b_reconsult(int arglist, int rest, int th)
 {
-    int n, ind, arg1, clause, clause1, head, atom, save;
+    int n, ind, arg1,arg2, clause, clause1, head, atom, save;
     char str[STRSIZE];
 
     n = length(arglist);
     ind = makeind("reconsult", n, th);
     execute_list = NIL;
-    compiler_flag = 0;
 	module_flag = 0;
     if (n == 1) {
+	compiler_flag = 0;
+	module_flag = 0;
       reconsult:
 	arg1 = car(arglist);
 
@@ -1759,7 +1760,7 @@ int b_reconsult(int arglist, int rest, int th)
 		    && car(clause) == makesys("initialization"))
 		    goto skip;
 
-		if (!module_flag && car(clause) != makesys("op"))
+		if (!compiler_flag && car(clause) != makesys("op"))
 		    execute_list = cons(clause, execute_list);
 		goto skip;
 	    }
@@ -1814,9 +1815,9 @@ int b_reconsult(int arglist, int rest, int th)
       exit:
 	return (prove_all(rest, sp[th], th));
     } else if (n == 2) {
-	arg1 = car(arglist);
-	if(arg1 == makesys("compiler")) compiler_flag = 1;
-	if(arg1 == makesys("module")) module_flag = 1;
+	arg2 = cadr(arglist);
+	if(arg2 == makeconst("compiler")) compiler_flag = 1;
+	if(arg2 == makeconst("module")) module_flag = 1;
 	goto reconsult;
     }
     exception(ARITY_ERR, ind, arglist, th);
