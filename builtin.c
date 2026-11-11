@@ -1696,7 +1696,11 @@ int b_consult(int arglist, int rest, int th)
     return (NO);
 }
 
-
+/*
+* second argument = compiler/module
+* compiler -> compiler_flag = 1
+* module -> module_flag = 1
+*/
 int b_reconsult(int arglist, int rest, int th)
 {
     int n, ind, arg1, clause, clause1, head, atom, save;
@@ -1706,6 +1710,7 @@ int b_reconsult(int arglist, int rest, int th)
     ind = makeind("reconsult", n, th);
     execute_list = NIL;
     compiler_flag = 0;
+	module_flag = 0;
     if (n == 1) {
       reconsult:
 	arg1 = car(arglist);
@@ -1810,7 +1815,8 @@ int b_reconsult(int arglist, int rest, int th)
 	return (prove_all(rest, sp[th], th));
     } else if (n == 2) {
 	arg1 = car(arglist);
-	compiler_flag = 1;
+	if(arg1 == makesys("compiler")) compiler_flag = 1;
+	if(arg1 == makesys("module")) module_flag = 1;
 	goto reconsult;
     }
     exception(ARITY_ERR, ind, arglist, th);
