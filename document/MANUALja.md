@@ -164,10 +164,6 @@ end_of_file
 ### □ call(P)
 インタープリトされたゴールPを呼び出す。
 
-### □ case([A1 -> B1, A2 -> B2, ...|C])
-A1が成功ならB1を実行し、A1が失敗でA2が成功ならB2を実行する。
-以下同様である。何も成功しなければ、Cを実行する。
-
 ### □ chdir(Path)
 現在のディレクトリを変えるかまたは戻す。
 
@@ -1142,8 +1138,6 @@ get0/1
 get0/2
 get0_noecho/1
 halt/0
-ifthen/2
-ifthenelse/3
 in/2
 inc/2
 instance/2

@@ -171,10 +171,6 @@ Type `end_of_file` to resume execution.
 ### □ call(P)
 Call the interpreted goal P. 
 
-### □ case([A1 -> B1, A2 -> B2, ...|C])
-If A1 succeeds, execute B1. If A1 fails and A2 succeeds, execute B2.
-The process continues similarly for subsequent steps. If nothing succeeds, execute C.
-
 ### □ chdir(Path)
 Change or revert to the current directory.
 
@@ -323,12 +319,6 @@ get0_noecho does not display the character on the standard output device.
 
 ### □ halt
 Exits the interpreter. 
-
-### □ ifthen(P, Q)
-Execute goal Q if goal P succeeds.
-
-### □ ifthenelse(P, Q, R)
-Execute goal Q if goal P succeeds; if P fails, execute R.
 
 ### □ in(Port, Byte)
 Read one byte from the specified port.

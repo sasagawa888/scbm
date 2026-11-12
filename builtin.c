@@ -102,7 +102,6 @@ void init_builtin(void)
     defbuiltin("halt", b_halt, 0);
     defbuiltin("heapd", b_heapdump, 2);
     defbuiltin("ifthen", b_ifthen, 2);
-    defbuiltin("ifthenelse", b_ifthenelse, 3);
     defbuiltin("case", b_case, 1);
     defbuiltin("inc", b_inc, 2);
     defbuiltin("instance", b_instance, 2);
@@ -304,6 +303,7 @@ void init_builtin(void)
 
 
     //-----JUMP project---------
+	defbuiltin("n_ifthenelse", b_ifthenelse, -1);
     defbuiltin("n_reconsult_predicate", b_n_reconsult_predicate, -1);
     defbuiltin("n_reconsult_abolish", b_n_reconsult_abolish, -1);
     defbuiltin("n_dynamic_predicate", b_n_dynamic_predicate, -1);
