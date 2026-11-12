@@ -4,9 +4,27 @@ license is modified BSD.
 
 ![scbm](scbm.png)
 
-## Relation to ISO-Prolog
-Although SCBM-Prolog is a superset of ARITY/Prolog, it also implements most ISO-Prolog predicates. In addition, by adding the -d option at startup, strings are represented using double quotes, just as in ISO. For study and educational purposes, ISO-Prolog code can be sufficiently reproduced. Please refer to SUPER.md for details.
+## Goals of SCBM
 
+SCBM (Sasagawa Continuation Backtracking Model) is a new computational model for Prolog, based on an approach fundamentally different from the Warren Abstract Machine (WAM).
+
+By returning to the original principles of SLD resolution, SCBM aims to combine logical clarity with practical execution performance.
+
+SCBM is also more than just a computational model. It is an attempt to reconsider and simplify the Prolog language specification itself.
+
+One of its primary goals is to establish a Prolog language specification that is **easy to understand and implement, even for amateur programmers and hobbyists**.
+
+The language design is based on DEC-10 Prolog and ARITY/PROLOG, while deliberately simplifying or excluding features that rely too heavily on procedural control. The emphasis is on preserving the simplicity and elegance of logic programming.
+
+Features that introduce excessive implementation complexity are also subject to reasonable restrictions. For example, constructs such as disjunction are supported with limitations on nesting depth, rather than allowing arbitrarily complex nested expressions.
+
+At the same time, SCBM selectively incorporates useful features from modern ISO Prolog.
+
+The goal of SCBM is not simply to reproduce existing Prolog implementations.
+
+**It is to create a modern, simple Prolog that is easy to build, easy to understand, and capable of delivering practical performance.**
+
+Another important objective of this project is to offer a new approach for students, hobbyists, and anyone interested in understanding the fundamental principles of Prolog and building their own Prolog implementation.
 
 ## Installation
 In home directory ,make clone or download zip file from github.
