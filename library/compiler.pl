@@ -44,10 +44,6 @@ compile_file(X,o) :-
 compile_file(X,a) :-
     compile_file3(X).
 
-compile_file(X,d) :-
-    compile_file4(X).
-
-
 
 % genrate only c code 
 compile_file1(X) :-
@@ -63,15 +59,6 @@ compile_file2(X) :-
 compile_file3(X) :-
     pass1(X),
     pass2(X).
-
-% debug print 
-compile_file4(X) :-
-    assertz(option(debug,on)),
-    pass1(X),
-    pass2(X),
-    pass3(X),
-    retract(option(debug,on)),
-    invoke_gcc(X).
 
 pass1(X) :-
     retractall(type(_,_,_)),

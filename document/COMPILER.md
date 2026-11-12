@@ -1,10 +1,10 @@
 # Compiler
 
 # Usage
-To use the compiler in N-Prolog, you need to load the module. Compilation is performed using compile_file/1.
+To use the compiler in SCBM-Prolog, you need to load the module. Compilation is performed using compile_file/1.
 
 ```
-N-Prolog Ver 3.91
+SCBM-Prolog 
 ?- use_module(compiler).
 yes
 ?- compile_file('./tests/fact.pl').
