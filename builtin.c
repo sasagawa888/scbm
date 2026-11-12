@@ -31,7 +31,6 @@ void init_builtin(void)
     definfix("\\==", b_n_notequalp, 700, XFX);
     definfix("\\=", b_n_notunify, 700, XFX);
     definfix("=..", b_n_univ, 700, XFX);
-    definfix("->", b_ifthen, 900, XFY);
     definfix("not", b_not, 850, FY);
 
     defbuiltin("!", b_n_cut, 0);
@@ -101,8 +100,6 @@ void init_builtin(void)
     defbuiltin("get0_noecho", b_get0_noecho, 1);
     defbuiltin("halt", b_halt, 0);
     defbuiltin("heapd", b_heapdump, 2);
-    defbuiltin("ifthen", b_ifthen, 2);
-    defbuiltin("case", b_case, 1);
     defbuiltin("inc", b_inc, 2);
     defbuiltin("instance", b_instance, 2);
     defbuiltin("integer", b_integer, 1);
@@ -3606,35 +3603,6 @@ int b_n_cut(int arglist, int rest, int th)
     return (NO);
 }
 
-int b_ifthen(int arglist, int rest, int th)
-{
-    int n, ind, arg1, arg2, save1;
-
-    n = length(arglist);
-    ind = makeind("ifthen", n, th);
-    if (n == 2) {
-	arg1 = car(arglist);
-	arg2 = cadr(arglist);
-	save1 = sp[th];
-	if (variablep(arg1))
-	    exception(INSTANTIATION_ERR, ind, arg1, th);
-	if (variablep(arg2))
-	    exception(INSTANTIATION_ERR, ind, arg2, th);
-
-	if (prove_all(arg1, sp[th], th) == YES) {
-	    return (prove_all(addtail_body(rest, arg2, th), sp[th], th));
-	} else {
-	    unbind(save1, th);
-	    return (NO);
-	}
-
-	unbind(save1, th);
-	return (NO);
-    }
-    exception(ARITY_ERR, ind, arglist, th);
-    return (NO);
-}
-
 int b_ifthenelse(int arglist, int rest, int th)
 {
     int n, ind, arg1, arg2, arg3, save1;
@@ -3682,38 +3650,6 @@ int case_list_p(int x)
 	    return 0;
     }
 }
-
-int b_case(int arglist, int rest, int th)
-{
-    int n, ind, arg1, save1, ifthen;
-
-    n = length(arglist);
-    ind = makeind("case", n, th);
-    if (n == 1) {
-	arg1 = car(arglist);
-	save1 = sp[th];
-
-	if (!(listp(arg1) && case_list_p(arg1)))
-	    exception(ILLEGAL_ARGS, ind, arg1, th);
-
-	while (!(predicatep(arg1) || builtinp(arg1) || compiledp(arg1)
-		 || conjunctionp(arg1) || disjunctionp(arg1))) {
-	    ifthen = car(arg1);
-	    if (prove_all(cadr(ifthen), sp[th], th) == YES)
-		return (prove_all
-			(addtail_body(rest, caddr(ifthen), th), sp[th],
-			 th));
-	    arg1 = cdr(arg1);
-	    unbind(save1, th);
-	}
-
-	return (prove_all(addtail_body(rest, arg1, th), sp[th], th));
-
-    }
-    exception(ARITY_ERR, ind, arglist, th);
-    return (NO);
-}
-
 
 double getETime()
 {

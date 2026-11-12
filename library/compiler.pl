@@ -1691,21 +1691,6 @@ gen_dyn_elt((X,Y)) :-
     gen_dyn_elt(Y),
     write(')').
 
-
-% ifthenelse
-gen_dyn_elt((X->Y;Z)) :-
-    n_findatom(ifthenelse,builtin,A),
-    write('Jcons('),write(A),write(','),
-    write('Jlist3('),gen_dyn_elt(X),write(','),gen_dyn_elt(Y),write(','),gen_dyn_elt(Z),write('))').
-
-
-% ifthen
-gen_dyn_elt(X->Y) :-
-    n_findatom(ifthen,builtin,A),
-    write('Jcons('),write(A),write(','),
-    write('Jlist2('),gen_dyn_elt(X),write(','),gen_dyn_elt(Y),write('))').
-
-
 gen_dyn_elt((X;Y)) :-
     write('Jlist3(Jmakeope(";")),'),gen_dyn_elt(X),write(','),gen_dyn_elt(Y),write(')').
 
@@ -1853,16 +1838,12 @@ invoke_error(Message,Code) :-
 
 % deterministic body case. Each has cut or each is builtin or each is tail-recur 
 % G is gournd_variable
-det_body(Head,(_->_;_),_).       % a->b;c
 det_body(_,(_;_),_) :- !,fail.
 det_body(_,((_;_),_),_) :- !,fail.
 det_body(Head,(V is _,Y),G) :-
     det_body(Head,Y,[V|G]).
 det_body(Head,(X,Y),G) :-
     det_builtin(X,G),
-    det_body(Head,Y,G).
-det_body(Head,(X,Y),G) :-
-    X = (((_->_),_);_),
     det_body(Head,Y,G).
 det_body(Head,(X,Y),G) :-
     det_pass1(X),
@@ -2019,28 +2000,6 @@ gen_a_det_body(X >= Y) :-
     eval_form(Y),
     write(') && Jinc_proof(th)==YES)'),nl.
 
-gen_a_det_body((((X->Y),Y1);Z)) :-
-    case_arg((((X->Y),Y1);Z),L),
-    write('if (Jcall_det(Jmakesys("case"),Jwlist1('),
-    gen_a_argument(L),
-    write(',th),th) == YES && Jinc_proof(th)==YES)').
-
-gen_a_det_body((X->Y;Z)) :-
-    case_arg((X->Y;Z),L),
-    write('if (Jcall_det(Jmakesys("case"),Jwlist1('),
-    gen_a_argument(L),
-    write(',th),th) == YES && Jinc_proof(th)==YES)').
-
-gen_a_det_body((X->Y;Z)) :-
-    n_findatom(case,builtin,A),
-    write('Jwcons('),
-    write(A),
-    write(','),
-    write('Jwlist1('),
-    case_arg((X->Y;Z),L),
-    gen_argument_list(L),
-    write(',th),th)').
-
 
 % use_module
 gen_a_det_body(use_module(X)) :-
@@ -2078,34 +2037,6 @@ gen_a_det_body(X) :-
 
 gen_a_det_body(X) :-
     invoke_error('illegal body ',X).
-
-
-% case
-% transform if-then-else / if-then 
-% to argument of case/1
-case_arg((Cond -> Then ; Else), [Cond -> Then1 | Else1]) :-
-    case_body(Then, Then1),
-    case_body(Else, Else1).
-
-case_arg((Cond -> Then), [Cond -> Then1 | true]) :-
-    case_body(Then, Then1).
-
-% parse body recursively
-case_body((P,Q), (P1,Q1)) :-
-    case_body(P, P1),
-    case_body(Q, Q1).
-
-% nested if-then-else transform case/1 
-case_body((Cond -> Then ; Else), Case) :-
-    case_arg((Cond -> Then ; Else), L),
-    Case =.. [case, L].
-
-% nested if-then transform to case/1.
-case_body((Cond -> Then), Case) :-
-    case_arg((Cond -> Then), L),
-    Case =.. [case, L].
-
-case_body(X, X).
 
 
 
