@@ -1,5 +1,5 @@
 
-:- module(jump,[compile_file/1,compile_file/2,type/2,mode/3]).
+:- module(jump,[compile_file/1,compile_file/2]).
 
 
 append([], Ys, Ys).
