@@ -1,4 +1,4 @@
-# N-Prolog User's Manual
+# SCBM-Prolog User's Manual
 
 ## Built-in Operators
 
