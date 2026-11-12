@@ -1,5 +1,5 @@
 % Benchmark and Measurement Program (DEC-10 Prolog)
-% Originally written by D.H.Warren. Modified for N-Prolog by K.Sasagawa
+% Originally written by D.H.Warren. Modified for SCBM-Prolog by K.Sasagawa
 
 % Reverse a list
 nreverse([X|L0], L) :- nreverse(L0, L1), concatenate(L1, [X], L).
@@ -34,12 +34,6 @@ list50([27, 74, 17, 33, 94, 18, 46, 83, 65, 2, 32, 53, 28, 85, 99, 47, 28, 82, 6
         55, 29, 39, 81, 90, 37, 10, 0, 66, 51, 7, 21, 85, 27, 31, 63, 75, 4, 95, 99, 11, 28, 61,
         74, 18, 92, 40, 55, 59, 8]).
 
-qsorttest(0).
-qsorttest(N) :- 
-    %list50(X),qsort(X,_,[]),
-    %N1 is N-1,
-    write(N1),
-    qsorttest(N1).
 
 /*
 % Repeat a procedure
