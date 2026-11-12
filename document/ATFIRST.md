@@ -66,9 +66,6 @@ This is a description of the DCG library.
 ![Edlog](EDLOG.md)
 This is a description of Edlog, a CUI editor dedicated to N-Prolog.
 
-![History](HISTORY.md)
-This is the development history of N-Prolog.
-
 ![JSON](JSON.md)
 This is a description of the JSON library.
 

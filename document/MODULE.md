@@ -1,5 +1,5 @@
 # Module
-N-Prolog has several modularized libraries.
+SCBM-Prolog has several modularized libraries.
 
 - Compiler 
  use_module(compiler).

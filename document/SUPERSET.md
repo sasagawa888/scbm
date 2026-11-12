@@ -95,7 +95,7 @@ The following extension functions respect ISO-Prolog as much as possible, but th
 - stream_property/2
 
 - dynamic/1
-In N-Prolog, when foo/1 is given, the entire foo predicate is defined as dynamic.
+In SCBM-Prolog, when foo/1 is given, the entire foo predicate is defined as dynamic.
 
 - initialization/1
 
@@ -167,7 +167,7 @@ It is also possible to compile the module. In this case, use_module/1 first look
 In ARITY/PROLOG, the ^ symbol is used for exponentiation. However, since ** is used for exponentiation in ISO-Prolog, we allow this as well.
 
 ```
-N-Prolog Ver 3.80
+SCBM-Prolog 
 ?- X is 2**3.
 X = 8 .
 yes
@@ -177,7 +177,7 @@ yes
 Also div is same meaning as //, like ISO.
 
 ```
-N-Prolog Ver 5.15 [30M cells]
+SCBM-Prolog 
 ?- X is 7 div 2.
 X = 3 .
 yes

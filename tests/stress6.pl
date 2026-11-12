@@ -22,11 +22,13 @@ df(s(s(M)), N) :- dnd(s(s(M)), N), df(s(M), N).
 
 dnd(M, N) :- quot(N, M, _, s(_)).
 
+primes(X) :- nat(X),prime(X).
+
 %?- nat(N), prime(N).
 /*
 ?- [-'tests/tamura.pl'].
 yes
-?- nat(N),prime(N).
+?- primes(N).
 N = s(s(0)) ;
 N = s(s(s(0))) ;
 N = s(s(s(s(s(0))))) ;
