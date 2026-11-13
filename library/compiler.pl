@@ -764,6 +764,28 @@ gen_nondet_body1((!,Y),A,M,N,H,P,V,D) :-
     write('pc[th] = Scut(pc[th],th); goto loop;'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
+/*
+% call 
+gen_nondet_body1((call(X),Y),A,M,N,H,P,V,D) :-
+    gen_label([P,A,M,N,join]),
+    gen_nondet_body_argument(Args,V),
+    gen_nondet_obj(P,A,M,N),
+    gen_pack_pointer(V,0),
+    N1 is N+1,
+    write('goto '),gen_goto([P,A,M,N1,join]),
+    gen_label([P,A,M,N]),
+    gen_unpack_pointer(V,0),
+    write('callarg = Jderef('),write(X),write(',th'),nl,
+    write('type = Spred_type(callarg,th);'),
+    write("switch(type){")
+    gen_nondet_obj(P,A,M,N),
+    write('clause = Sget_choice(th);'),nl,
+    write('arglist = Sget_arg(th);'),nl,
+    write('goto '),gen_goto([Pred,Arity]),nl,
+    gen_nondet_body1(Y,A,M,N1,H,P,V,D).
+*/
+
+
 % builtin
 gen_nondet_body1((X,Y),A,M,N,H,P,V,D) :-
     n_property(X,builtin),
