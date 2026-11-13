@@ -513,6 +513,7 @@ gen_SCBM_function :-
     write('pc[th] = 0; lp[th] = 0; op[th] = 0;'),nl,
     gen_pred_switch,
     write('loop:'),nl,
+    write('if(pc[th] == NIL) goto success;'),nl,
     write('next = proof_goto[blist[pc[th]][th].entity][th];'),nl,
     write('clause = Sget_choice(th);'),nl,
     write("arglist = Sget_arg(th);"),nl,
