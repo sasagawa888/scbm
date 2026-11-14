@@ -788,6 +788,30 @@ int b_n_property(int arglist, int rest, int th)
     return (NO);
 }
 
+/*
+builtin 0
+compiled nondet 1
+comiled det 2
+compiled tail 3
+dynamic 4
+other 999
+*/
+int get_prop(int x)
+{
+	if(builtinp(x))
+		return(0);
+	else if(compiledp(x) && get_arity(x) == 1)
+		return(1);
+	else if(compiledp(x) && get_arity(x) == 2)
+		return(2);
+	else if(compiledp(x) && get_arity(x) == 3)
+		return(3);
+	else if(predicatep(x))
+		return(4);
+
+	return(999);
+}
+
 
 int b_n_imported_predicate(int arglist, int rest, int th)
 {

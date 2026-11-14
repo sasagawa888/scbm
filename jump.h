@@ -207,6 +207,11 @@ static inline int Jdebug(x) {
     return f1[DEBUG_IDX](x);
 }
 
+static inline int Jget_prop(x) {
+    return f1[GET_PROP_IDX](x);
+}
+
+
 static inline int Jcons(int x, int y) {
     return f2[CONS_IDX](x, y);
 }

@@ -96,6 +96,7 @@ if (hmod == NULL) {
     init_f1(BIGX_TO_PARMANENT_IDX, (tpred) bigx_to_parmanent);
     init_f1(ARITY_COUNT_IDX, (tpred) arity_count);
     init_f1(DEBUG_IDX, (tpred) debug);
+    init_f1(GET_PROP_IDX, (tpred) get_prop);
 
     
     //argument-2 type

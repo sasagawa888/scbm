@@ -173,7 +173,7 @@ enum { CAR_IDX, CDR_IDX, CADR_IDX, CADDR_IDX, CAAR_IDX, CADAR_IDX, PRINT_IDX,
        LENGTH_IDX,  GET_INT_IDX, INTEGER_IDX, ABS_IDX,
        LISTP_IDX,  STRUCTUREP_IDX, VARIABLEP_IDX, GET_SP_IDX, GET_WP_IDX, GET_AC_IDX, INC_PROOF_IDX,
        MAKEVARIANT_IDX, ADD_DYNAMIC_IDX, BIGX_TO_PARMANENT_IDX, ARITY_COUNT_IDX,  
-       DEBUG_IDX, 
+       DEBUG_IDX, GET_PROP_IDX,
        NUM_FN1S
 };
 
@@ -1213,6 +1213,7 @@ int get_free(int x);
 int get_goal(int x);
 int get_nonfree(int x, int y, int z);
 int get_predicate(int x);
+int get_prop(int x);
 int getatom(char *name, int property, int index);
 int getsym(char *name, int index);
 int gettrace(int goal);
