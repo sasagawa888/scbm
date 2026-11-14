@@ -2017,6 +2017,8 @@ invoke_error(Message,Code) :-
 % G is gournd_variable
 det_body(_,(_;_),_) :- !,fail.
 det_body(_,((_;_),_),_) :- !,fail.
+det_body(_,call(_),_) :- !,fail.
+det_body(_,(call(_),_),_) :- !,fail.
 det_body(Head,(V is _,Y),G) :-
     det_body(Head,Y,[V|G]).
 det_body(Head,(X,Y),G) :-
