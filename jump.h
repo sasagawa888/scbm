@@ -596,15 +596,18 @@ typedef struct bidirectional {
 
 #define LISTSIZE 50000
 #define OBJSIZE 50000
+#define BUILTIN 0
 #define NONDET  1
 #define DET 2
+#define TAIL 3
+#define DYN 4
 static bidirectional blist[LISTSIZE][THREADSIZE];
 static int proof_obj[OBJSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static void* proof_goto[OBJSIZE][THREADSIZE];
-static int lp[THREADSIZE];  //list pointer
-static int op[THREADSIZE];  //object pointer
-static int pc[THREADSIZE];  //proof counter
-
+int lp[THREADSIZE];  //list pointer
+int op[THREADSIZE];  //object pointer
+int pc[THREADSIZE];  //proof counter
+int call_flag;
 
 static inline int Sconc(int x, int y, int th)
 {

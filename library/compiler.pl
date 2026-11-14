@@ -507,7 +507,7 @@ gen_head1([X|Xs],N) :-
 gen_SCBM_function :-
     write('static int user_scbm(int pred, int arity, int clause, int arglist, int rest, int th){'),nl,
     write('void *next;'),nl,
-    write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number,front,back,i'),
+    write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number,front,back,i,callpred,callprop'),
     gen_all_variable,write(';'),nl,
     write('int body[10][THREADSIZE];'),nl,
     write('pc[th] = 0; lp[th] = 0; op[th] = 0;'),nl,
@@ -764,26 +764,33 @@ gen_nondet_body1((!,Y),A,M,N,H,P,V,D) :-
     write('pc[th] = Scut(pc[th],th); goto loop;'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
 
-/*
-% call 
+
+% call  （Rough Sketch）
 gen_nondet_body1((call(X),Y),A,M,N,H,P,V,D) :-
     gen_label([P,A,M,N,join]),
     gen_nondet_body_argument(Args,V),
-    gen_nondet_obj(P,A,M,N),
+    gen_det_obj(P,A,M,N),
     gen_pack_pointer(V,0),
     N1 is N+1,
     write('goto '),gen_goto([P,A,M,N1,join]),
     gen_label([P,A,M,N]),
     gen_unpack_pointer(V,0),
-    write('callarg = Jderef('),write(X),write(',th'),nl,
-    write('type = Spred_type(callarg,th);'),
-    write("switch(type){")
-    gen_nondet_obj(P,A,M,N),
-    write('clause = Sget_choice(th);'),nl,
-    write('arglist = Sget_arg(th);'),nl,
-    write('goto '),gen_goto([Pred,Arity]),nl,
+    write('callpred = Jderef('),write(X),write(',th'),nl,
+    write('callprop = Sget_prop(callpred);'),nl,
+    write('switch(callprop){'),nl,
+    write('case(NONDET):'),nl,
+    write('call_flag = 1;'),nl,
+    write('pc[th] = Jcall_nondet(Jcar(callpred),Jcdr(callpred,th),th);'),nl,
+    write('call_flag = 0;'),nl,
+    write('goto loop;'),nl,
+    write('case(BUILTIN):'),nl,
+    write('case(DET):'),nl,
+    write('case(TAIL):'),nl,
+    write('if(Jcall_det(Jcar(callpred,Jcdr(callpred,th),th)==YES) goto success;'),nl,
+    write('else goto false;'),nl,
+    write('}'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
-*/
+
 
 
 % builtin
