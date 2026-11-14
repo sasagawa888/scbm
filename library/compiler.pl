@@ -578,7 +578,10 @@ gen_arity_switch(P,[L|Ls]) :-
 gen_SCBM_function2 :-
     type(P,A,nondet),
     write(P),write('_'),write(A),write('entry:'),nl,
+    %write('if(call_flag){'),
     gen_nondet_init(P,A),
+    %write('} else {'),nl,
+    %gen_nondet_call(P,A),write'}'),nl,'
     write(P),write('_'),write(A),write(':'),nl,
     %write('printf("'),write(P),write(A),write('");'),
     %write('Jprint(Jderef(arglist,th));printf("  ");'),
@@ -786,7 +789,7 @@ gen_nondet_body1((call(X),Y),A,M,N,H,P,V,D) :-
     write('case(BUILTIN):'),nl,
     write('case(DET):'),nl,
     write('case(TAIL):'),nl,
-    write('if(Jcall_det(Jcar(callpred,Jcdr(callpred,th),th)==YES) goto success;'),nl,
+    write('if(Jcall_nondet(Jcar(callpred,Jcdr(callpred,th),th)==YES) goto success;'),nl,
     write('else goto false;'),nl,
     write('}'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V,D).
@@ -870,6 +873,13 @@ gen_nondet_init(P,A) :-
     write(P),write('_'),write(A),
     write(',-1,th),NIL,th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
+
+gen_nondet_call(P,A) :-
+    write('i = Sreplace(Smake_nondet(&&'),
+    write(P),write('_'),write(A),
+    write(',-1,th),th);'),nl,
+    write('Ssave_arg(arglist,th);'),nl,
+    write('return(i);'),nl.
 
 gen_nondet_obj(P,A,M,N) :-
     write('body['),write(N),write('][th] = Smake_nondet(&&'),
