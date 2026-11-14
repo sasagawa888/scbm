@@ -644,8 +644,22 @@ static inline int Scons(int x,int y,int th)
 
 static inline int Sreplace(int x,int y,int th)
 {
-    blist[x][th].entity = y;
-    return(x);
+    int addr,front,back;
+
+    if (lp[th] >= LISTSIZE - 1)
+	Jerrorcomp(RESOURCE_ERR, Jmakestr("overflow SCBM list size"), NIL);
+
+    lp[th]++;
+    addr = lp[th];
+    front = Sfront(x,th);
+    back = Sback(x,th);
+
+    blist[addr][th].entity = y;
+    blist[addr][th].front = front;
+    blist[front][th].back = addr;
+    blist[addr][th].back = back;
+    blist[back][th].front = addr;
+    return(addr);
 }
 
 
