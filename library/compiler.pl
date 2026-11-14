@@ -876,7 +876,7 @@ gen_nondet_init(P,A) :-
     write('Ssave_arg(arglist,th);'),nl.
 
 gen_nondet_call(P,A) :-
-    write('i = Sreplace(Smake_nondet(&&'),
+    write('i = pc[th] = Sreplace(pc[th],Smake_nondet(&&'),
     write(P),write('_'),write(A),
     write(',call_nth,th),th);'),nl,
     write('Ssave_arg(arglist,th);'),nl,
