@@ -59,7 +59,6 @@ void init_builtin(void)
     defbuiltin("bagof", b_bagof, 3);
     defbuiltin("%bagofhelper", b_bagofhelper, -1);
     defbuiltin("break", b_break, 0);
-    defbuiltin("call", b_call, 1);
     defbuiltin("chdir", b_chdir, 1);
     defbuiltin("close", b_close, 1);
     defbuiltin("clause", b_clause, 2);
