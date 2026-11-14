@@ -633,6 +633,13 @@ static inline int Scons(int x,int y,int th)
     return(addr);
 }
 
+static inline int Sreplace(int x,int y,int th)
+{
+    blist[x][th].entity = y;
+    return(x);
+}
+
+
 static inline int Sback(int x, int th)
 {
     return(blist[x][th].back);
