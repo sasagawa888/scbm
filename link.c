@@ -97,6 +97,8 @@ if (hmod == NULL) {
     init_f1(ARITY_COUNT_IDX, (tpred) arity_count);
     init_f1(DEBUG_IDX, (tpred) debug);
     init_f1(GET_PROP_IDX, (tpred) get_prop);
+    init_f1(GET_PRED_IDX, (tpred) get_pred);
+    init_f1(GET_ARG_IDX, (tpred) get_arg);
 
     
     //argument-2 type

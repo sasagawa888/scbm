@@ -211,6 +211,16 @@ static inline int Jget_prop(x) {
     return f1[GET_PROP_IDX](x);
 }
 
+static inline int Jget_pred(x) {
+    return f1[GET_PRED_IDX](x);
+}
+
+static inline int Jget_arg(x) {
+    return f1[GET_ARG_IDX](x);
+}
+
+
+
 
 static inline int Jcons(int x, int y) {
     return f2[CONS_IDX](x, y);

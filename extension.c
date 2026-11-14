@@ -812,6 +812,22 @@ int get_prop(int x)
 	return(999);
 }
 
+int get_pred(int x)
+{
+	if(atomp(x))
+		return(x);
+	else 
+		return(car(x));
+}
+
+int get_arg(int x)
+{
+	if(atomp(x))
+		return(NIL);
+	else 
+		return(cdr(x));
+}
+
 
 int b_n_imported_predicate(int arglist, int rest, int th)
 {
