@@ -608,6 +608,7 @@ int lp[THREADSIZE];  //list pointer
 int op[THREADSIZE];  //object pointer
 int pc[THREADSIZE];  //proof counter
 int call_flag;
+int call_nth;
 
 static inline int Sconc(int x, int y, int th)
 {
