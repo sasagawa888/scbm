@@ -509,7 +509,7 @@ gen_SCBM_function :-
     write('void *next;'),nl,
     write('int arg1,arg2,arg3,arg4,arg5,aeg6,arg7,arg8,arg9,arg10,subr_number,front,back,i,callpred,callprop'),
     gen_all_variable,write(';'),nl,
-    write('int body[10][THREADSIZE];'),nl,
+    write('int body[10][THREADSIZE], body1[10][THREADSIZE];'),nl,
     write('pc[th] = 0; lp[th] = 0; op[th] = 0;'),nl,
     gen_pred_switch,
     write('loop:'),nl,
@@ -896,7 +896,15 @@ gen_det_obj(P,A,M,N) :-
 
 %--------disjunction---------------------------------------
 
-gen_disj_body(end_of_body,A,M,N,H,P,V,D) :-
+gen_disj_obj(P,A,M,N) :-
+    write('body1['),write(N),write('][th] = Smake_nondet(&&'),
+    write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N),
+    write(','),write(N),write(',th);'),nl,
+    write('Ssave_arg(arglist,th);'),nl.
+
+
+
+gen_disj_body(end_of_body,A,M,N,H,P,V) :-
     gen_label([P,A,M,N,join]),
     write('front = Sfront(pc[th],th);'),nl,
     write('back = Sback(pc[th],th);'),nl,
@@ -910,7 +918,7 @@ gen_disj_body(end_of_body,A,M,N,H,P,V,D) :-
     write('goto loop;'),nl.
 
 % nondet predicate
-gen_disj_body((X,Y),A,M,N,H,P,V,D) :-
+gen_disj_body((X,Y),A,M,N,H,P,V) :-
     n_property(X,predicate),
     X =.. [Pred|Args],
     functor(X,_,Arity),
@@ -927,20 +935,20 @@ gen_disj_body((X,Y),A,M,N,H,P,V,D) :-
     write('arglist = Sget_arg(th);'),nl,
     %write('Jdebug(th);'),
     write('goto '),gen_goto([Pred,Arity]),nl,
-    gen_disj_body(Y,A,M,N1,H,P,V,D).
+    gen_disj_body(Y,A,M,N1,H,P,V).
 
 % fail
-gen_disj_body((fail,Y),A,M,N,H,P,V,D) :-
+gen_disj_body((fail,Y),A,M,N,H,P,V) :-
     gen_label([P,A,M,N,join]),
     gen_det_obj(P,A,M,N),
     N1 is N+1,
     write('goto '),gen_goto([P,A,M,N1,join]),
     gen_label([P,A,M,N]),
     write('goto failse;'),nl,
-    gen_disj_body(Y,A,M,N1,H,P,V,D).
+    gen_disj_body(Y,A,M,N1,H,P,V).
 
 % cut
-gen_disj_body((!,Y),A,M,N,H,P,V,D) :-
+gen_disj_body((!,Y),A,M,N,H,P,V) :-
     gen_label([P,A,M,N,join]),
     gen_det_obj(P,A,M,N),
     N1 is N+1,
@@ -948,11 +956,11 @@ gen_disj_body((!,Y),A,M,N,H,P,V,D) :-
     gen_label([P,A,M,N]),
     gen_unpack_pointer(V,0),
     write('pc[th] = Scut(pc[th],th); goto loop;'),nl,
-    gen_disj_body(Y,A,M,N1,H,P,V,D).
+    gen_disj_body(Y,A,M,N1,H,P,V).
 
 
 % call  （Rough Sketch）
-gen_disj_body((call(X),Y),A,M,N,H,P,V,D) :-
+gen_disj_body((call(X),Y),A,M,N,H,P,V) :-
     gen_label([P,A,M,N,join]),
     gen_nondet_body_argument(Args,V),
     gen_det_obj(P,A,M,N),
@@ -975,12 +983,12 @@ gen_disj_body((call(X),Y),A,M,N,H,P,V,D) :-
     write('if(Jcallsubr(Jcar(callpred,Jcdr(callpred,th),th)==YES) goto success;'),nl,
     write('else goto false;'),nl,
     write('}'),nl,
-    gen_disj_body(Y,A,M,N1,H,P,V,D).
+    gen_disj_body(Y,A,M,N1,H,P,V).
 
 
 
 % builtin
-gen_disj_body((X,Y),A,M,N,H,P,V,D) :-
+gen_disj_body((X,Y),A,M,N,H,P,V) :-
     n_property(X,builtin),
     X =.. [Pred|Args],
     gen_label([P,A,M,N,join]),
@@ -997,10 +1005,10 @@ gen_disj_body((X,Y),A,M,N,H,P,V,D) :-
     %write('Jdebug(th);'),
     write('goto success;}'),nl,
     write('else goto failse;'),nl,
-    gen_disj_body(Y,A,M,N1,H,P,V,D).
+    gen_disj_body(Y,A,M,N1,H,P,V).
 
 % det tail
-gen_disj_body((X,Y),A,M,N,H,P,V,D) :-
+gen_disj_body((X,Y),A,M,N,H,P,V) :-
     functor(X,Pred,Arity),
     (type(Pred,Arity,det);type(Pred,Arity,tail)),
     X =.. [Pred|Args],
@@ -1017,11 +1025,11 @@ gen_disj_body((X,Y),A,M,N,H,P,V,D) :-
     write('if(Jcallsubr(subr_number,Jderef(arglist,th),NIL,th) == YES)'),nl,
     write('goto success;'),nl,
     write('else goto failse;'),nl,
-    gen_disj_body(Y,A,M,N1,H,P,V,D).
+    gen_disj_body(Y,A,M,N1,H,P,V).
 
 
-gen_disj_body(X,A,M,N,H,P,V,D) :-
-    gen_disj_body((X,end_of_body),A,M,N,H,P,V,D).
+gen_disj_body(X,A,M,N,H,P,V) :-
+    gen_disj_body((X,end_of_body),A,M,N,H,P,V).
 
 
 
