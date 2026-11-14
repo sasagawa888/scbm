@@ -608,7 +608,6 @@ int lp[THREADSIZE];  //list pointer
 int op[THREADSIZE];  //object pointer
 int pc[THREADSIZE];  //proof counter
 int call_flag;
-int call_nth;
 
 static inline int Sconc(int x, int y, int th)
 {
@@ -641,27 +640,6 @@ static inline int Scons(int x,int y,int th)
 
     return(addr);
 }
-
-static inline int Sreplace(int x,int y,int th)
-{
-    int addr,front,back;
-
-    if (lp[th] >= LISTSIZE - 1)
-	Jerrorcomp(RESOURCE_ERR, Jmakestr("overflow SCBM list size"), NIL);
-
-    lp[th]++;
-    addr = lp[th];
-    front = Sfront(x,th);
-    back = Sback(x,th);
-
-    blist[addr][th].entity = y;
-    blist[addr][th].front = front;
-    blist[front][th].back = addr;
-    blist[addr][th].back = back;
-    blist[back][th].front = addr;
-    return(addr);
-}
-
 
 static inline int Sback(int x, int th)
 {
@@ -705,6 +683,29 @@ static inline int Snondet(int x, int th)
     else 
         return(0);
 }
+
+// for call/1
+static inline int Sreplace(int x,int y,int th)
+{
+    int addr,front,back;
+
+    if (lp[th] >= LISTSIZE - 1)
+	Jerrorcomp(RESOURCE_ERR, Jmakestr("overflow SCBM list size"), NIL);
+
+    lp[th]++;
+    addr = lp[th];
+    front = Sfront(x,th);
+    back = Sback(x,th);
+
+    blist[addr][th].entity = y;
+    blist[addr][th].front = front;
+    blist[front][th].back = addr;
+    blist[addr][th].back = back;
+    blist[back][th].front = addr;
+    return(addr);
+}
+
+
 
 // for cut operator
 static inline int Scut(int x, int th)
@@ -781,6 +782,9 @@ static inline int Smake_nondet(void* x, int n, int th)
     proof_obj[op[th]][PROP_SCBM][th] = NONDET;
     if(n == 0)
         proof_obj[op[th]][FIRST_SCBM][th] = pc[th];
+    else if(call_flag)
+        proof_obj[op[th]][FIRST_SCBM][th] = 
+            proof_obj[blist[pc[th]][th].entity][FIRST_SCBM][th];
     else 
         proof_obj[op[th]][FIRST_SCBM][th] = NIL;
     

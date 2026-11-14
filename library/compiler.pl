@@ -782,7 +782,6 @@ gen_nondet_body1((call(X),Y),A,M,N,H,P,V,D) :-
     write('callprop = Sget_prop(callpred);'),nl,
     write('switch(callprop){'),nl,
     write('case(NONDET):'),nl,
-    write('call_nth = '),write(N),write(';'),
     write('call_flag = 1;'),nl,
     write('pc[th] = Jcallsubr(Jcar(callpred),Jcdr(callpred,th),th);'),nl,
     write('call_flag = 0;'),nl,
@@ -878,7 +877,7 @@ gen_nondet_init(P,A) :-
 gen_nondet_call(P,A) :-
     write('i = pc[th] = Sreplace(pc[th],Smake_nondet(&&'),
     write(P),write('_'),write(A),
-    write(',call_nth,th),th);'),nl,
+    write(',-1,th),th);'),nl,
     write('Ssave_arg(arglist,th);'),nl,
     write('return(i);'),nl.
 
