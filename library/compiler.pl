@@ -768,29 +768,29 @@ gen_nondet_body1((!,Y),A,M,N,H,P,V) :-
     gen_nondet_body1(Y,A,M,N1,H,P,V).
 
 
-% call  （Rough Sketch）
+% call 
 gen_nondet_body1((call(X),Y),A,M,N,H,P,V) :-
     gen_label([P,A,M,N,join]),
-    gen_nondet_body_argument(Args,V),
+    gen_nondet_body_argument(X,V),
     gen_det_obj(P,A,M,N),
     gen_pack_pointer(V,0),
     N1 is N+1,
     write('goto '),gen_goto([P,A,M,N1,join]),
     gen_label([P,A,M,N]),
     gen_unpack_pointer(V,0),
-    write('callpred = Jderef('),write(X),write(',th'),nl,
+    write('callpred = Jderef(arglist,th);'),nl,
     write('callprop = Sget_prop(callpred);'),nl,
     write('switch(callprop){'),nl,
     write('case(NONDET):'),nl,
     write('call_flag = 1;'),nl,
-    write('pc[th] = Jcallsubr(Jcar(callpred),Jcdr(callpred,th),th);'),nl,
+    write('pc[th] = Jcallsubr(Jcar(callpred),Jcdr(callpred),NIL,th);'),nl,
     write('call_flag = 0;'),nl,
     write('goto loop;'),nl,
     write('case(BUILTIN):'),nl,
     write('case(DET):'),nl,
     write('case(TAIL):'),nl,
-    write('if(Jcallsubr(Jcar(callpred,Jcdr(callpred,th),th)==YES) goto success;'),nl,
-    write('else goto false;'),nl,
+    write('if(Jcallsubr(Jcar(callpred),Jcdr(callpred),NIL,th)==YES) goto success;'),nl,
+    write('else goto failse;'),nl,
     write('}'),nl,
     gen_nondet_body1(Y,A,M,N1,H,P,V).
 
@@ -973,29 +973,29 @@ gen_disj_body((!,Y),A,M,N,H,P,V,D) :-
     gen_disj_body(Y,A,M,N,H,P,V,D).
 
 
-% call  （Rough Sketch）
+% call  
 gen_disj_body((call(X),Y),A,M,N,H,P,V,D) :-
     gen_label([P,A,M,N,D,join]),
-    gen_nondet_body_argument(Args,V),
+    gen_nondet_body_argument(X,V),
     gen_disj_det_obj(P,A,M,N,D),
     gen_pack_pointer(V,0),
     D1 is D+1,
     write('goto '),gen_goto([P,A,M,N,D,join]),
     gen_label([P,A,M,N,D]),
     gen_unpack_pointer(V,0),
-    write('callpred = Jderef('),write(X),write(',th'),nl,
+    write('callpred = Jderef(arglist,th'),nl,
     write('callprop = Sget_prop(callpred);'),nl,
     write('switch(callprop){'),nl,
     write('case(NONDET):'),nl,
     write('call_flag = 1;'),nl,
-    write('pc[th] = Jcallsubr(Jcar(callpred),Jcdr(callpred,th),th);'),nl,
+    write('pc[th] = Jcallsubr(Jcar(callpred),Jcdr(callpred),NIL,th);'),nl,
     write('call_flag = 0;'),nl,
     write('goto loop;'),nl,
     write('case(BUILTIN):'),nl,
     write('case(DET):'),nl,
     write('case(TAIL):'),nl,
-    write('if(Jcallsubr(Jcar(callpred,Jcdr(callpred,th),th)==YES) goto success;'),nl,
-    write('else goto false;'),nl,
+    write('if(Jcallsubr(Jcar(callpred),Jcdr(callpred),NIL,th)==YES) goto success;'),nl,
+    write('else goto failse;'),nl,
     write('}'),nl,
     gen_disj_body(Y,A,M,N,H,P,V,D).
 
