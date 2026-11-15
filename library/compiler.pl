@@ -578,10 +578,10 @@ gen_arity_switch(P,[L|Ls]) :-
 gen_SCBM_function2 :-
     type(P,A,nondet),
     write(P),write('_'),write(A),write('entry:'),nl,
-    %write('if(call_flag){'),
+    write('if(!call_flag){'),
     gen_nondet_init(P,A),
-    %write('} else {'),nl,
-    %gen_nondet_call(P,A),write'}'),nl,'
+    write('} else {'),nl,
+    gen_nondet_call(P,A),write('}'),nl,
     write(P),write('_'),write(A),write(':'),nl,
     %write('printf("'),write(P),write(A),write('");'),
     %write('Jprint(Jderef(arglist,th));printf("  ");'),
