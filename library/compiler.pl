@@ -729,7 +729,6 @@ gen_nondet_body1(end_of_body,A,M,N,H,P,V) :-
 % disjunction
 gen_nondet_body1((X;Y),A,M,N,H,P,V) :-
     gen_label([P,A,M,N,join]),
-    gen_nondet_body_argument(Args,V),
     gen_nondet_obj(P,A,M,N),
     gen_pack_pointer(V,0),
     N1 is N+1,
@@ -927,14 +926,14 @@ gen_disj_obj(P,A,M,N) :-
 
 
 gen_disj_nondet_obj(P,A,M,N,D) :-
-    write('body1['),write(N),write('][th] = Smake_nondet(&&'),
+    write('body1['),write(D),write('][th] = Smake_nondet(&&'),
     write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N),write('_'),write(D),
     write(','),write(N),write(',th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
 
 
 gen_disj_det_obj(P,A,M,N,D) :-
-    write('body1['),write(N),write('][th] = Smake_det(&&'),
+    write('body1['),write(D),write('][th] = Smake_det(&&'),
     write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N),write('_'),write(D),
     write(','),write(N),write(',th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
@@ -965,7 +964,7 @@ gen_disj_body((X,Y),A,M,N,H,P,V,D) :-
     gen_disj_nondet_obj(P,A,M,N,D),
     gen_pack_pointer(V,0),
     D1 is D+1,
-    write('goto '),gen_goto([P,A,M,N,D,join]),
+    write('goto '),gen_goto([P,A,M,N,D1,join]),
     gen_label([P,A,M,N,D]),
     gen_unpack_pointer(V,0),
     write('clause = Sget_choice(th);'),nl,
@@ -979,7 +978,7 @@ gen_disj_body((fail,Y),A,M,N,H,P,V,D) :-
     gen_label([P,A,M,N,D,join]),
     gen_disj_det_obj(P,A,M,N,D),
     D1 is D+1,
-    write('goto '),gen_goto([P,A,M,N,D,join]),
+    write('goto '),gen_goto([P,A,M,N,D1,join]),
     gen_label([P,A,M,N,D]),
     write('goto failse;'),nl,
     gen_disj_body(Y,A,M,N,H,P,V,D1).
@@ -989,7 +988,7 @@ gen_disj_body((!,Y),A,M,N,H,P,V,D) :-
     gen_label([P,A,M,N,D,join]),
     gen_disj_det_obj(P,A,M,N,D),
     D1 is D+1,
-    write('goto '),gen_goto([P,A,M,N,D,join]),
+    write('goto '),gen_goto([P,A,M,N,D1,join]),
     gen_label([P,A,M,N,D]),
     gen_unpack_pointer(V,0),
     write('pc[th] = Scut(pc[th],th); goto loop;'),nl,
@@ -1003,7 +1002,7 @@ gen_disj_body((call(X),Y),A,M,N,H,P,V,D) :-
     gen_disj_det_obj(P,A,M,N,D),
     gen_pack_pointer(V,0),
     D1 is D+1,
-    write('goto '),gen_goto([P,A,M,N,D,join]),
+    write('goto '),gen_goto([P,A,M,N,D1,join]),
     gen_label([P,A,M,N,D]),
     gen_unpack_pointer(V,0),
     write('callpred = Jderef(arglist,th);'),nl,
@@ -1033,7 +1032,7 @@ gen_disj_body((X,Y),A,M,N,H,P,V,D) :-
     gen_disj_det_obj(P,A,M,N,D),
     gen_pack_pointer(V,0),
     D1 is D+1,
-    write('goto '),gen_goto([P,A,M,N,D,join]),
+    write('goto '),gen_goto([P,A,M,N,D1,join]),
     gen_label([P,A,M,N,D]),
     gen_unpack_pointer(V,0),
     n_findatom(Pred,builtin,Num),
@@ -1054,7 +1053,7 @@ gen_disj_body((X,Y),A,M,N,H,P,V,D) :-
     gen_disj_det_obj(P,A,M,N,D),
     gen_pack_pointer(V,0),
     D1 is D+1,
-    write('goto '),gen_goto([P,A,M,N,D,join]),
+    write('goto '),gen_goto([P,A,M,N,D1,join]),
     gen_label([P,A,M,N,D]),
     gen_unpack_pointer(V,0),
     n_findatom(Pred,builtin,Num),
@@ -1066,7 +1065,7 @@ gen_disj_body((X,Y),A,M,N,H,P,V,D) :-
 
 
 gen_disj_body(X,A,M,N,H,P,V,D) :-
-    gen_disj_body((X,end_of_body),A,M,N,H,P,V,D1).
+    gen_disj_body((X,end_of_body),A,M,N,H,P,V,D).
 
 
 
