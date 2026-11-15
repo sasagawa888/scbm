@@ -745,7 +745,8 @@ gen_nondet_body1((X;Y),A,M,N,H,P,V) :-
     N2 is N+100,
     gen_disj_body(Y,A,M,N2,H,P,V,0),
     write('default: goto allfail;'),nl,
-    write('}'),nl.
+    write('}'),nl,
+    gen_nondet_body1(end_of_body,A,M,N1,H,P,V).
 
 
 % nondet predicate
@@ -928,14 +929,14 @@ gen_disj_obj(P,A,M,N) :-
 gen_disj_nondet_obj(P,A,M,N,D) :-
     write('body1['),write(D),write('][th] = Smake_nondet(&&'),
     write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N),write('_'),write(D),
-    write(','),write(N),write(',th);'),nl,
+    write(','),write(D),write(',th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
 
 
 gen_disj_det_obj(P,A,M,N,D) :-
     write('body1['),write(D),write('][th] = Smake_det(&&'),
     write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N),write('_'),write(D),
-    write(','),write(N),write(',th);'),nl,
+    write(','),write(D),write(',th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
 
 
