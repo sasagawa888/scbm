@@ -137,7 +137,7 @@ gen_definition :-
 
 gen_definition1 :-
     n_reconsult_predicate(P),
-    not(n_dynamic_predicate(P)),
+    n_not(n_dynamic_predicate(P)),
     P \= cdeclare,
     P \= clibrary,
 	gen_pred_def(P),
@@ -2243,34 +2243,34 @@ analize_pred1(P,N,C) :-
     (retract(P1);true),
     assertz(type(P,N,dyn)),!.
 analize_pred1(P,N,C) :-
-    not(n_dynamic_predicate(P)),
+    n_not(n_dynamic_predicate(P)),
     length(C,M),
     tail_recursive(C,0,0,0,M,N),
     P1 =.. [type,P,_,_],
     (retract(P1);true),
     assertz(type(P,N,tail)),!.
 analize_pred1(P,N,C) :-
-    not(n_dynamic_predicate(P)),
+    n_not(n_dynamic_predicate(P)),
     length(C,M),
     deterministic(C,0,0,0,M),
     P1 =.. [type,P,_,_],
     (retract(P1);true),
     assertz(type(P,N,det)),!.
 analize_pred1(P,N,C) :-
-    not(n_dynamic_predicate(P)),
+    n_not(n_dynamic_predicate(P)),
     nondet_recursive(C,0),
     P1 =.. [type,P,_,_],
     (retract(P1);true),
     assertz(type(P,N,nondet)),!.
 analize_pred1(P,N,C) :-
-    not(n_dynamic_predicate(P)),
+    n_not(n_dynamic_predicate(P)),
     length(C,M),
     halt_check(C,0,0,M),
     P1 =.. [type,P,_,_],
     (retract(P1);true),
     assertz(type(P,N,halt)),!.
 analize_pred1(P,N,C) :-
-    not(n_dynamic_predicate(P)),
+    n_not(n_dynamic_predicate(P)),
     P1 =.. [type,P,_,_],
     (retract(P1);true),
     assertz(type(P,N,nondet)),!.
@@ -2327,7 +2327,7 @@ tail_recursive([(Head :- !)|Cs],T,P,H,A,N) :-
     tail_recursive(Cs,T,P,H1,A,N).
 tail_recursive([(Head :- Body)|Cs],T,P,H,A,N) :-
     independ_head(Head),
-    not(tail_body(Head,Body)),
+    n_not(tail_body(Head,Body)),
     det_body(Head,Body,[]),
     H1 is H+1,!,
     tail_recursive(Cs,T,P,H1,A,N).
@@ -2338,7 +2338,7 @@ tail_recursive([(Head :- Body)|Cs],T,P,H,A,N) :-
     independ_body(Head,Body1),
     det_body(Head,Body1,[]),
     tail_body(Head,Body),
-    not(tail_body(Head,Body1)), % ...,qsort(),qsort(). not tco
+    n_not(tail_body(Head,Body1)), % ...,qsort(),qsort(). not tco
     T1 is T+1,!,
     tail_recursive(Cs,T1,P,H,A,N).
 tail_recursive([X|Cs],D,P,H,A,N) :-
@@ -2436,7 +2436,7 @@ independ_body(Head,Body) :-
     independ_body1(A1,V).
 independ_body1(A,[]) :- !.
 independ_body1(A,[V|Vs]) :-
-    not(member(V,A)),
+    n_not(member(V,A)),
     independ_body1(A,Vs).
 independ_body1(A,[V|Vs]) :-
     member(V,A),!,fail.

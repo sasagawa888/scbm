@@ -35,7 +35,7 @@ char builtin[BUILTIN_NUMBER][30] = {
     { "display" }, { "put" }, { "get" }, { "get0" }, 
     { "get0_noecho" }, { "nl" }, { "read_string" },
     { "read_line" }, { "reset_op" }, { "skip" }, { "predicate_property" },
-    { "tab" }, { "fail" }, { "not" }, { "true" }, { "halt" }, { "abort" },
+    { "tab" }, { "fail" }, { "true" }, { "halt" }, { "abort" },
     { "listing" }, { "functor" }, { "arg" }, { "writeq" }, { "display" },
     { "ref" }, { "key" }, { "atom_string" }, { "write_canonical" },
     { "consult" }, { "reconsult" }, { "see" }, { "seeing" }, { "seen" },
