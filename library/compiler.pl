@@ -736,16 +736,17 @@ gen_nondet_body1((X;Y),A,M,N,H,P,V) :-
     write('goto '),gen_goto([P,A,M,N1,join]),
     gen_label([P,A,M,N]),
     gen_unpack_pointer(V,0),
+    write('clause = Sget_choice(th);'),nl,
     write('switch(clause){'),nl,
     write('case(0):'),nl,
     write('Sinc_choice(th);'),nl,
     gen_disj_body(X,A,M,N,H,P,V,0),
     write('case(1):'),nl,
     write('Sinc_choice(th);'),nl,
-    gen_disj_body(X,A,M,N,H,P,V,100),
-    write('default: goto allfail'),nl,
-    write('}'),nl,
-    gen_nondet_body1(Y,A,M,N1,H,P,V).
+    N2 is N+100,
+    gen_disj_body(Y,A,M,N2,H,P,V,0),
+    write('default: goto allfail;'),nl,
+    write('}'),nl.
 
 
 % nondet predicate
@@ -971,7 +972,7 @@ gen_disj_body((X,Y),A,M,N,H,P,V,D) :-
     write('arglist = Sget_arg(th);'),nl,
     %write('Jdebug(th);'),
     write('goto '),gen_goto([Pred,Arity]),nl,
-    gen_disj_body(Y,A,M,N,H,P,V,D).
+    gen_disj_body(Y,A,M,N,H,P,V,D1).
 
 % fail
 gen_disj_body((fail,Y),A,M,N,H,P,V,D) :-
@@ -981,7 +982,7 @@ gen_disj_body((fail,Y),A,M,N,H,P,V,D) :-
     write('goto '),gen_goto([P,A,M,N,D,join]),
     gen_label([P,A,M,N,D]),
     write('goto failse;'),nl,
-    gen_disj_body(Y,A,M,N,H,P,V,D).
+    gen_disj_body(Y,A,M,N,H,P,V,D1).
 
 % cut
 gen_disj_body((!,Y),A,M,N,H,P,V,D) :-
@@ -992,7 +993,7 @@ gen_disj_body((!,Y),A,M,N,H,P,V,D) :-
     gen_label([P,A,M,N,D]),
     gen_unpack_pointer(V,0),
     write('pc[th] = Scut(pc[th],th); goto loop;'),nl,
-    gen_disj_body(Y,A,M,N,H,P,V,D).
+    gen_disj_body(Y,A,M,N,H,P,V,D1).
 
 
 % call  
@@ -1005,7 +1006,7 @@ gen_disj_body((call(X),Y),A,M,N,H,P,V,D) :-
     write('goto '),gen_goto([P,A,M,N,D,join]),
     gen_label([P,A,M,N,D]),
     gen_unpack_pointer(V,0),
-    write('callpred = Jderef(arglist,th'),nl,
+    write('callpred = Jderef(arglist,th);'),nl,
     write('callprop = Jget_prop(callpred);'),nl,
     write('switch(callprop){'),nl,
     write('case(NONDET):'),nl,
@@ -1019,7 +1020,7 @@ gen_disj_body((call(X),Y),A,M,N,H,P,V,D) :-
     write('if(Jcallsubr(Jget_pred(callpred),Jget_arg(callpred),NIL,th)==YES) goto success;'),nl,
     write('else goto failse;'),nl,
     write('}'),nl,
-    gen_disj_body(Y,A,M,N,H,P,V,D).
+    gen_disj_body(Y,A,M,N,H,P,V,D1).
 
 
 
@@ -1041,7 +1042,7 @@ gen_disj_body((X,Y),A,M,N,H,P,V,D) :-
     %write('Jdebug(th);'),
     write('goto success;}'),nl,
     write('else goto failse;'),nl,
-    gen_disj_body(Y,A,M,N,H,P,V,D).
+    gen_disj_body(Y,A,M,N,H,P,V,D1).
 
 % det tail
 gen_disj_body((X,Y),A,M,N,H,P,V,D) :-
@@ -1061,11 +1062,11 @@ gen_disj_body((X,Y),A,M,N,H,P,V,D) :-
     write('if(Jcallsubr(subr_number,Jderef(arglist,th),NIL,th) == YES)'),nl,
     write('goto success;'),nl,
     write('else goto failse;'),nl,
-    gen_disj_body(Y,A,M,N,H,P,V,D).
+    gen_disj_body(Y,A,M,N,H,P,V,D1).
 
 
 gen_disj_body(X,A,M,N,H,P,V,D) :-
-    gen_disj_body((X,end_of_body),A,M,N,H,P,V,D).
+    gen_disj_body((X,end_of_body),A,M,N,H,P,V,D1).
 
 
 
