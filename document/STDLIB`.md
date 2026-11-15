@@ -17,10 +17,10 @@ The module exports the following predicates:
 
 ```prolog
 :- module(stdlib, [append/3, between/3, member/2,
-                  select/3, repeat/0, length/2]).
+                  select/3, repeat/0, length/2, not/1]).
 ```
 
-### Predicate summary
+### Predicate Summary
 
 | Predicate | Purpose | Backtracking |
 | --- | --- | --- |
@@ -30,6 +30,7 @@ The module exports the following predicates:
 | `select/3` | Remove one occurrence of an element from a list | Enumerates possible removals |
 | `repeat/0` | Succeed indefinitely on backtracking | Unbounded |
 | `length/2` | Compute the length of a finite, proper list | Deterministic for an instantiated finite list |
+| `not/1` | Succeed when a goal fails | At most one success |
 
 ## Predicate Reference
 
@@ -196,10 +197,65 @@ length([_|Xs], N) :-
 
 **Important limitation:** Unlike the relational `length/2` provided by some Prolog systems, this definition is intended for **length calculation**, not list generation. For example, `length(List, 3)` with `List` unbound does not construct a three-element list: recursive descent can continue indefinitely because the arithmetic step is performed only *after* the recursive call returns. Similarly, `length(List, N)` with both arguments unbound does not provide practical finite enumeration of lists.
 
+### `not(+Goal)`
+
+**Description:** Implements **negation as failure**. The predicate succeeds if `Goal` finitely fails and fails if `Goal` succeeds at least once.
+
+This is an operational form of negation, not classical logical negation.
+
+**Arguments:** `Goal` must be a callable, single Prolog goal. Conjunctions and disjunctions are not supported as arguments.
+
+**Examples:**
+
+```prolog
+?- not(true).
+no
+
+?- not(fail).
+yes
+
+?- not(integer(1)).
+no
+
+?- not(integer(a)).
+yes
+```
+
+**Semantics:**
+
+- If `Goal` succeeds at least once, `not(Goal)` fails.
+- If `Goal` finitely fails, `not(Goal)` succeeds exactly once.
+- Bindings produced while evaluating `Goal` do not escape into the surrounding computation.
+- If evaluation of `Goal` does not terminate, `not(Goal)` may also fail to terminate.
+
+**Definition:**
+
+The predicate is supplied as part of the standard library, using the SCBM-Prolog implementation of negation as failure.
+
+**Important limitations:**
+
+1. **Single-goal restriction:** Only one callable goal is accepted. Expressions containing conjunctions or disjunctions are outside the supported specification.
+2. **Non-classical negation:** `not/1` tests whether a goal can be proven by the current program. Failure to prove a goal is not equivalent to proving its classical negation.
+3. **Instantiation sensitivity:** Results may depend on whether variables are instantiated before the call.
+4. **No solution enumeration:** `not/1` produces at most one success and does not enumerate solutions of its argument.
+
+For example:
+
+```prolog
+?- not(member(a, [b,c])).
+yes
+
+?- not(member(a, [a,b])).
+no
+```
+
+The predicate is most useful when the variables involved in the tested goal are sufficiently instantiated.
+
 ## Operational Notes
 
-- These predicates are ordinary Prolog definitions, not special instructions in the SCBM-Prolog runtime.
+- These predicates are provided through the standard library rather than requiring user programs to define them individually.
 - Backtracking behavior follows the order of the clauses and goals shown above.
+- `not/1` uses negation as failure and does not perform classical logical negation.
 - The examples show logical answers in a conventional Prolog style. Exact prompts, continuation characters, and variable formatting may differ in the SCBM-Prolog REPL.
 - List-processing predicates are primarily intended for proper lists; calls with free or partially instantiated lists can create unbounded search spaces.
 - The library intentionally favors small, readable definitions over specialized optimizations or full compatibility with every ISO Prolog library predicate.
@@ -208,7 +264,9 @@ length([_|Xs], N) :-
 
 ```prolog
 % standard library
-:- module(stdlib,[append/3,between/3,member/2,select/3,repeat/0,length/2]).
+:- module(stdlib,
+          [append/3,between/3,member/2,
+           select/3,repeat/0,length/2,not/1]).
 
 append([], Ys, Ys).
 append([X|Xs], Ys, [X|Zs]) :-
@@ -221,13 +279,13 @@ between(L, H, X) :-
     L1 is L + 1,
     between(L1, H, X).
 
-member(X,[X|_]).
-member(X,[_|Xs]) :-
-    member(X,Xs).
+member(X, [X|_]).
+member(X, [_|Xs]) :-
+    member(X, Xs).
 
-select(X,[X|Xs],Xs).
-select(X,[Y|Ys],[Y|Zs]) :-
-    select(X,Ys,Zs).
+select(X, [X|Xs], Xs).
+select(X, [Y|Ys], [Y|Zs]) :-
+    select(X, Ys, Zs).
 
 repeat.
 repeat :- repeat.
@@ -236,3 +294,8 @@ length([], 0).
 length([_|Xs], N) :-
     length(Xs, M),
     N is M + 1.
+
+% Negation as failure
+not(X) :- call(X), !, fail.
+not(_).
+```
