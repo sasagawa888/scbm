@@ -1,5 +1,5 @@
 % standard library 
-:- module(stdlib,[append/3,between/3,member/2,select/3,repeat/0,length/2]).
+:- module(stdlib,[append/3,between/3,member/2,select/3,repeat/0,length/2,not/1]).
 
 
 append([], Ys, Ys).
@@ -31,3 +31,6 @@ length([], 0).
 length([_|Xs], N) :-
     length(Xs, M),
     N is M + 1.
+
+not(X) :- call(X), !, fail.
+not(_).
