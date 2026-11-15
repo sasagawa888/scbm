@@ -718,7 +718,6 @@ recursive_body(X,H) :-
 
 % X=body A=arity Mth clause H=Head P=predname V=variant T=Type of before
 gen_nondet_body(X,A,M,H,P,V) :-
-    n_atom_convert(P,P1),
     gen_nondet_body1(X,A,M,0,H,P,V).
 
 gen_nondet_body1(end_of_body,A,M,N,H,P,V) :-
@@ -871,6 +870,27 @@ gen_nondet_body1((X,Y),A,M,N,H,P,V) :-
 gen_nondet_body1(X,A,M,N,H,P,V) :-
     gen_nondet_body1((X,end_of_body),A,M,N,H,P,V).
 
+gen_label([P|Xs]) :-
+    n_atom_convert(P,P1),
+    gen_label_raw([P1|Xs]).
+
+gen_label_raw([X]) :-
+    write(X),write(':'),nl.
+gen_label_raw([X|Xs]) :-
+    write(X),write('_'),
+    gen_label_raw(Xs).
+
+gen_goto([P|Xs]) :-
+    n_atom_convert(P,P1),
+    gen_goto_raw([P1|Xs]).
+
+gen_goto_raw([X]) :-
+    write(X),write(';'),nl.
+gen_goto_raw([X|Xs]) :-
+    write(X),write('_'),
+    gen_goto_raw(Xs).
+
+/*
 gen_label([X]) :- write(X),write(':'),nl.
 gen_label([X|Xs]) :-
     write(X),write('_'),
@@ -880,7 +900,7 @@ gen_goto([X]) :- write(X),write(';'),nl.
 gen_goto([X|Xs]) :-
     write(X),write('_'),
     gen_goto(Xs).
-
+*/
 gen_nondet_body_argument(Args,Vars) :-
     write('arglist = '),gen_a_argument(Args),write(';'),nl.
 
