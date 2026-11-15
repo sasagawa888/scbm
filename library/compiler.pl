@@ -540,7 +540,8 @@ gen_all_variable1([P|Ps],Vars) :-
 
 gen_all_variable2([]).
 gen_all_variable2([V|Vs]) :-
-    write(','),write(V),
+    n_atom_convert(V,V1),
+    write(','),write(V1),
     gen_all_variable2(Vs).
 
 gen_SCBM_function1 :-
@@ -890,33 +891,28 @@ gen_goto_raw([X|Xs]) :-
     write(X),write('_'),
     gen_goto_raw(Xs).
 
-/*
-gen_label([X]) :- write(X),write(':'),nl.
-gen_label([X|Xs]) :-
-    write(X),write('_'),
-    gen_label(Xs).
-
-gen_goto([X]) :- write(X),write(';'),nl.
-gen_goto([X|Xs]) :-
-    write(X),write('_'),
-    gen_goto(Xs).
-*/
 gen_nondet_body_argument(Args,Vars) :-
     write('arglist = '),gen_a_argument(Args),write(';'),nl.
 
 
 gen_pack_pointer([],_).
 gen_pack_pointer([L|Ls],N) :-
-    write('proof_obj[op[th]]['),write(N),write('][th] = '),write(L),write(';'),nl,
+    n_atom_convert(L,L1),
+    write('proof_obj[op[th]]['),write(N),write('][th] = '),
+    write(L1),write(';'),nl,
     N1 is N+1,
     gen_pack_pointer(Ls,N1).
 
 
 gen_unpack_pointer([],_).
 gen_unpack_pointer([L|Ls],N) :-
-    write(L),write('= proof_obj[Sentity(pc[th],th)]['),write(N),write('][th];'),nl,
+    n_atom_convert(L,L1),
+    write(L1),
+    write('= proof_obj[Sentity(pc[th],th)]['),
+    write(N),write('][th];'),nl,
     N1 is N+1,
     gen_unpack_pointer(Ls,N1).
+
 
    
 gen_nondet_init(P,A) :-
