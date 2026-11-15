@@ -545,7 +545,8 @@ gen_all_variable2([V|Vs]) :-
 
 gen_SCBM_function1 :-
     type(P,A,nondet),
-    write(P),write(':'),nl,
+    n_atom_convert(P,P1),
+    write(P1),write(':'),nl,
     write('switch(arity){'),nl,
     n_arity_count(P,L),
     gen_arity_switch(P,L),
@@ -565,24 +566,27 @@ gen_pred_switch1 :-
     type(P,_,nondet),
     ctr_is(0,N),
     ctr_inc(0,_),
-    write('case '),write(N),write(': goto '),write(P),write(';'),nl,
+    n_atom_convert(P,P1),
+    write('case '),write(N),write(': goto '),write(P1),write(';'),nl,
     fail.
 gen_pred_switch1.
 
 
 gen_arity_switch(P,[]).
 gen_arity_switch(P,[L|Ls]) :-
-    write('case '),write(L),write(': goto '),write(P),write('_'),write(L),write('entry;'),nl,
+    n_atom_convert(P,P1),
+    write('case '),write(L),write(': goto '),write(P1),write('_'),write(L),write('entry;'),nl,
     gen_arity_switch(P,Ls).
 
 gen_SCBM_function2 :-
     type(P,A,nondet),
-    write(P),write('_'),write(A),write('entry:'),nl,
+    n_atom_convert(P,P1),
+    write(P1),write('_'),write(A),write('entry:'),nl,
     write('if(!call_flag){'),
-    gen_nondet_init(P,A),
+    gen_nondet_init(P1,A),
     write('} else {'),nl,
-    gen_nondet_call(P,A),write('}'),nl,
-    write(P),write('_'),write(A),write(':'),nl,
+    gen_nondet_call(P1,A),write('}'),nl,
+    write(P1),write('_'),write(A),write(':'),nl,
     %write('printf("'),write(P),write(A),write('");'),
     %write('Jprint(Jderef(arglist,th));printf("  ");'),
     write('Jinc_proof(th);'),nl,
@@ -597,9 +601,10 @@ gen_SCBM_function2.
 
 gen_clause_switch(P,A,M,M) :- !.
 gen_clause_switch(P,A,N,M) :-
+    n_atom_convert(P,P1),
     write('case '),write(N),write(':'),
     n_ifthenelse(N==0,write('Sset_state(th);'),true),
-    write('goto '),write(P),write('_'),write(A),write('_'),write(N),write(';'),nl,
+    write('goto '),write(P1),write('_'),write(A),write('_'),write(N),write(';'),nl,
     N1 is N+1,
     gen_clause_switch(P,A,N1,M).
 
@@ -611,11 +616,13 @@ gen_SCBM_function3 :-
 gen_SCBM_function3.
 
 gen_SCBM_function31(P,A,[],N) :- 
-    write(P),write('_'),write(A),write('_'),write(N),write(':'),nl,
+    n_atom_convert(P,P1),
+    write(P1),write('_'),write(A),write('_'),write(N),write(':'),nl,
     write('Srelease(th);'),nl,
     write('goto allfail;'),nl,nl,!.
 gen_SCBM_function31(P,A,[C|Cs],N) :-
-    write(P),write('_'),write(A),write('_'),write(N),write(':'),nl,
+    n_atom_convert(P,P1),
+    write(P1),write('_'),write(A),write('_'),write(N),write(':'),nl,
     N1 is N+1,
     gen_var_assign(1,A),!,
     write('Srelease(th);'),nl,
@@ -711,6 +718,7 @@ recursive_body(X,H) :-
 
 % X=body A=arity Mth clause H=Head P=predname V=variant T=Type of before
 gen_nondet_body(X,A,M,H,P,V) :-
+    n_atom_convert(P,P1),
     gen_nondet_body1(X,A,M,0,H,P,V).
 
 gen_nondet_body1(end_of_body,A,M,N,H,P,V) :-
@@ -905,37 +913,42 @@ gen_nondet_call(P,A) :-
     write('return(i);'),nl.
 
 gen_nondet_obj(P,A,M,N) :-
+    n_atom_convert(P,P1),
     write('body['),write(N),write('][th] = Smake_nondet(&&'),
-    write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N),
+    write(P1),write('_'),write(A),write('_'),write(M),write('_'),write(N),
     write(','),write(N),write(',th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
 
 
 gen_det_obj(P,A,M,N) :-
+    n_atom_convert(P,P1),
     write('body['),write(N),write('][th] = Smake_det(&&'),
-    write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N),
+    write(P1),write('_'),write(A),write('_'),write(M),write('_'),write(N),
     write(','),write(N),write(',th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
 
 %--------disjunction---------------------------------------
 
 gen_disj_obj(P,A,M,N) :-
+    n_atom_convert(P,P1),
     write('body1['),write(N),write('][th] = Smake_nondet(&&'),
-    write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N),
+    write(P1),write('_'),write(A),write('_'),write(M),write('_'),write(N),
     write(','),write(N),write(',th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
 
 
 gen_disj_nondet_obj(P,A,M,N,D) :-
+    n_atom_convert(P,P1),
     write('body1['),write(D),write('][th] = Smake_nondet(&&'),
-    write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N),write('_'),write(D),
+    write(P1),write('_'),write(A),write('_'),write(M),write('_'),write(N),write('_'),write(D),
     write(','),write(D),write(',th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
 
 
 gen_disj_det_obj(P,A,M,N,D) :-
+    n_atom_convert(P,P1),
     write('body1['),write(D),write('][th] = Smake_det(&&'),
-    write(P),write('_'),write(A),write('_'),write(M),write('_'),write(N),write('_'),write(D),
+    write(P1),write('_'),write(A),write('_'),write(M),write('_'),write(N),write('_'),write(D),
     write(','),write(D),write(',th);'),nl,
     write('Ssave_arg(arglist,th);'),nl.
 
@@ -1844,8 +1857,9 @@ Jadd_dynamic(dyn);
 */
 
 gen_dyn_pred(P) :-
+    n_atom_convert(P,P1),
     n_arity_count(P,L),
-    write('void '),write(P),write('(void){'),nl,
+    write('void '),write(P1),write('(void){'),nl,
     gen_dyn_pred1(P,L),
     write('}'),!.
 
