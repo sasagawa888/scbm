@@ -726,6 +726,28 @@ gen_nondet_body1(end_of_body,A,M,N,H,P,V) :-
     %write('printf("generate ");Sdump(th);'),
     write('goto loop;'),nl.
 
+% disjunction
+gen_nondet_body1((X;Y),A,M,N,H,P,V) :-
+    gen_label([P,A,M,N,join]),
+    gen_nondet_body_argument(Args,V),
+    gen_nondet_obj(P,A,M,N),
+    gen_pack_pointer(V,0),
+    N1 is N+1,
+    write('goto '),gen_goto([P,A,M,N1,join]),
+    gen_label([P,A,M,N]),
+    gen_unpack_pointer(V,0),
+    write('switch(clause){'),nl,
+    write('case(0):'),nl,
+    write('Sinc_choice(th);'),nl,
+    gen_disj_body(X,A,M,N,H,P,V,0),
+    write('case(1):'),nl,
+    write('Sinc_choice(th);'),nl,
+    gen_disj_body(X,A,M,N,H,P,V,100),
+    write('default: goto allfail'),nl,
+    write('}'),nl,
+    gen_nondet_body1(Y,A,M,N1,H,P,V).
+
+
 % nondet predicate
 gen_nondet_body1((X,Y),A,M,N,H,P,V) :-
     n_property(X,predicate),
