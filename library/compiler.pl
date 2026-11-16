@@ -1183,9 +1183,13 @@ eval_form(X) :-
     write('")').
 eval_form(X) :-
 	integer(X),
-    write('Jmakeint('),
-    write(X),
-    write(')').
+    X >= 0,
+    X1 is X+1073741824,
+    write(X1).
+eval_form(X) :-
+	integer(X),
+    X < 0,
+    write(X).
 eval_form(X) :-
 	float(X),
     write('Jmakestrflt("'),
@@ -1382,9 +1386,13 @@ gen_form(X) :-
     write('")').
 gen_form(X) :-
 	integer(X),
-    write('Jmakeint('),
-    write(X),
-    write(')').
+    X >= 0,
+    X1 is X+1073741824,
+    write(X1).
+gen_form(X) :-
+	integer(X),
+    X < 0,
+    write(X).
 gen_form(X) :-
 	float(X),
     write('Jmakestrflt("'),
@@ -1590,9 +1598,13 @@ gen_a_argument(X) :-
     write('")').
 gen_a_argument(X) :-
 	integer(X),
-    write('Jmakeint('),
-    write(X),
-    write(')').
+    X >= 0,
+    X1 is X+1073741824,
+    write(X1).
+gen_a_argument(X) :-
+	integer(X),
+    X < 0,
+    write(X).
 gen_a_argument(X) :-
 	float(X),
     write('Jmakestrflt("'),
@@ -1998,8 +2010,14 @@ gen_dyn_elt(X) :-
     n_longnum(X),
     write('Jmakestrlong("'),write(X),write('")').
 gen_dyn_elt(X) :-
-    integer(X),
-    write('Jmakeint('),write(X),write(')').
+	integer(X),
+    X >= 0,
+    X1 is X+1073741824,
+    write(X1).
+gen_dyn_elt(X) :-
+	integer(X),
+    X < 0,
+    write(X).
 gen_dyn_elt(X) :-
     float(X),
     write('Jmakestrflt("'),write(X),write('")').
