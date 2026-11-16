@@ -603,6 +603,15 @@ static inline double Jget_flt(int x)
 
 //-------------SCBM--------------------------
 
+enum {
+    DATA_SIZE = 64, 
+    SP_SCBM, CHOICE_SCBM, WP_SCBM, AC_SCBM,
+    ARGLIST_SCBM, LABEL_SCBM, PROP_SCBM, FIRST_SCBM,
+    SCBM_ELT_SIZE,
+};
+
+
+
 // for bidirectional list 
 typedef struct bidirectional {
     int back;

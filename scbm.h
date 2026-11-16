@@ -221,14 +221,6 @@ enum {
 };
 
 enum {
-    DATA_SIZE = 64, 
-    SP_SCBM, CHOICE_SCBM, WP_SCBM, AC_SCBM,
-    ARGLIST_SCBM, LABEL_SCBM, PROP_SCBM, FIRST_SCBM,
-    SCBM_ELT_SIZE,
-};
-
-
-enum {
     CONJ,
     RECUR,
 };
