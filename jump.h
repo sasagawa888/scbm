@@ -381,6 +381,12 @@ static inline int Jcopy_work(int x, int th) {
 }
 
 
+static inline int Jset_proof(int x, int th) {
+    return f2[SET_PROOF_IDX](x, th);
+}
+
+
+
 static inline int Jlist3(int x, int y, int z) {
     return f3[LIST3_IDX](x, y, z);
 }
@@ -616,8 +622,9 @@ static int proof_obj[OBJSIZE][SCBM_ELT_SIZE][THREADSIZE];
 static void* proof_goto[OBJSIZE][THREADSIZE];
 int lp[THREADSIZE];  //list pointer
 int op[THREADSIZE];  //object pointer
-int pc[THREADSIZE];  //proof counter
-int call_flag;
+int pc[THREADSIZE];  //proof pointer 
+int proof[THREADSIZE]; // proof counter
+int call_flag[THREADSIZE];
 
 static inline int Sconc(int x, int y, int th)
 {
@@ -792,7 +799,7 @@ static inline int Smake_nondet(void* x, int n, int th)
     proof_obj[op[th]][PROP_SCBM][th] = NONDET;
     if(n == 0)
         proof_obj[op[th]][FIRST_SCBM][th] = pc[th];
-    else if(call_flag)
+    else if(call_flag[th])
         proof_obj[op[th]][FIRST_SCBM][th] = 
             proof_obj[blist[pc[th]][th].entity][FIRST_SCBM][th];
     else 
@@ -864,6 +871,14 @@ static inline void Sset_state(int th)
     proof_obj[blist[pc[th]][th].entity][AC_SCBM][th] = Jget_ac(th);
     proof_obj[blist[pc[th]][th].entity][WP_SCBM][th] = Jget_wp(th);
 }
+
+
+static inline int Sinc_proof(int th)
+{
+    proof[th]++;
+    return(YES);
+}
+
 
 
 

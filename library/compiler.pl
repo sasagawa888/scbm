@@ -511,6 +511,7 @@ gen_SCBM_function :-
     gen_all_variable,write(';'),nl,
     write('int body[10][THREADSIZE], body1[10][THREADSIZE];'),nl,
     write('pc[th] = 0; lp[th] = 0; op[th] = 0;'),nl,
+    write('if(!call_flag[th]) proof[th] = 0;'),nl,
     gen_pred_switch,
     write('loop:'),nl,
     write('if(pc[th] == NIL) goto success;'),nl,
@@ -583,14 +584,14 @@ gen_SCBM_function2 :-
     type(P,A,nondet),
     n_atom_convert(P,P1),
     write(P1),write('_'),write(A),write('entry:'),nl,
-    write('if(!call_flag){'),
+    write('if(!call_flag[th]){'),
     gen_nondet_init(P1,A),
     write('} else {'),nl,
     gen_nondet_call(P1,A),write('}'),nl,
     write(P1),write('_'),write(A),write(':'),nl,
     %write('printf("'),write(P),write(A),write('");'),
     %write('Jprint(Jderef(arglist,th));printf("  ");'),
-    write('Jinc_proof(th);'),nl,
+    write('Sinc_proof(th);'),nl,
     write('switch(clause){'),nl,
     n_clause_count_with_arity(P,A,M),
     M1 is M+1,
@@ -636,7 +637,7 @@ gen_SCBM_function31(P,A,[C|Cs],N) :-
 gen_SCBM_function4 :-
     write('success:'),nl,
     write('if(Sback(pc[th],th) == NIL){'),nl,
-    write('if(Jprove_all(rest,Jget_sp(th),th) == YES) return(YES);'),nl,
+    write('if(Jprove_all(rest,Jget_sp(th),th) == YES) {Jset_proof(proof[th],th); return(YES);}'),nl,
     %write('printf("success ");Sdump(th);'),
     write('pc[th] = Sbacktrack1(pc[th],th);'),nl,
     %write('printf("backtrack ");Sdump(th);'),
@@ -650,13 +651,13 @@ gen_SCBM_function5 :-
     %write('printf("allfail ");Sdump(th);'),
     write('Sreset_choice(th);'),nl,
     write('pc[th] = Sbacktrack2(pc[th],th);'),nl,
-    write('if(pc[th] == NIL) return(NO);'),nl,
+    write('if(pc[th] == NIL) {Jset_proof(proof[th],th); return(NO);}'),nl,
     write('else goto loop;'),nl,
     write('failse:'),nl,
     %write('printf("failse ");Sdump(th);'),
     write('pc[th] = Sbacktrack1(pc[th],th);'),nl,
     %write('printf("failse ");Sdump(th);'),
-    write('if (pc[th] == NIL) return(NO);'),nl,
+    write('if (pc[th] == NIL) {Jset_proof(proof[th],th); return(NO);}'),nl,
     write('else goto loop;'),nl.
    
 
@@ -813,9 +814,9 @@ gen_nondet_body1((call(X),Y),A,M,N,H,P,V) :-
     write('callprop = Jget_prop(callpred);'),nl,
     write('switch(callprop){'),nl,
     write('case(NONDET):'),nl,
-    write('call_flag = 1;'),nl,
+    write('call_flag[th] = 1;'),nl,
     write('pc[th] = Jcallsubr(Jget_pred(callpred),Jget_arg(callpred),NIL,th);'),nl,
-    write('call_flag = 0;'),nl,
+    write('call_flag[th] = 0;'),nl,
     write('goto loop;'),nl,
     write('case(BUILTIN):'),nl,
     write('case(DET):'),nl,
@@ -1108,7 +1109,7 @@ gen_det_pred(P) :-
     write(P1),
     write('(int arglist, int rest, int th){'),nl,
     gen_var_declare(P),
-    write('Jinc_proof(th);'),nl,
+    write('Sinc_proof(th);'),nl,
     write('n = Jarity_count(arglist);'),nl,
     write('save1 = Jget_wp(th);'),nl,
     write('save2 = Jget_sp(th);'),nl,
@@ -1805,7 +1806,7 @@ gen_tail_pred(P) :-
     write('save1 = Jget_wp(th);'),nl,
     write('save2 = Jget_sp(th);'),nl,
     write('save3 = Jget_ac(th);'),nl,
-    write('Jinc_proof(th);'),nl,
+    write('Sinc_proof(th);'),nl,
     write('n = Jarity_count(arglist);'),nl,
     n_arity_count(P,L),
     gen_tail_pred1(P,L),
@@ -2197,7 +2198,7 @@ gen_a_det_body(X is Y) :-
     eval_form(Y),
     write(','),
     write(th),
-    write(')==YES && Jinc_proof(th)==YES)'),nl.
+    write(')==YES && Sinc_proof(th)==YES)'),nl.
 
 gen_a_det_body(X = Y) :-
     write('if(Junify('),
@@ -2206,49 +2207,49 @@ gen_a_det_body(X = Y) :-
     gen_a_argument(Y),
     write(','),
     write(th),
-    write(')==YES && Jinc_proof(th)==YES)'),nl.
+    write(')==YES && Sinc_proof(th)==YES)'),nl.
 
 gen_a_det_body(X =:= Y) :-
     write('if(Jnumeqp('),
     eval_form(X),
     write(','),
     eval_form(Y),
-    write(') && Jinc_proof(th)==YES)'),nl.
+    write(') && Sinc_proof(th)==YES)'),nl.
 
 gen_a_det_body(X =\= Y) :-
     write('if(Jnot_numeqp('),
     eval_form(X),
     write(','),
     eval_form(Y),
-    write(') && Jinc_proof(th)==YES)'),nl.
+    write(') && Sinc_proof(th)==YES)'),nl.
 
 gen_a_det_body(X < Y) :-
     write('if(Jsmallerp('),
     eval_form(X),
     write(','),
     eval_form(Y),
-    write(') && Jinc_proof(th)==YES)'),nl.
+    write(') && Sinc_proof(th)==YES)'),nl.
 
 gen_a_det_body(X =< Y) :-
     write('if(Jeqsmallerp('),
     eval_form(X),
     write(','),
     eval_form(Y),
-    write(') && Jinc_proof(th)==YES)'),nl.
+    write(') && Sinc_proof(th)==YES)'),nl.
 
 gen_a_det_body(X > Y) :-
     write('if(Jgreaterp('),
     eval_form(X),
     write(','),
     eval_form(Y),
-    write(') && Jinc_proof(th)==YES)'),nl.
+    write(') && Sinc_proof(th)==YES)'),nl.
 
 gen_a_det_body(X >= Y) :-
     write('if(Jeqgreaterp('),
     eval_form(X),
     write(','),
     eval_form(Y),
-    write(') && Jinc_proof(th)==YES)'),nl.
+    write(') && Sinc_proof(th)==YES)'),nl.
 
 
 % use_module

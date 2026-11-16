@@ -141,6 +141,7 @@ if (hmod == NULL) {
     init_f2(COMPLEMENT_IDX, (tpred) f_complement);
     init_f2(UNIFY_NIL_IDX, (tpred) unify_nil);
     init_f2(COPY_WORK_IDX, (tpred) copy_work);
+    init_f2(SET_PROOF_IDX, (tpred) set_proof);
     
 
 

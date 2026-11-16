@@ -493,6 +493,12 @@ int inc_proof(int th)
     return (YES);
 }
 
+int set_proof(int x, int th)
+{
+    proof[th] = x;
+    return(1);
+}
+
 int listcons(int x, int y)
 {
     int res;
