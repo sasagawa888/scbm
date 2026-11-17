@@ -2676,9 +2676,10 @@ int copy_work(int x, int th)
     if (IS_ALPHA(x))
         return alpha_to_variable(x);
 
-    if (nullp(x) || variablep(x) ||
+    if (nullp(x) || variablep(x) || structurep(x) ||
         singlep(x) || numberp(x) || stringp(x))
         return x;
+    
 
     int is_list = listp(x);
 
