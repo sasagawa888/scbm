@@ -44,6 +44,10 @@ compile_file(X,o) :-
 compile_file(X,a) :-
     compile_file3(X).
 
+compile_file(X,p) :-
+    compile_file4(X).
+
+
 
 % genrate only c code 
 compile_file1(X) :-
@@ -59,6 +63,11 @@ compile_file2(X) :-
 compile_file3(X) :-
     pass1(X),
     pass2(X).
+
+% generate object from c code for perf
+compile_file4(X) :-
+    invoke_gcc_perf(X).
+
 
 pass1(X) :-
     retractall(type(_,_,_)),
@@ -121,6 +130,18 @@ invoke_gcc_not_remove(X) :-
     atom_concat(Ofile,Cfile,Files),
     atom_concat('gcc -O3 -w -flto -shared -fPIC -I$HOME/scbm -o ',Files,Gen),
     shell(Gen).
+
+
+invoke_gcc_perf(X) :-
+	write(user_output,'invoke GCC for perf'),
+    nl(user_output),
+	n_filename(X,F),
+    atom_concat(F,'.c ',Cfile),
+    atom_concat(F,'.o ',Ofile),
+    atom_concat(Ofile,Cfile,Files),
+    atom_concat('gcc -O3 -g -fno-omit-frame-pointer -w -flto -shared -fPIC -I$HOME/scbm -o ',Files,Gen),
+    shell(Gen).
+
 
 
 /*
