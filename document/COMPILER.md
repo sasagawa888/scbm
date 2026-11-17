@@ -30,6 +30,11 @@ If you provide o as the second argument, it simply compiles the C source code an
 - compile_file(F,a)
 If you provide co a the second argument, it snalize prolog code. not generate c source or object code.
 
+- compile_file(F,p)
+TO use perf
+sudo sysctl -w kernel.perf_event_paranoid=1
+perf record -e cycles:u -- ./scbm
+perf report --stdio --no-children
 
 # C inline
 N-Prolog allows embedding C code in the body section. When a string is passed to cinline/1, it is directly embedded into the compiled code as is.
