@@ -27,6 +27,18 @@ perm1(Xs,[X|Ys]) :-
     select(X,Xs,Zs),
     perm1(Zs,Ys).
 
+test16a :-
+    between(1,3,X),
+    write(X),nl,
+    fail.
+
+test16b :-
+    between(1,3,X),
+    write(X),nl,
+    test_fail,
+    fail.
+
+test_fail :- fail.
 
 %9queens
 test16 :- between(1,16,X),test1,fail.
