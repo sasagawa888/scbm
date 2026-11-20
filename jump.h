@@ -801,12 +801,12 @@ static inline int Sbacktrack2(int x, int th)
             x = Sfront(x,th);
         }
     return(x);
-    } 
-
-    front = Sfront(x,th);
-    first = Sget_first(x,th);
-    Sconc(front,first,th);
-    return(first);
+    } else {
+        front = Sfront(x,th);
+        first = Sget_first(x,th);
+        Sconc(front,first,th);
+        return(first);
+    }
 }
 
 
