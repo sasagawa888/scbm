@@ -676,7 +676,7 @@ gen_SCBM_function5 :-
     write('else goto loop;'),nl,
     write('failse:'),nl,
     %write('printf("failse ");Sdump(th);'),
-    write('pc[th] = Sbacktrack1(pc[th],th);'),nl,
+    write('pc[th] = Sbacktrack2(pc[th],th);'),nl,
     %write('printf("failse ");Sdump(th);'),
     write('if (pc[th] == NIL) {Jset_proof(proof[th],th); return(NO);}'),nl,
     write('else goto loop;'),nl.
