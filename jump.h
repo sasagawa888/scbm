@@ -864,8 +864,13 @@ static inline void Srelease(int th)
     Junbind(proof_obj[blist[pc[th]][th].entity][SP_SCBM][th], th);
     Jset_ac(proof_obj[blist[pc[th]][th].entity][AC_SCBM][th] ,th);
     Jset_wp(proof_obj[blist[pc[th]][th].entity][WP_SCBM][th] ,th);
-    //lp[th] = proof_obj[blist[pc[th]][th].entity][LP_SCBM][th];
-    //op[th] = proof_obj[blist[pc[th]][th].entity][OP_SCBM][th];
+   
+}
+
+static inline void Scollect_proof(int th)
+{
+    lp[th] = proof_obj[blist[pc[th]][th].entity][LP_SCBM][th];
+    op[th] = proof_obj[blist[pc[th]][th].entity][OP_SCBM][th];
 }
 
 static inline int Sget_choice(int th)
