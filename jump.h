@@ -820,8 +820,14 @@ static inline int Smake_nondet(void* x, int n, int th)
     proof_goto[op[th]][th] = x;
     proof_obj[op[th]][CHOICE_SCBM][th] = 0;
     proof_obj[op[th]][PROP_SCBM][th] = NONDET;
-    proof_obj[op[th]][LP_SCBM][th] = lp[th];
-    proof_obj[op[th]][OP_SCBM][th] = op[th];
+
+    if(n == -1)
+        proof_obj[op[th]][LP_SCBM][th] = lp[th] + 1;
+    else 
+        proof_obj[op[th]][LP_SCBM][th] = lp[th] + n + 1;
+
+    proof_obj[op[th]][OP_SCBM][th] = op[th] + 1;
+
     if(n == 0)
         proof_obj[op[th]][FIRST_SCBM][th] = pc[th];
     else if(call_flag[th])
@@ -858,12 +864,8 @@ static inline void Srelease(int th)
     Junbind(proof_obj[blist[pc[th]][th].entity][SP_SCBM][th], th);
     Jset_ac(proof_obj[blist[pc[th]][th].entity][AC_SCBM][th] ,th);
     Jset_wp(proof_obj[blist[pc[th]][th].entity][WP_SCBM][th] ,th);
-}
-
-static inline void Sgc(int th)
-{
-    lp[th] = proof_obj[blist[pc[th]][th].entity][LP_SCBM][th];
-    op[th] = proof_obj[blist[pc[th]][th].entity][OP_SCBM][th];
+    //lp[th] = proof_obj[blist[pc[th]][th].entity][LP_SCBM][th];
+    //op[th] = proof_obj[blist[pc[th]][th].entity][OP_SCBM][th];
 }
 
 static inline int Sget_choice(int th)
