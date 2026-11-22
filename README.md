@@ -111,7 +111,7 @@ SCBM-Prolog aims to enjoy the experience of DEC10-Prolog from the 1980s.
 
 ## example
 ```prolog
-SCBM-Prolog Ver 1,01
+SCBM-Prolog Ver 1,60
 ?- length([1,2,3],X).
 X = 3
 yes
@@ -123,6 +123,8 @@ X = 1071508607186267320948425049060001810561404811705533607443750388370351051124
 6474983581941267398767559165543946077062914571196477686542167660429831652624386837205668069376
 yes
 
+?- use_module(stdlib).
+yes
 ?- append(X,Y,[1,2,3]).
 X = []
 Y = [1,2,3];
