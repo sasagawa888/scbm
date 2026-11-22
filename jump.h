@@ -752,12 +752,17 @@ static inline int Scut(int x, int th)
     return(back);
 }
 
+
+
+    
 //for force backtrack when success
 static inline int Sbacktrack1(int x, int th)
 {
     int front,first;
 
     if(Sfirst(x,th) && !Snondet(x,th)){
+        lp[th] = proof_obj[blist[x][th].entity][LP_SCBM][th];
+        op[th] = proof_obj[blist[x][th].entity][OP_SCBM][th];
         front = Sfront(x,th);
         first = Sget_first(x,th);
         Sconc(front,first,th);
@@ -769,6 +774,8 @@ static inline int Sbacktrack1(int x, int th)
             return(x);
 
         if(Sfirst(x,th)){
+            lp[th] = proof_obj[blist[x][th].entity][LP_SCBM][th];
+            op[th] = proof_obj[blist[x][th].entity][OP_SCBM][th];
             front = Sfront(x,th);
             first = Sget_first(x,th);
             Sconc(front,first,th);
@@ -793,6 +800,8 @@ static inline int Sbacktrack2(int x, int th)
             if(Snondet(x,th))
                 return(x);
             if(Sfirst(x,th)){
+                lp[th] = proof_obj[blist[x][th].entity][LP_SCBM][th];
+                op[th] = proof_obj[blist[x][th].entity][OP_SCBM][th];
                 front = Sfront(x,th);
                 first = Sget_first(x,th);
                 Sconc(front,first,th);
@@ -803,6 +812,8 @@ static inline int Sbacktrack2(int x, int th)
         }
     return(x);
     } else {
+        lp[th] = proof_obj[blist[x][th].entity][LP_SCBM][th];
+        op[th] = proof_obj[blist[x][th].entity][OP_SCBM][th];
         front = Sfront(x,th);
         first = Sget_first(x,th);
         Sconc(front,first,th);
@@ -822,11 +833,11 @@ static inline int Smake_nondet(void* x, int n, int th)
     proof_obj[op[th]][PROP_SCBM][th] = NONDET;
 
     if(n == -1)
-        proof_obj[op[th]][LP_SCBM][th] = lp[th] + 1;
+        proof_obj[op[th]][LP_SCBM][th] = lp[th];
     else 
-        proof_obj[op[th]][LP_SCBM][th] = lp[th] + n + 1;
+        proof_obj[op[th]][LP_SCBM][th] = lp[th] + n;
 
-    proof_obj[op[th]][OP_SCBM][th] = op[th] + 1;
+    proof_obj[op[th]][OP_SCBM][th] = op[th];
 
     if(n == 0)
         proof_obj[op[th]][FIRST_SCBM][th] = pc[th];
@@ -867,11 +878,6 @@ static inline void Srelease(int th)
    
 }
 
-static inline void Scollect_proof(int th)
-{
-    lp[th] = proof_obj[blist[pc[th]][th].entity][LP_SCBM][th];
-    op[th] = proof_obj[blist[pc[th]][th].entity][OP_SCBM][th];
-}
 
 static inline int Sget_choice(int th)
 {
