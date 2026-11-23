@@ -1,13 +1,13 @@
 % A set is represented as a list. 
 % Its elements are sorted in ascending order, and no duplicates are allowed.
-
+:- use_module(stdlib).
 
 %Axiom of Extensionality
 eqset(A,B) :-
     A=B.
 
 %Axiom of Empty Set
-emptyset([]).
+%emptyset([]).
 
 %Axiom of Pairing
 pairset(A,B,P) :-
@@ -72,3 +72,4 @@ choice([A|As],0,A).
 choice([A|As],N,B) :-
     N1 is N-1,
     choice(As,N1,B).
+
