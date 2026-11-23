@@ -35,7 +35,7 @@ list50([27, 74, 17, 33, 94, 18, 46, 83, 65, 2, 32, 53, 28, 85, 99, 47, 28, 82, 6
         74, 18, 92, 40, 55, 59, 8]).
 
 
-/*
+
 % Repeat a procedure
 repeat_for(0) :- !, fail.
 repeat_for(N).
@@ -68,4 +68,3 @@ run(_,_).
 % Testing and benchmarking
 test(F, N) :-
     measure(run(F, N)).
-*/
